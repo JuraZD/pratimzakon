@@ -1,7 +1,9 @@
 import sys
 import os
 
-sys.path.insert(0, os.path.dirname(__file__))
+backend_dir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(backend_dir)
+sys.path.insert(0, backend_dir)
 
 from app.main import app
 
