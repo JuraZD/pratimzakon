@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard – PratimZakon</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-600: #4b5563;
+      --gray-900: #111827;
+      --red: #dc2626;
+    }
+    body { font-family: system-ui, -apple-system, sans-serif; color: var(--gray-900); background: var(--gray-50); min-height: 100vh; }
+
+    /* NAV */
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 14px 5%; background: #fff; border-bottom: 1px solid var(--gray-200); }
+    .logo { font-size: 18px; font-weight: 700; color: var(--blue); text-decoration: none; }
+    .nav-right { display: flex; gap: 12px; align-items: center; font-size: 14px; }
+    #userEmail { color: var(--gray-600); }
+    .btn { display: inline-block; padding: 8px 18px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-primary:hover { background: var(--blue-dark); }
+    .btn-outline { border: 1px solid var(--gray-200); color: var(--gray-600); background: #fff; }
+    .btn-danger { background: #fee2e2; color: var(--red); border: none; padding: 6px 12px; border-radius: 4px; font-size: 13px; cursor: pointer; }
+    .btn-danger:hover { background: #fecaca; }
+
+    /* LAYOUT */
+    main { max-width: 860px; margin: 0 auto; padding: 40px 5%; }
+    .card { background: #fff; border: 1px solid var(--gray-200); border-radius: 12px; padding: 28px; margin-bottom: 24px; }
+    .card-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+
+    /* STATUS BAR */
+    .status-bar { display: flex; gap: 24px; flex-wrap: wrap; }
+    .status-item { flex: 1; min-width: 120px; }
+    .status-label { font-size: 12px; color: var(--gray-600); text-transform: uppercase; letter-spacing: .5px; }
+    .status-value { font-size: 22px; font-weight: 700; margin-top: 4px; }
+    .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .badge-free { background: var(--gray-100); color: var(--gray-600); }
+    .badge-active { background: #dcfce7; color: #15803d; }
+    .badge-expired { background: #fee2e2; color: var(--red); }
+
+    /* KEYWORDS */
+    .kw-list { list-style: none; margin-bottom: 20px; }
+    .kw-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+    .kw-item:last-child { border-bottom: none; }
+    .kw-tag { font-size: 14px; background: #eff6ff; color: var(--blue); padding: 4px 12px; border-radius: 999px; font-weight: 500; }
+    .kw-empty { font-size: 14px; color: var(--gray-600); text-align: center; padding: 24px 0; }
+
+    /* ADD KEYWORD */
+    .kw-add { display: flex; gap: 10px; }
+    .kw-add input { flex: 1; padding: 10px 14px; border: 1px solid var(--gray-200); border-radius: 6px; font-size: 14px; }
+    .kw-add input:focus { outline: none; border-color: var(--blue); }
+
+    /* LIMIT BAR */
+    .limit-bar { margin-top: 16px; }
+    .limit-text { font-size: 13px; color: var(--gray-600); margin-bottom: 6px; }
+    .limit-track { height: 6px; background: var(--gray-100); border-radius: 999px; overflow: hidden; }
+    .limit-fill { height: 100%; background: var(--blue); border-radius: 999px; transition: width .3s; }
+
+    /* UPGRADE */
+    .upgrade-card { background: #eff6ff; border-color: #bfdbfe; }
+    .upgrade-plans { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+    .upgrade-plan { background: #fff; border: 1px solid var(--gray-200); border-radius: 8px; padding: 20px; }
+    .upgrade-plan h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+    .upgrade-plan p { font-size: 13px; color: var(--gray-600); margin-bottom: 12px; }
+    .upgrade-plan .price { font-size: 22px; font-weight: 800; margin-bottom: 12px; }
+    .upgrade-plan .price span { font-size: 13px; font-weight: 400; color: var(--gray-600); }
+
+    .msg { font-size: 13px; margin-top: 10px; }
+    .msg-error { color: var(--red); }
+    .msg-success { color: #15803d; }
+
+    @media (max-width: 480px) {
+      .upgrade-plans { grid-template-columns: 1fr; }
+      .status-bar { flex-direction: column; gap: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">PratimZakon</a>
+  <div class="nav-right">
+    <span id="userEmail">–</span>
+    <button class="btn btn-outline" onclick="logout()">Odjava</button>
+  </div>
+</nav>
+
+<main id="mainContent" style="display:none">
+
+  <!-- STATUS -->
+  <div class="card">
+    <div class="card-title">Vaš račun</div>
+    <div class="status-bar">
+      <div class="status-item">
+        <div class="status-label">Status pretplate</div>
+        <div class="status-value"><span class="badge" id="statusBadge">–</span></div>
+      </div>
+      <div class="status-item">
+        <div class="status-label">Aktivno do</div>
+        <div class="status-value" id="subEnd">–</div>
+      </div>
+      <div class="status-item">
+        <div class="status-label">Ključne riječi</div>
+        <div class="status-value" id="kwCount">–</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- KEYWORDS -->
+  <div class="card">
+    <div class="card-title">Moje ključne riječi</div>
+    <ul class="kw-list" id="kwList"></ul>
+
+    <div class="kw-add">
+      <input type="text" id="kwInput" placeholder="npr. zakon o radu" maxlength="100" onkeydown="if(event.key==='Enter')addKeyword()">
+      <button class="btn btn-primary" onclick="addKeyword()">Dodaj</button>
+    </div>
+    <div class="msg msg-error" id="kwError" style="display:none"></div>
+    <div class="msg msg-success" id="kwSuccess" style="display:none"></div>
+
+    <div class="limit-bar">
+      <div class="limit-text" id="limitText">0 / 0 ključnih riječi</div>
+      <div class="limit-track"><div class="limit-fill" id="limitFill" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <!-- UPGRADE (skriveno ako je already paid) -->
+  <div class="card upgrade-card" id="upgradeCard">
+    <div class="card-title">Nadogradite plan</div>
+    <p style="font-size:14px;color:var(--gray-600);margin-bottom:4px;">Pratite više ključnih pojmova uz plaćeni plan.</p>
+    <div class="upgrade-plans">
+      <div class="upgrade-plan">
+        <h3>Basic</h3>
+        <div class="price">4,99 <span>€/mj</span></div>
+        <p>Do 10 ključnih riječi</p>
+        <button class="btn btn-primary" style="width:100%" onclick="checkout('basic')">Odaberi Basic</button>
+      </div>
+      <div class="upgrade-plan">
+        <h3>Plus</h3>
+        <div class="price">7,99 <span>€/mj</span></div>
+        <p>Do 20 ključnih riječi</p>
+        <button class="btn btn-outline" style="width:100%" onclick="checkout('plus')">Odaberi Plus</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  const API = "https://pratimzakon-api.onrender.com";
+
+  let userData = null;
+  let keywords = [];
+
+  function getToken() { return localStorage.getItem("token"); }
+
+  function logout() {
+    localStorage.removeItem("token");
+    window.location.href = "index.html";
+  }
+
+  async function authFetch(url, opts = {}) {
+    const token = getToken();
+    if (!token) { window.location.href = "index.html"; return null; }
+    opts.headers = { ...(opts.headers || {}), Authorization: `Bearer ${token}` };
+    const res = await fetch(API + url, opts);
+    if (res.status === 401) { logout(); return null; }
+    return res;
+  }
+
+  async function loadUser() {
+    const res = await authFetch("/auth/me");
+    if (!res) return;
+    userData = await res.json();
+
+    document.getElementById("userEmail").textContent = userData.email;
+    document.getElementById("subEnd").textContent = userData.subscription_end || "–";
+    document.getElementById("mainContent").style.display = "block";
+
+    const badge = document.getElementById("statusBadge");
+    badge.textContent = { free: "Besplatno", active: "Aktivno", expired: "Isteklo" }[userData.subscription_status] || userData.subscription_status;
+    badge.className = `badge badge-${userData.subscription_status}`;
+
+    if (userData.subscription_status === "active") {
+      document.getElementById("upgradeCard").style.display = "none";
+    }
+  }
+
+  async function loadKeywords() {
+    const res = await authFetch("/keywords/");
+    if (!res) return;
+    keywords = await res.json();
+    renderKeywords();
+  }
+
+  function renderKeywords() {
+    const list = document.getElementById("kwList");
+    const limit = userData?.keyword_limit || 3;
+    const count = keywords.length;
+
+    document.getElementById("kwCount").textContent = count;
+    document.getElementById("limitText").textContent = `${count} / ${limit} ključnih riječi`;
+    document.getElementById("limitFill").style.width = `${Math.min(100, (count / limit) * 100)}%`;
+
+    if (keywords.length === 0) {
+      list.innerHTML = '<li class="kw-empty">Još niste dodali ključne riječi.</li>';
+      return;
+    }
+    list.innerHTML = keywords.map(kw => `
+      <li class="kw-item">
+        <span class="kw-tag">${escHtml(kw.keyword)}</span>
+        <button class="btn-danger" onclick="deleteKeyword(${kw.id})">Ukloni</button>
+      </li>`).join("");
+  }
+
+  async function addKeyword() {
+    const input = document.getElementById("kwInput");
+    const keyword = input.value.trim();
+    const errEl = document.getElementById("kwError");
+    const okEl = document.getElementById("kwSuccess");
+    errEl.style.display = "none"; okEl.style.display = "none";
+
+    if (!keyword) return;
+
+    const res = await authFetch("/keywords/", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ keyword }),
+    });
+    if (!res) return;
+    const data = await res.json();
+
+    if (res.ok) {
+      input.value = "";
+      keywords.push(data);
+      renderKeywords();
+      okEl.textContent = `"${data.keyword}" dodano.`;
+      okEl.style.display = "block";
+      setTimeout(() => okEl.style.display = "none", 3000);
+    } else {
+      errEl.textContent = data.detail || "Greška.";
+      errEl.style.display = "block";
+    }
+  }
+
+  async function deleteKeyword(id) {
+    const res = await authFetch(`/keywords/${id}`, { method: "DELETE" });
+    if (!res) return;
+    if (res.status === 204) {
+      keywords = keywords.filter(k => k.id !== id);
+      renderKeywords();
+    }
+  }
+
+  async function checkout(plan) {
+    const res = await authFetch(`/stripe/checkout/${plan}`, { method: "POST" });
+    if (!res) return;
+    const data = await res.json();
+    if (data.checkout_url) window.location.href = data.checkout_url;
+  }
+
+  function escHtml(str) {
+    return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+  }
+
+  // Init
+  if (!getToken()) {
+    window.location.href = "index.html";
+  } else {
+    loadUser().then(loadKeywords);
+
+    // Handle post-Stripe redirect
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("success")) {
+      document.getElementById("kwSuccess").textContent = "Pretplata aktivirana! Osvježite stranicu.";
+      document.getElementById("kwSuccess").style.display = "block";
+    }
+  }
+</script>
+</body>
+</html>
