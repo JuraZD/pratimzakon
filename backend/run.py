@@ -1,10 +1,15 @@
-import sys
+#!/usr/bin/env python3
 import os
+import sys
 
-backend_dir = os.path.dirname(os.path.abspath(__file__))
-os.chdir(backend_dir)
-sys.path.insert(0, backend_dir)
+# Get the absolute path of the backend directory
+backend_dir = os.path.abspath(os.path.dirname(__file__))
 
+# Add backend to path
+if backend_dir not in sys.path:
+    sys.path.insert(0, backend_dir)
+
+# Now import
 from app.main import app
 
 if __name__ == "__main__":
