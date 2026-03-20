@@ -132,6 +132,7 @@ def _parse_jsonld(data: list, year: int, number: int, act_num: str) -> Optional[
     legal_resource = None
     legal_expression = None
     html_url = None
+    pdf_url = None
 
     for item in data:
         types = [t for t in item.get("@type", [])]
@@ -140,11 +141,12 @@ def _parse_jsonld(data: list, year: int, number: int, act_num: str) -> Optional[
         elif f"{ELI}LegalExpression" in types:
             legal_expression = item
         elif f"{ELI}Format" in types:
-            # Prefer /hrv/html format
             fmt_id = item.get("@id", "")
             fmt_type = item.get(f"{ELI}format", [{}])[0].get("@id", "")
             if fmt_id.endswith("/html") and "text/html" in fmt_type:
                 html_url = fmt_id
+            elif fmt_id.endswith("/pdf") and "application/pdf" in fmt_type:
+                pdf_url = fmt_id
 
     if not legal_expression:
         return None
@@ -181,6 +183,7 @@ def _parse_jsonld(data: list, year: int, number: int, act_num: str) -> Optional[
     return {
         "title": title,
         "url": html_url,
+        "pdf_url": pdf_url,
         "type": doc_type,
         "published_date": published_date,
         "issue_number": number,

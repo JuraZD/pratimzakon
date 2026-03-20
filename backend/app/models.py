@@ -18,6 +18,8 @@ class User(Base):
     subscription_status = Column(String, default="free")  # free | active | expired
     subscription_end = Column(Date, nullable=True)
     keyword_limit = Column(Integer, default=3)
+    plan = Column(String, default="free")  # free | pro | expert
+    include_mu = Column(Boolean, default=False)  # uključi međunarodne ugovore (MU)
     unsubscribe_token = Column(String, unique=True, default=lambda: secrets.token_urlsafe(32))
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -31,6 +33,7 @@ class Keyword(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     keyword = Column(String, nullable=False)
+    document_types = Column(String, nullable=True)  # npr. "ZAKON,UREDBA" – null = svi tipovi
 
     user = relationship("User", back_populates="keywords")
 
@@ -41,7 +44,9 @@ class Document(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(Text, nullable=False)
     url = Column(Text, nullable=False)
+    pdf_url = Column(Text, nullable=True)
     type = Column(String)
+    part = Column(String, default="SL")  # SL (službeni) | MU (međunarodni ugovori)
     published_date = Column(Date)
     issue_number = Column(Integer, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)

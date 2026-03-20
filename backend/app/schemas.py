@@ -27,6 +27,8 @@ class UserOut(BaseModel):
     subscription_status: str
     subscription_end: Optional[date]
     keyword_limit: int
+    plan: str
+    include_mu: bool
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -36,11 +38,13 @@ class UserOut(BaseModel):
 
 class KeywordCreate(BaseModel):
     keyword: str
+    document_types: Optional[str] = None  # npr. "ZAKON,UREDBA" – null = svi tipovi
 
 
 class KeywordOut(BaseModel):
     id: int
     keyword: str
+    document_types: Optional[str] = None
 
     model_config = {"from_attributes": True}
 

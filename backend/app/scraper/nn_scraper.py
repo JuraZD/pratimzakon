@@ -146,33 +146,36 @@ class NarodneNovineScraper:
     # ------------------------------------------------------------------
 
     def scrape_nn_broj(self, godina: int, broj: int) -> List[Dict]:
-        """Dohvaća dokumente za određeni NN broj. API → fallback na HTML."""
-        # Pokušaj putem API-ja
-        entries = self._fetch_via_api(godina, broj)
+        """Dohvaća SL dokumente za određeni NN broj. API → fallback na HTML."""
+        entries = self._fetch_via_api(godina, broj, "SL")
         if entries:
             return entries
 
-        # Fallback: staro HTML scraping
         logging.warning(f"[API] Fallback na HTML scraping za NN {broj}/{godina}")
         return self._scrape_nn_broj_html(godina, broj)
 
-    def _fetch_via_api(self, godina: int, broj: int) -> List[Dict]:
+    def scrape_mu_broj(self, godina: int, broj: int) -> List[Dict]:
+        """Dohvaća MU (međunarodni ugovori) dokumente za određeni broj."""
+        return self._fetch_via_api(godina, broj, "MU")
+
+    def _fetch_via_api(self, godina: int, broj: int, part: str = "SL") -> List[Dict]:
         """Dohvaća sve propise za jedno izdanje putem NN API-ja."""
-        act_nums = self.nn_api.get_acts(godina, broj)
+        act_nums = self.nn_api.get_acts(godina, broj, part)
         if not act_nums:
-            logging.warning(f"[API] Nema propisa za NN {broj}/{godina} (ili izdanje ne postoji)")
+            logging.warning(f"[API] Nema propisa za NN {broj}/{godina} {part} (ili izdanje ne postoji)")
             return []
 
-        logging.info(f"[API] NN {broj}/{godina}: {len(act_nums)} propisa")
+        logging.info(f"[API] NN {broj}/{godina} {part}: {len(act_nums)} propisa")
         results = []
         for act_num in act_nums:
-            meta = self.nn_api.get_act_metadata(godina, broj, act_num)
+            meta = self.nn_api.get_act_metadata(godina, broj, act_num, part)
             if meta:
+                meta["part"] = part
                 results.append(meta)
             else:
                 logging.debug(f"[API] Nema metapodataka za akt {act_num}")
 
-        logging.info(f"[API] NN {broj}/{godina}: dohvaćeno {len(results)}/{len(act_nums)} propisa")
+        logging.info(f"[API] NN {broj}/{godina} {part}: dohvaćeno {len(results)}/{len(act_nums)} propisa")
         return results
 
     def _scrape_nn_broj_html(self, godina: int, broj: int) -> List[Dict]:
@@ -263,7 +266,9 @@ class NarodneNovineScraper:
             doc = Document(
                 title=entry["title"],
                 url=entry["url"],
+                pdf_url=entry.get("pdf_url"),
                 type=entry.get("type", ""),
+                part=entry.get("part", "SL"),
                 published_date=entry.get("published_date"),
                 issue_number=entry.get("issue_number"),
             )
@@ -285,19 +290,26 @@ class NarodneNovineScraper:
 
         db = _get_db_session()
         try:
-            godina, zadnji_broj = self.get_latest_nn_broj(db)
-            entries = self.scrape_nn_broj(godina, zadnji_broj)
+            godina, zadnji_sl = self.get_latest_nn_broj(db)
+            all_entries = self.scrape_nn_broj(godina, zadnji_sl)
 
-            if not entries:
+            # Dohvati MU (međunarodni ugovori) – zadnje izdanje za tekuću godinu
+            zadnji_mu = self.nn_api.get_latest_edition(godina, "MU")
+            if zadnji_mu:
+                mu_entries = self.scrape_mu_broj(godina, zadnji_mu)
+                all_entries.extend(mu_entries)
+                logging.info(f"MU {zadnji_mu}/{godina}: {len(mu_entries)} dokumenata")
+
+            if not all_entries:
                 logging.warning("Nema dokumenata za scraping")
                 db.add(Log(event_type="scrape", detail="Nema novih objava"))
                 db.commit()
                 return 0
 
-            new_count, new_ids = self.save_documents(entries, db)
+            new_count, new_ids = self.save_documents(all_entries, db)
             logging.info(f"Novih zapisa: {new_count}")
 
-            db.add(Log(event_type="scrape", detail=f"NN {zadnji_broj}/{godina}: {new_count} novih"))
+            db.add(Log(event_type="scrape", detail=f"NN SL {zadnji_sl}/{godina} + MU: {new_count} novih"))
             db.commit()
 
             if new_ids:

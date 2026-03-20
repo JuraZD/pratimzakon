@@ -43,12 +43,15 @@ def _send_smtp(to_email: str, subject: str, html_body: str, text_body: str) -> b
 def _build_email(user, matches: List[Dict]) -> tuple[str, str]:
     """
     Gradi HTML i plain-text email s popisom matcheva.
-    matches = [{"keyword": str, "document_title": str, "document_url": str}]
+    matches = [{"keyword": str, "document_title": str, "document_url": str,
+                "pdf_url": str|None, "doc_type": str, "part": str}]
     """
     unsubscribe_url = f"{BASE_URL}/auth/unsubscribe?token={user.unsubscribe_token}"
+    is_paid = getattr(user, "plan", "free") in ("pro", "expert")
 
     if user.subscription_status == "active" and user.subscription_end:
-        status_text = f"Aktivna pretplata do {user.subscription_end.strftime('%d.%m.%Y.')}"
+        plan_name = "Pro" if getattr(user, "plan", "") == "pro" else "Expert"
+        status_text = f"{plan_name} paket – aktivan do {user.subscription_end.strftime('%d.%m.%Y.')}"
     else:
         status_text = "Besplatni paket"
 
@@ -62,9 +65,11 @@ def _build_email(user, matches: List[Dict]) -> tuple[str, str]:
         lines += [
             f"Ključna riječ: {m['keyword']}",
             f"Dokument: {m['document_title']}",
-            f"Link: {m['document_url']}",
-            "",
+            f"HTML: {m['document_url']}",
         ]
+        if is_paid and m.get("pdf_url"):
+            lines.append(f"PDF: {m['pdf_url']}")
+        lines.append("")
     lines += [
         f"Status: {status_text}",
         "",
@@ -77,17 +82,25 @@ def _build_email(user, matches: List[Dict]) -> tuple[str, str]:
     # HTML
     cards_html = ""
     for m in matches:
+        part_badge = ""
+        if m.get("part") == "MU":
+            part_badge = '<span style="font-size:10px;background:#7c3aed;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;">MU</span>'
+
+        pdf_link = ""
+        if is_paid and m.get("pdf_url"):
+            pdf_link = f'<a href="{m["pdf_url"]}" style="color:#6b7280;font-size:13px;text-decoration:none;margin-left:12px;">Preuzmi PDF ↓</a>'
+
         cards_html += f"""
         <div style="background:#f8f9fa;border-left:4px solid #2563eb;padding:16px;margin-bottom:16px;border-radius:4px;">
             <p style="margin:0 0 4px;font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;">
-                Ključna riječ: <strong>{m['keyword']}</strong>
+                Ključna riječ: <strong>{m['keyword']}</strong>{part_badge}
             </p>
             <p style="margin:0 0 8px;font-size:15px;font-weight:600;color:#111827;">
                 {m['document_title']}
             </p>
             <a href="{m['document_url']}" style="color:#2563eb;font-size:14px;text-decoration:none;">
                 Otvori dokument →
-            </a>
+            </a>{pdf_link}
         </div>"""
 
     html = f"""<!DOCTYPE html>
@@ -148,15 +161,36 @@ def send_keyword_notifications(new_document_ids: List[int], db: Session) -> Dict
         if not user.keywords:
             continue
 
+        user_plan = getattr(user, "plan", "free")
+        include_mu = getattr(user, "include_mu", False)
+
         matches = []
         for kw_obj in user.keywords:
             kw = kw_obj.keyword.lower()
+
+            # Parsiraj filter tipova za ovu ključnu riječ
+            allowed_types = None
+            if kw_obj.document_types:
+                allowed_types = {t.strip().upper() for t in kw_obj.document_types.split(",")}
+
             for doc in documents:
+                # MU dokumenti samo za Pro/Expert korisnike s uključenim MU
+                if getattr(doc, "part", "SL") == "MU":
+                    if user_plan not in ("pro", "expert") or not include_mu:
+                        continue
+
+                # Filter po tipu dokumenta (samo ako je postavljen)
+                if allowed_types and doc.type and doc.type.upper() not in allowed_types:
+                    continue
+
                 if kw in doc.title.lower():
                     matches.append({
                         "keyword": kw_obj.keyword,
                         "document_title": doc.title,
                         "document_url": doc.url,
+                        "pdf_url": getattr(doc, "pdf_url", None),
+                        "doc_type": getattr(doc, "type", ""),
+                        "part": getattr(doc, "part", "SL"),
                     })
 
         if not matches:
