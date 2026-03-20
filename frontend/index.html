@@ -815,22 +815,31 @@
     const password = document.getElementById("regPassword").value;
     const errEl = document.getElementById("regError");
     const okEl = document.getElementById("regSuccess");
+    const btn = document.querySelector("#registerForm .form-submit");
     errEl.style.display = "none"; okEl.style.display = "none";
     if (!email || password.length < 8) {
       errEl.textContent = "Unesite valjanu email adresu i lozinku (min. 8 znakova).";
       errEl.style.display = "block"; return;
     }
-    const res = await fetch(`${API}/auth/register`, {
-      method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      okEl.textContent = "Registracija uspješna! Provjerite email za potvrdu.";
-      okEl.style.display = "block";
-    } else {
-      errEl.textContent = data.detail || "Greška pri registraciji.";
+    btn.disabled = true; btn.textContent = "Molimo pričekajte...";
+    try {
+      const res = await fetch(`${API}/auth/register`, {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        okEl.textContent = "Registracija uspješna! Provjerite email za potvrdu.";
+        okEl.style.display = "block";
+      } else {
+        errEl.textContent = data.detail || "Greška pri registraciji.";
+        errEl.style.display = "block";
+      }
+    } catch (e) {
+      errEl.textContent = "Greška pri spajanju na server. Pokušajte ponovo.";
       errEl.style.display = "block";
+    } finally {
+      btn.disabled = false; btn.textContent = "Registriraj se";
     }
   }
 
@@ -838,18 +847,27 @@
     const email = document.getElementById("loginEmail").value;
     const password = document.getElementById("loginPassword").value;
     const errEl = document.getElementById("loginError");
+    const btn = document.querySelector("#loginForm .form-submit");
     errEl.style.display = "none";
-    const res = await fetch(`${API}/auth/login`, {
-      method: "POST", headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    if (res.ok) {
-      localStorage.setItem("token", data.access_token);
-      window.location.href = "dashboard.html";
-    } else {
-      errEl.textContent = data.detail || "Pogrešan email ili lozinka.";
+    btn.disabled = true; btn.textContent = "Molimo pričekajte...";
+    try {
+      const res = await fetch(`${API}/auth/login`, {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        localStorage.setItem("token", data.access_token);
+        window.location.href = "dashboard.html";
+      } else {
+        errEl.textContent = data.detail || "Pogrešan email ili lozinka.";
+        errEl.style.display = "block";
+      }
+    } catch (e) {
+      errEl.textContent = "Greška pri spajanju na server. Pokušajte ponovo.";
       errEl.style.display = "block";
+    } finally {
+      btn.disabled = false; btn.textContent = "Prijavi se";
     }
   }
 
