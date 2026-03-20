@@ -55,6 +55,7 @@ def register(data: UserRegister, db: Session = Depends(get_db)):
         email=data.email,
         password_hash=hash_password(data.password),
         unsubscribe_token=secrets.token_urlsafe(32),
+        email_verified=True,  # Auto-verify za testiranje
     )
     # Koristimo unsubscribe_token privremeno za verifikaciju – u produkciji dodaj poseban stupac
     user._verification_token = verification_token
