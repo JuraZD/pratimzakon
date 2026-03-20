@@ -15,6 +15,8 @@
       --gray-600: #4b5563;
       --gray-900: #111827;
       --red: #dc2626;
+      --purple: #7c3aed;
+      --purple-light: #ede9fe;
     }
     body { font-family: system-ui, -apple-system, sans-serif; color: var(--gray-900); background: var(--gray-50); min-height: 100vh; }
 
@@ -37,25 +39,45 @@
 
     /* STATUS BAR */
     .status-bar { display: flex; gap: 24px; flex-wrap: wrap; }
-    .status-item { flex: 1; min-width: 120px; }
+    .status-item { flex: 1; min-width: 100px; }
     .status-label { font-size: 12px; color: var(--gray-600); text-transform: uppercase; letter-spacing: .5px; }
-    .status-value { font-size: 22px; font-weight: 700; margin-top: 4px; }
-    .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .status-value { font-size: 20px; font-weight: 700; margin-top: 4px; }
+    .badge { display: inline-block; padding: 3px 12px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: .3px; }
     .badge-free { background: var(--gray-100); color: var(--gray-600); }
     .badge-active { background: #dcfce7; color: #15803d; }
     .badge-expired { background: #fee2e2; color: var(--red); }
+    .badge-plan-free { background: var(--gray-100); color: var(--gray-600); font-size: 13px; padding: 4px 14px; }
+    .badge-plan-pro { background: #dbeafe; color: var(--blue); font-size: 13px; padding: 4px 14px; }
+    .badge-plan-expert { background: var(--purple-light); color: var(--purple); font-size: 13px; padding: 4px 14px; }
+
+    /* MU TOGGLE */
+    .mu-row { display: flex; align-items: center; justify-content: space-between; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--gray-100); }
+    .mu-label { font-size: 14px; }
+    .mu-label strong { display: block; font-size: 14px; font-weight: 600; }
+    .mu-label span { font-size: 12px; color: var(--gray-600); }
+    .toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
+    .toggle input { opacity: 0; width: 0; height: 0; }
+    .toggle-slider { position: absolute; inset: 0; background: var(--gray-200); border-radius: 999px; cursor: pointer; transition: background .2s; }
+    .toggle-slider::before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform .2s; }
+    .toggle input:checked + .toggle-slider { background: var(--blue); }
+    .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+    .toggle input:disabled + .toggle-slider { opacity: .4; cursor: not-allowed; }
 
     /* KEYWORDS */
     .kw-list { list-style: none; margin-bottom: 20px; }
-    .kw-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+    .kw-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--gray-100); gap: 12px; }
     .kw-item:last-child { border-bottom: none; }
+    .kw-left { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
     .kw-tag { font-size: 14px; background: #eff6ff; color: var(--blue); padding: 4px 12px; border-radius: 999px; font-weight: 500; }
+    .kw-type-tag { font-size: 11px; background: var(--gray-100); color: var(--gray-600); padding: 2px 8px; border-radius: 999px; font-weight: 600; letter-spacing: .3px; }
     .kw-empty { font-size: 14px; color: var(--gray-600); text-align: center; padding: 24px 0; }
 
     /* ADD KEYWORD */
-    .kw-add { display: flex; gap: 10px; }
-    .kw-add input { flex: 1; padding: 10px 14px; border: 1px solid var(--gray-200); border-radius: 6px; font-size: 14px; }
-    .kw-add input:focus { outline: none; border-color: var(--blue); }
+    .kw-add { display: flex; gap: 10px; flex-wrap: wrap; }
+    .kw-add input[type="text"] { flex: 1; min-width: 160px; padding: 10px 14px; border: 1px solid var(--gray-200); border-radius: 6px; font-size: 14px; }
+    .kw-add input[type="text"]:focus { outline: none; border-color: var(--blue); }
+    .kw-add select { padding: 10px 12px; border: 1px solid var(--gray-200); border-radius: 6px; font-size: 13px; color: var(--gray-600); background: #fff; display: none; }
+    .kw-add select.visible { display: block; }
 
     /* LIMIT BAR */
     .limit-bar { margin-top: 16px; }
@@ -68,9 +90,10 @@
     .upgrade-plans { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
     .upgrade-plan { background: #fff; border: 1px solid var(--gray-200); border-radius: 8px; padding: 20px; }
     .upgrade-plan h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-    .upgrade-plan p { font-size: 13px; color: var(--gray-600); margin-bottom: 12px; }
-    .upgrade-plan .price { font-size: 22px; font-weight: 800; margin-bottom: 12px; }
+    .upgrade-plan .price { font-size: 22px; font-weight: 800; margin: 8px 0; }
     .upgrade-plan .price span { font-size: 13px; font-weight: 400; color: var(--gray-600); }
+    .upgrade-plan ul { font-size: 12px; color: var(--gray-600); padding-left: 0; list-style: none; margin-bottom: 14px; display: flex; flex-direction: column; gap: 4px; }
+    .upgrade-plan ul li::before { content: "· "; }
 
     .msg { font-size: 13px; margin-top: 10px; }
     .msg-error { color: var(--red); }
@@ -99,6 +122,10 @@
     <div class="card-title">Vaš račun</div>
     <div class="status-bar">
       <div class="status-item">
+        <div class="status-label">Plan</div>
+        <div class="status-value"><span class="badge" id="planBadge">–</span></div>
+      </div>
+      <div class="status-item">
         <div class="status-label">Status pretplate</div>
         <div class="status-value"><span class="badge" id="statusBadge">–</span></div>
       </div>
@@ -111,6 +138,18 @@
         <div class="status-value" id="kwCount">–</div>
       </div>
     </div>
+
+    <!-- MU TOGGLE (vidljiv samo Pro/Expert) -->
+    <div class="mu-row" id="muRow" style="display:none">
+      <div class="mu-label">
+        <strong>Međunarodni ugovori (MU)</strong>
+        <span>Primajte obavijesti i za MU izdanja Narodnih novina</span>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="muToggle" onchange="updateMu(this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
   </div>
 
   <!-- KEYWORDS -->
@@ -120,6 +159,16 @@
 
     <div class="kw-add">
       <input type="text" id="kwInput" placeholder="npr. zakon o radu" maxlength="100" onkeydown="if(event.key==='Enter')addKeyword()">
+      <select id="kwTypeSelect">
+        <option value="">Svi tipovi</option>
+        <option value="ZAKON">Zakon</option>
+        <option value="UREDBA">Uredba</option>
+        <option value="PRAVILNIK">Pravilnik</option>
+        <option value="ODLUKA">Odluka</option>
+        <option value="NAREDBA">Naredba</option>
+        <option value="RJEŠENJE">Rješenje</option>
+        <option value="UGOVOR">Ugovor (MU)</option>
+      </select>
       <button class="btn btn-primary" onclick="addKeyword()">Dodaj</button>
     </div>
     <div class="msg msg-error" id="kwError" style="display:none"></div>
@@ -132,21 +181,32 @@
   </div>
 
   <!-- UPGRADE (skriveno ako je already paid) -->
-  <div class="card upgrade-card" id="upgradeCard">
+  <div class="card upgrade-card" id="upgradeCard" style="display:none">
     <div class="card-title">Nadogradite plan</div>
-    <p style="font-size:14px;color:var(--gray-600);margin-bottom:4px;">Pratite više ključnih pojmova uz plaćeni plan.</p>
+    <p style="font-size:14px;color:var(--gray-600);margin-bottom:4px;">Pratite više ključnih pojmova i dobijte napredne funkcije.</p>
     <div class="upgrade-plans">
       <div class="upgrade-plan">
-        <h3>Basic</h3>
+        <h3>Pro</h3>
         <div class="price">4,99 <span>€/mj</span></div>
-        <p>Do 10 ključnih riječi</p>
-        <button class="btn btn-primary" style="width:100%" onclick="checkout('basic')">Odaberi Basic</button>
+        <ul>
+          <li>Do 15 ključnih riječi</li>
+          <li>PDF link u emailu</li>
+          <li>Filter po tipu dokumenta</li>
+          <li>Međunarodni ugovori (MU)</li>
+        </ul>
+        <button class="btn btn-primary" style="width:100%" onclick="checkout('pro')">Odaberi Pro</button>
       </div>
       <div class="upgrade-plan">
-        <h3>Plus</h3>
+        <h3>Expert</h3>
         <div class="price">7,99 <span>€/mj</span></div>
-        <p>Do 20 ključnih riječi</p>
-        <button class="btn btn-outline" style="width:100%" onclick="checkout('plus')">Odaberi Plus</button>
+        <ul>
+          <li>Neograničene ključne riječi</li>
+          <li>PDF link u emailu</li>
+          <li>Filter po tipu i instituciji</li>
+          <li>Međunarodni ugovori (MU)</li>
+          <li>Povijesna pretraga (od 2015.)</li>
+        </ul>
+        <button class="btn btn-outline" style="width:100%" onclick="checkout('expert')">Odaberi Expert</button>
       </div>
     </div>
   </div>
@@ -181,15 +241,38 @@
     userData = await res.json();
 
     document.getElementById("userEmail").textContent = userData.email;
-    document.getElementById("subEnd").textContent = userData.subscription_end || "–";
     document.getElementById("mainContent").style.display = "block";
 
-    const badge = document.getElementById("statusBadge");
-    badge.textContent = { free: "Besplatno", active: "Aktivno", expired: "Isteklo" }[userData.subscription_status] || userData.subscription_status;
-    badge.className = `badge badge-${userData.subscription_status}`;
+    // Plan badge
+    const planNames = { free: "Free", pro: "Pro", expert: "Expert" };
+    const planBadge = document.getElementById("planBadge");
+    planBadge.textContent = planNames[userData.plan] || userData.plan;
+    planBadge.className = `badge badge-plan-${userData.plan || "free"}`;
 
-    if (userData.subscription_status === "active") {
-      document.getElementById("upgradeCard").style.display = "none";
+    // Status badge
+    const statusBadge = document.getElementById("statusBadge");
+    statusBadge.textContent = { free: "Besplatno", active: "Aktivno", expired: "Isteklo" }[userData.subscription_status] || userData.subscription_status;
+    statusBadge.className = `badge badge-${userData.subscription_status}`;
+
+    // Datum isteka
+    document.getElementById("subEnd").textContent = userData.subscription_end
+      ? new Date(userData.subscription_end).toLocaleDateString("hr-HR") : "–";
+
+    // MU toggle
+    const isPaid = userData.plan === "pro" || userData.plan === "expert";
+    if (isPaid) {
+      document.getElementById("muRow").style.display = "flex";
+      document.getElementById("muToggle").checked = userData.include_mu;
+    }
+
+    // Type select – vidljiv samo za Pro/Expert
+    if (isPaid) {
+      document.getElementById("kwTypeSelect").classList.add("visible");
+    }
+
+    // Upgrade card
+    if (userData.subscription_status !== "active") {
+      document.getElementById("upgradeCard").style.display = "block";
     }
   }
 
@@ -204,41 +287,55 @@
     const list = document.getElementById("kwList");
     const limit = userData?.keyword_limit || 3;
     const count = keywords.length;
+    const limitDisplay = limit >= 9999 ? "∞" : limit;
 
     document.getElementById("kwCount").textContent = count;
-    document.getElementById("limitText").textContent = `${count} / ${limit} ključnih riječi`;
-    document.getElementById("limitFill").style.width = `${Math.min(100, (count / limit) * 100)}%`;
+    document.getElementById("limitText").textContent = `${count} / ${limitDisplay} ključnih riječi`;
+    document.getElementById("limitFill").style.width = limit >= 9999 ? `${Math.min(100, (count / 50) * 100)}%` : `${Math.min(100, (count / limit) * 100)}%`;
 
     if (keywords.length === 0) {
       list.innerHTML = '<li class="kw-empty">Još niste dodali ključne riječi.</li>';
       return;
     }
-    list.innerHTML = keywords.map(kw => `
+    list.innerHTML = keywords.map(kw => {
+      const typeTag = kw.document_types
+        ? `<span class="kw-type-tag">${escHtml(kw.document_types.replace(/,/g, " · "))}</span>`
+        : "";
+      return `
       <li class="kw-item">
-        <span class="kw-tag">${escHtml(kw.keyword)}</span>
+        <div class="kw-left">
+          <span class="kw-tag">${escHtml(kw.keyword)}</span>${typeTag}
+        </div>
         <button class="btn-danger" onclick="deleteKeyword(${kw.id})">Ukloni</button>
-      </li>`).join("");
+      </li>`;
+    }).join("");
   }
 
   async function addKeyword() {
     const input = document.getElementById("kwInput");
+    const typeSelect = document.getElementById("kwTypeSelect");
     const keyword = input.value.trim();
+    const document_types = typeSelect.value || null;
     const errEl = document.getElementById("kwError");
     const okEl = document.getElementById("kwSuccess");
     errEl.style.display = "none"; okEl.style.display = "none";
 
     if (!keyword) return;
 
+    const body = { keyword };
+    if (document_types) body.document_types = document_types;
+
     const res = await authFetch("/keywords/", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ keyword }),
+      body: JSON.stringify(body),
     });
     if (!res) return;
     const data = await res.json();
 
     if (res.ok) {
       input.value = "";
+      typeSelect.value = "";
       keywords.push(data);
       renderKeywords();
       okEl.textContent = `"${data.keyword}" dodano.`;
@@ -256,6 +353,18 @@
     if (res.status === 204) {
       keywords = keywords.filter(k => k.id !== id);
       renderKeywords();
+    }
+  }
+
+  async function updateMu(value) {
+    const res = await authFetch("/auth/settings", {
+      method: "PATCH",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ include_mu: value }),
+    });
+    if (!res || !res.ok) {
+      // Vrati toggle na prethodno stanje
+      document.getElementById("muToggle").checked = !value;
     }
   }
 
@@ -279,7 +388,7 @@
     // Handle post-Stripe redirect
     const params = new URLSearchParams(window.location.search);
     if (params.get("success")) {
-      document.getElementById("kwSuccess").textContent = "Pretplata aktivirana! Osvježite stranicu.";
+      document.getElementById("kwSuccess").textContent = "Pretplata aktivirana! Osvježite stranicu za nove funkcije.";
       document.getElementById("kwSuccess").style.display = "block";
     }
   }

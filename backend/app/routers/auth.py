@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..models import User, Log
-from ..schemas import UserRegister, UserLogin, Token, UserOut
+from ..schemas import UserRegister, UserLogin, Token, UserOut, UserSettings
 from ..auth import hash_password, verify_password, create_access_token, get_current_user
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -98,6 +98,21 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
 
 @router.get("/me", response_model=UserOut)
 def me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+@router.patch("/settings", response_model=UserOut)
+def update_settings(
+    data: UserSettings,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Ažurira korisničke postavke (npr. include_mu). MU dostupan samo Pro/Expert."""
+    if data.include_mu and current_user.plan == "free":
+        raise HTTPException(status_code=403, detail="MU dostupan uz Pro ili Expert paket")
+    current_user.include_mu = data.include_mu
+    db.commit()
+    db.refresh(current_user)
     return current_user
 
 

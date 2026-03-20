@@ -49,6 +49,10 @@ class KeywordOut(BaseModel):
     model_config = {"from_attributes": True}
 
 
+class UserSettings(BaseModel):
+    include_mu: bool
+
+
 # --- Admin ---
 
 class AdminStats(BaseModel):
