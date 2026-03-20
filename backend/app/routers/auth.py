@@ -1,7 +1,10 @@
 import os
 import smtplib
 import secrets
+import logging
 from email.mime.text import MIMEText
+
+logger = logging.getLogger(__name__)
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -41,8 +44,8 @@ Ukoliko niste vi kreirali račun, ignorirajte ovaj email.
             s.starttls()
             s.login(smtp_user, smtp_pass)
             s.sendmail(from_email, [email], msg.as_string())
-    except Exception:
-        pass  # Ne blokiraj registraciju ako email fail
+    except Exception as e:
+        logger.error("SMTP greška pri slanju emaila na %s: %s", email, e)
 
 
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
@@ -50,15 +53,12 @@ def register(data: UserRegister, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(status_code=400, detail="Email već postoji")
 
-    verification_token = secrets.token_urlsafe(32)
     user = User(
         email=data.email,
         password_hash=hash_password(data.password),
         unsubscribe_token=secrets.token_urlsafe(32),
-        email_verified=True,  # Auto-verify za testiranje
+        email_verified=True,
     )
-    # Koristimo unsubscribe_token privremeno za verifikaciju – u produkciji dodaj poseban stupac
-    user._verification_token = verification_token
     db.add(user)
     db.commit()
     db.refresh(user)
@@ -66,7 +66,6 @@ def register(data: UserRegister, db: Session = Depends(get_db)):
     db.add(Log(event_type="signup", user_id=user.id, detail=user.email))
     db.commit()
 
-    _send_verification_email(data.email, user.unsubscribe_token)
     return user
 
 
