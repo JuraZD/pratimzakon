@@ -9,12 +9,9 @@ jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping API health endpoint
+      - name: Ping API to prevent sleep
         run: |
-          STATUS=$(curl -s -o /dev/null -w "%{http_code}" https://pratimzakon-api.onrender.com/health)
-          echo "HTTP status: $STATUS"
-          if [ "$STATUS" != "200" ]; then
-            echo "API nije odgovorio sa 200 OK"
-            exit 1
-          fi
-          echo "API je aktivan."
+          echo "Pingam API..."
+          curl -s --max-time 60 https://pratimzakon-api.onrender.com/health || true
+          curl -s --max-time 60 https://pratimzakon-api.onrender.com/ || true
+          echo "Ping završen."
