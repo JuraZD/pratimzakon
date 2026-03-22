@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Statistike – PratimZakon</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --blue: #2563eb; --blue-dark: #1d4ed8;
+      --gray-50: #f9fafb; --gray-100: #f3f4f6; --gray-200: #e5e7eb;
+      --gray-600: #4b5563; --gray-900: #111827;
+    }
+    body { font-family: system-ui, -apple-system, sans-serif; color: var(--gray-900); background: var(--gray-50); min-height: 100vh; }
+
+    nav { display: flex; justify-content: space-between; align-items: center; padding: 14px 5%; background: #fff; border-bottom: 1px solid var(--gray-200); }
+    .logo { font-size: 18px; font-weight: 700; color: var(--blue); text-decoration: none; }
+    .nav-right { display: flex; gap: 12px; align-items: center; font-size: 14px; }
+    .btn { display: inline-block; padding: 8px 18px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; }
+    .btn-primary { background: var(--blue); color: #fff; }
+    .btn-outline { border: 1px solid var(--gray-200); color: var(--gray-600); background: #fff; }
+    .btn-sm { padding: 6px 14px; font-size: 13px; }
+
+    main { max-width: 1000px; margin: 0 auto; padding: 40px 5%; }
+    h1 { font-size: 24px; font-weight: 800; margin-bottom: 6px; }
+    .subtitle { font-size: 14px; color: var(--gray-600); margin-bottom: 32px; }
+
+    /* TOTAL CARD */
+    .total-card {
+      background: var(--blue); color: #fff; border-radius: 12px;
+      padding: 28px 32px; margin-bottom: 28px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .total-label { font-size: 14px; opacity: .8; margin-bottom: 4px; }
+    .total-number { font-size: 48px; font-weight: 800; line-height: 1; }
+    .total-sub { font-size: 13px; opacity: .7; margin-top: 4px; }
+
+    /* GRID */
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 24px; }
+    .chart-card { background: #fff; border: 1px solid var(--gray-200); border-radius: 12px; padding: 24px; }
+    .chart-title { font-size: 14px; font-weight: 700; margin-bottom: 20px; color: var(--gray-900); }
+    .chart-wrap { position: relative; height: 260px; }
+    .chart-wide { grid-column: 1 / -1; }
+    .chart-wide .chart-wrap { height: 220px; }
+
+    /* GATE */
+    .gate { background: #fff; border: 1px solid var(--gray-200); border-radius: 12px; padding: 60px; text-align: center; }
+    .gate h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .gate p { color: var(--gray-600); font-size: 14px; margin-bottom: 24px; }
+
+    .loading { text-align: center; padding: 60px; color: var(--gray-600); font-size: 14px; }
+
+    @media (max-width: 640px) {
+      .charts-grid { grid-template-columns: 1fr; }
+      .chart-wide { grid-column: 1; }
+      .total-card { flex-direction: column; gap: 8px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="logo">PratimZakon</a>
+  <div class="nav-right">
+    <a href="dashboard.html" class="btn btn-outline btn-sm">Dashboard</a>
+    <a href="search.html" class="btn btn-outline btn-sm">Pretraga</a>
+    <button class="btn btn-outline btn-sm" onclick="logout()">Odjava</button>
+  </div>
+</nav>
+
+<main>
+  <h1>Statistike</h1>
+  <p class="subtitle">Analiza objava Narodnih novina u bazi</p>
+
+  <div id="loadingState" class="loading">Učitavam podatke...</div>
+
+  <div id="expertGate" class="gate" style="display:none">
+    <div style="font-size:40px;margin-bottom:12px;">📊</div>
+    <h2>Expert paket</h2>
+    <p>Statistike i analitika dostupne su isključivo korisnicima Expert paketa.</p>
+    <a href="dashboard.html" class="btn btn-primary">Nadogradite plan</a>
+  </div>
+
+  <div id="statsArea" style="display:none">
+    <div class="total-card">
+      <div>
+        <div class="total-label">Ukupno dokumenata u bazi</div>
+        <div class="total-number" id="totalDocs">–</div>
+        <div class="total-sub">Narodne novine od 2015. do danas</div>
+      </div>
+      <div style="font-size:56px;opacity:.3;">📋</div>
+    </div>
+
+    <div class="charts-grid">
+      <!-- Vremenski prikaz -->
+      <div class="chart-card chart-wide">
+        <div class="chart-title">Objave po mjesecu (zadnje 2 godine)</div>
+        <div class="chart-wrap">
+          <canvas id="chartTimeline"></canvas>
+        </div>
+      </div>
+
+      <!-- Tip dokumenta -->
+      <div class="chart-card">
+        <div class="chart-title">Top 10 tipova dokumenta</div>
+        <div class="chart-wrap">
+          <canvas id="chartTypes"></canvas>
+        </div>
+      </div>
+
+      <!-- SL vs MU -->
+      <div class="chart-card">
+        <div class="chart-title">Službeni list vs Međunarodni ugovori</div>
+        <div class="chart-wrap" style="height:220px;">
+          <canvas id="chartPart"></canvas>
+        </div>
+      </div>
+
+      <!-- Institucije -->
+      <div class="chart-card chart-wide">
+        <div class="chart-title">Top 10 institucija</div>
+        <div class="chart-wrap">
+          <canvas id="chartInst"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  const API = "https://pratimzakon-api.onrender.com";
+
+  const PALETTE = [
+    "#2563eb","#7c3aed","#db2777","#dc2626","#d97706",
+    "#16a34a","#0891b2","#9333ea","#ea580c","#65a30d",
+  ];
+
+  function getToken() { return localStorage.getItem("token"); }
+  function logout() { localStorage.removeItem("token"); window.location.href = "index.html"; }
+
+  async function authFetch(url) {
+    const token = getToken();
+    if (!token) { window.location.href = "index.html"; return null; }
+    const res = await fetch(API + url, { headers: { Authorization: `Bearer ${token}` } });
+    if (res.status === 401) { logout(); return null; }
+    return res;
+  }
+
+  async function init() {
+    if (!getToken()) { window.location.href = "index.html"; return; }
+
+    const meRes = await authFetch("/auth/me");
+    if (!meRes) return;
+    const user = await meRes.json();
+
+    if (user.plan_type !== "expert") {
+      document.getElementById("loadingState").style.display = "none";
+      document.getElementById("expertGate").style.display = "block";
+      return;
+    }
+
+    const statsRes = await authFetch("/stats/");
+    if (!statsRes) return;
+
+    if (!statsRes.ok) {
+      document.getElementById("loadingState").textContent = "Greška pri učitavanju.";
+      return;
+    }
+
+    const data = await statsRes.json();
+    document.getElementById("loadingState").style.display = "none";
+    document.getElementById("statsArea").style.display = "block";
+
+    renderStats(data);
+  }
+
+  function renderStats(data) {
+    document.getElementById("totalDocs").textContent = data.total_documents.toLocaleString("hr");
+
+    // Vremenski prikaz
+    if (data.by_month.length) {
+      new Chart(document.getElementById("chartTimeline"), {
+        type: "bar",
+        data: {
+          labels: data.by_month.map(m => fmtMonth(m.month)),
+          datasets: [{
+            label: "Dokumenti",
+            data: data.by_month.map(m => m.count),
+            backgroundColor: "#2563eb",
+            borderRadius: 4,
+          }],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { beginAtZero: true, grid: { color: "#f3f4f6" }, ticks: { precision: 0 } },
+            x: { grid: { display: false } },
+          },
+        },
+      });
+    }
+
+    // Top tipovi — horizontalni bar
+    if (data.by_type.length) {
+      new Chart(document.getElementById("chartTypes"), {
+        type: "bar",
+        data: {
+          labels: data.by_type.map(d => d.label),
+          datasets: [{
+            data: data.by_type.map(d => d.count),
+            backgroundColor: PALETTE,
+            borderRadius: 4,
+          }],
+        },
+        options: {
+          indexAxis: "y",
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { beginAtZero: true, grid: { color: "#f3f4f6" }, ticks: { precision: 0 } },
+            y: { grid: { display: false } },
+          },
+        },
+      });
+    }
+
+    // SL vs MU — doughnut
+    if (data.by_part.length) {
+      new Chart(document.getElementById("chartPart"), {
+        type: "doughnut",
+        data: {
+          labels: data.by_part.map(d => d.label),
+          datasets: [{
+            data: data.by_part.map(d => d.count),
+            backgroundColor: ["#2563eb", "#f59e0b"],
+            borderWidth: 0,
+          }],
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: "bottom", labels: { padding: 16, font: { size: 13 } } },
+          },
+          cutout: "65%",
+        },
+      });
+    }
+
+    // Top institucije — horizontalni bar
+    if (data.by_institution.length) {
+      new Chart(document.getElementById("chartInst"), {
+        type: "bar",
+        data: {
+          labels: data.by_institution.map(d => d.label),
+          datasets: [{
+            data: data.by_institution.map(d => d.count),
+            backgroundColor: PALETTE,
+            borderRadius: 4,
+          }],
+        },
+        options: {
+          indexAxis: "y",
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { beginAtZero: true, grid: { color: "#f3f4f6" }, ticks: { precision: 0 } },
+            y: { grid: { display: false } },
+          },
+        },
+      });
+    }
+  }
+
+  function fmtMonth(ym) {
+    if (!ym) return "";
+    const [y, m] = ym.split("-");
+    const names = ["","Sij","Velj","Ožu","Tra","Svi","Lip","Srp","Kol","Ruj","Lis","Stu","Pro"];
+    return `${names[parseInt(m)]} ${y}`;
+  }
+
+  init();
+</script>
+</body>
+</html>

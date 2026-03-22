@@ -1,0 +1,44 @@
+name: Backfill NN arhive
+
+on:
+  workflow_dispatch:
+    inputs:
+      year_from:
+        description: "Godina od (default: 2015)"
+        required: false
+        default: "2015"
+      year_to:
+        description: "Godina do (default: trenutna)"
+        required: false
+        default: ""
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instaliraj ovisnosti
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Pokreni backfill
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          YEAR_FROM=${{ github.event.inputs.year_from }}
+          YEAR_TO=${{ github.event.inputs.year_to }}
+
+          if [ -z "$YEAR_TO" ]; then
+            python -m app.scraper.backfill --from $YEAR_FROM
+          else
+            python -m app.scraper.backfill --from $YEAR_FROM --to $YEAR_TO
+          fi

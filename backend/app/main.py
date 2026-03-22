@@ -7,11 +7,13 @@ from slowapi.errors import RateLimitExceeded
 from dotenv import load_dotenv
 
 from .database import engine, Base
-from .routers import auth, keywords, stripe_router, admin
+from .routers import auth, keywords, stripe_router, admin, search, stats
+from .migrate_db import run_migrations
 
 load_dotenv()
 
 Base.metadata.create_all(bind=engine)
+run_migrations()
 
 limiter = Limiter(key_func=get_remote_address)
 
@@ -33,6 +35,8 @@ app.include_router(auth.router)
 app.include_router(keywords.router)
 app.include_router(stripe_router.router)
 app.include_router(admin.router)
+app.include_router(search.router)
+app.include_router(stats.router)
 
 
 @app.get("/health")

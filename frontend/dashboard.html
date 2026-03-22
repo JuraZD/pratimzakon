@@ -88,6 +88,8 @@
   <a href="index.html" class="logo">PratimZakon</a>
   <div class="nav-right">
     <span id="userEmail">–</span>
+    <a href="search.html" id="searchLink" class="btn btn-outline" style="display:none">Pretraga arhive</a>
+    <a href="stats.html" id="statsLink" class="btn btn-outline" style="display:none">Statistike</a>
     <button class="btn btn-outline" onclick="logout()">Odjava</button>
   </div>
 </nav>
@@ -190,6 +192,10 @@
 
     if (userData.subscription_status === "active") {
       document.getElementById("upgradeCard").style.display = "none";
+    }
+    if (userData.plan_type === "expert") {
+      document.getElementById("searchLink").style.display = "inline-block";
+      document.getElementById("statsLink").style.display = "inline-block";
     }
   }
 
