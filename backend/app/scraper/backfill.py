@@ -50,9 +50,9 @@ def run_backfill(year_from: int = 2015, year_to: int = None):
                 consecutive_missing = 0
 
                 for issue in range(1, MAX_ISSUES_PER_YEAR + 1):
-                    data = scraper._fetch_jsonld_issue(year, issue, part)
+                    entries = scraper._scrape_html_issue(year, issue, part)
 
-                    if data is None:
+                    if not entries:
                         consecutive_missing += 1
                         if consecutive_missing >= CONSECUTIVE_MISS_LIMIT:
                             break
@@ -60,16 +60,12 @@ def run_backfill(year_from: int = 2015, year_to: int = None):
                         continue
 
                     consecutive_missing = 0
-                    entries = scraper._parse_jsonld_issue(data, issue, part)
-
-                    if entries:
-                        new_count, _ = scraper.save_documents(entries, db)
-                        year_total += new_count
-                        grand_total += new_count
-                        logging.info(
-                            f"  {part} {issue}/{year}: {len(entries)} akata, {new_count} novih"
-                        )
-
+                    new_count, _ = scraper.save_documents(entries, db)
+                    year_total += new_count
+                    grand_total += new_count
+                    logging.info(
+                        f"  {part} {issue}/{year}: {len(entries)} akata, {new_count} novih"
+                    )
                     time.sleep(SLEEP_BETWEEN)
 
                 logging.info(f"{part} {year}: {year_total} novih ukupno")

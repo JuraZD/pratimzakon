@@ -243,14 +243,15 @@ class NarodneNovineScraper:
     # HTML fallback scraper
     # ------------------------------------------------------------------
 
-    def _scrape_html_issue(self, year: int, issue: int) -> List[Dict]:
-        """HTML scraping kao fallback kada JSON-LD nije dostupan."""
+    def _scrape_html_issue(self, year: int, issue: int, part: str = "SL") -> List[Dict]:
+        """HTML scraping via search.aspx. Podržava SL (kategorija=1) i MU (kategorija=2)."""
         from bs4 import BeautifulSoup
 
+        kategorija = "1" if part == "SL" else "2"
         try:
             params = {
                 "godina": year, "broj": issue,
-                "kategorija": "1", "qtype": "1",
+                "kategorija": kategorija, "qtype": "1",
                 "pretraga": "da", "sortiraj": "4", "rpp": "100",
             }
             resp = self.session.get(self.SEARCH_URL, params=params, timeout=30)
@@ -261,9 +262,9 @@ class NarodneNovineScraper:
             datum_izdanja = ""
             first_meta = soup.find("div", class_="official-number-and-date")
             if first_meta:
-                parts = first_meta.get_text(strip=True).split(",")
-                if len(parts) >= 4:
-                    datum_izdanja = parts[3].strip().rstrip(".")
+                meta_parts = first_meta.get_text(strip=True).split(",")
+                if len(meta_parts) >= 4:
+                    datum_izdanja = meta_parts[3].strip().rstrip(".")
 
             results = []
             for item in soup.find_all("div", class_="searchListItem"):
@@ -282,11 +283,11 @@ class NarodneNovineScraper:
                     doc_type = ""
                     meta_div = item.find("div", class_="official-number-and-date")
                     if meta_div:
-                        meta_parts = meta_div.get_text(strip=True).split(",")
-                        if len(meta_parts) >= 3:
-                            doc_type = meta_parts[2].strip()
-                        if not datum_izdanja and len(meta_parts) >= 4:
-                            datum_izdanja = meta_parts[3].strip().rstrip(".")
+                        item_parts = meta_div.get_text(strip=True).split(",")
+                        if len(item_parts) >= 3:
+                            doc_type = item_parts[2].strip()
+                        if not datum_izdanja and len(item_parts) >= 4:
+                            datum_izdanja = item_parts[3].strip().rstrip(".")
 
                     results.append({
                         "title": naziv,
@@ -297,17 +298,17 @@ class NarodneNovineScraper:
                         "legal_area": None,
                         "date_document": None,
                         "published_date": _parse_date(datum_izdanja),
-                        "part": "SL",
+                        "part": part,
                         "issue_number": issue,
                     })
                 except Exception as e:
                     logging.error(f"HTML parse greška: {e}")
 
-            logging.info(f"HTML fallback SL {issue}/{year}: {len(results)} akata")
+            logging.info(f"HTML {part} {issue}/{year}: {len(results)} akata")
             return results
 
         except requests.exceptions.RequestException as e:
-            logging.error(f"HTML dohvat neuspješan za SL {issue}/{year}: {e}")
+            logging.error(f"HTML dohvat neuspješan za {part} {issue}/{year}: {e}")
             return []
 
     # ------------------------------------------------------------------
@@ -315,25 +316,13 @@ class NarodneNovineScraper:
     # ------------------------------------------------------------------
 
     def scrape_issue(self, year: int, issue: int, part: str = "SL") -> List[Dict]:
-        """
-        Dohvaća akte za jedno NN izdanje.
-        Pokušava JSON-LD API, pada na HTML scraper (samo za SL).
-        """
-        data = self._fetch_jsonld_issue(year, issue, part)
-        if data:
-            results = self._parse_jsonld_issue(data, issue, part)
-            if results:
-                return results
-            logging.warning(f"JSON-LD vratio prazan rezultat za {part} {issue}/{year}, pokušavam HTML")
-
-        if part == "SL":
-            return self._scrape_html_issue(year, issue)
-        return []
+        """Dohvaća akte za jedno NN izdanje putem HTML scrapera."""
+        return self._scrape_html_issue(year, issue, part)
 
     def get_latest_issue(self, db_session=None, part: str = "SL") -> Tuple[int, int]:
         """
-        Pronalazi zadnji objavljeni broj NN.
-        Pita JSON-LD API sekvencijalno od zadnje poznate vrijednosti.
+        Pronalazi zadnji objavljeni broj NN testiranjem search.aspx
+        sekvencijalno od zadnje poznate vrijednosti u bazi.
         """
         from app.models import Document
 
@@ -359,23 +348,16 @@ class NarodneNovineScraper:
         consecutive_missing = 0
 
         for issue in range(last_known, last_known + 30):
-            base = self.ELI_SL if part == "SL" else self.ELI_MU
-            url = f"{base}/{year}/{issue}/"
-            try:
-                resp = self.session.head(url, timeout=10)
-                if resp.status_code == 200:
-                    latest = issue
-                    consecutive_missing = 0
-                    logging.info(f"✓ {part} {issue}/{year} postoji")
-                elif resp.status_code == 404:
-                    consecutive_missing += 1
-                    if consecutive_missing >= 3:
-                        break
-                time.sleep(0.3)
-            except requests.exceptions.RequestException:
+            entries = self._scrape_html_issue(year, issue, part)
+            if entries:
+                latest = issue
+                consecutive_missing = 0
+                logging.info(f"✓ {part} {issue}/{year}: {len(entries)} akata")
+            else:
                 consecutive_missing += 1
                 if consecutive_missing >= 3:
                     break
+            time.sleep(0.5)
 
         logging.info(f"Najnoviji {part} broj: {latest}/{year}")
         return year, latest
