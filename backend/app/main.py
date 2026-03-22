@@ -8,10 +8,12 @@ from dotenv import load_dotenv
 
 from .database import engine, Base
 from .routers import auth, keywords, stripe_router, admin
+from .migrate_db import run_migrations
 
 load_dotenv()
 
 Base.metadata.create_all(bind=engine)
+run_migrations()
 
 limiter = Limiter(key_func=get_remote_address)
 
