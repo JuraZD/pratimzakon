@@ -40,15 +40,53 @@ def _send_smtp(to_email: str, subject: str, html_body: str, text_body: str) -> b
         return False
 
 
-def _build_email(user, matches: List[Dict]) -> tuple[str, str]:
+def _keyword_matches_document(kw_obj, doc) -> bool:
+    """
+    Provjerava odgovara li keyword filtrima za dani dokument.
+    Ako filter nije postavljen (None), prolazi sve.
+    """
+    # Provjera teksta
+    if kw_obj.keyword.lower() not in doc.title.lower():
+        return False
+
+    # Filter po dijelu (SL/MU)
+    if kw_obj.part_filter and doc.part:
+        if kw_obj.part_filter.upper() != doc.part.upper():
+            return False
+
+    # Filter po tipu dokumenta (može biti lista: "ZAKON,UREDBA")
+    if kw_obj.doc_type_filter and doc.type:
+        allowed_types = [t.strip().upper() for t in kw_obj.doc_type_filter.split(",")]
+        if doc.type.upper() not in allowed_types:
+            return False
+
+    # Filter po instituciji (substring, case-insensitive)
+    if kw_obj.institution_filter and doc.institution:
+        if kw_obj.institution_filter.lower() not in doc.institution.lower():
+            return False
+
+    return True
+
+
+def _build_email(user, matches: List[Dict], show_pdf: bool = False) -> tuple[str, str]:
     """
     Gradi HTML i plain-text email s popisom matcheva.
-    matches = [{"keyword": str, "document_title": str, "document_url": str}]
+    matches = [{
+        "keyword": str,
+        "document_title": str,
+        "document_url": str,
+        "document_pdf_url": str | None,
+        "doc_type": str | None,
+        "institution": str | None,
+    }]
+    show_pdf: True za Pro/Expert korisnike
     """
     unsubscribe_url = f"{BASE_URL}/auth/unsubscribe?token={user.unsubscribe_token}"
 
+    plan_labels = {"pro": "Pro paket", "expert": "Expert paket"}
     if user.subscription_status == "active" and user.subscription_end:
-        status_text = f"Aktivna pretplata do {user.subscription_end.strftime('%d.%m.%Y.')}"
+        plan_name = plan_labels.get(getattr(user, "plan_type", ""), "Aktivna pretplata")
+        status_text = f"{plan_name} · aktivna do {user.subscription_end.strftime('%d.%m.%Y.')}"
     else:
         status_text = "Besplatni paket"
 
@@ -59,12 +97,18 @@ def _build_email(user, matches: List[Dict]) -> tuple[str, str]:
         "",
     ]
     for m in matches:
+        lines += [f"Ključna riječ: {m['keyword']}"]
+        if m.get("doc_type"):
+            lines.append(f"Tip: {m['doc_type']}")
+        if m.get("institution"):
+            lines.append(f"Institucija: {m['institution']}")
         lines += [
-            f"Ključna riječ: {m['keyword']}",
             f"Dokument: {m['document_title']}",
-            f"Link: {m['document_url']}",
-            "",
+            f"HTML: {m['document_url']}",
         ]
+        if show_pdf and m.get("document_pdf_url"):
+            lines.append(f"PDF: {m['document_pdf_url']}")
+        lines.append("")
     lines += [
         f"Status: {status_text}",
         "",
@@ -74,20 +118,46 @@ def _build_email(user, matches: List[Dict]) -> tuple[str, str]:
     ]
     plain = "\n".join(lines)
 
-    # HTML
+    # HTML kartice
     cards_html = ""
     for m in matches:
+        meta_parts = []
+        if m.get("doc_type"):
+            meta_parts.append(
+                f'<span style="background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.4px;">'
+                f'{m["doc_type"]}</span>'
+            )
+        if m.get("institution"):
+            meta_parts.append(
+                f'<span style="color:#6b7280;font-size:12px;">{m["institution"]}</span>'
+            )
+        meta_html = (
+            f'<p style="margin:0 0 8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
+            f'{"&nbsp;·&nbsp;".join(meta_parts)}</p>'
+            if meta_parts else ""
+        )
+
+        pdf_html = ""
+        if show_pdf and m.get("document_pdf_url"):
+            pdf_html = (
+                f'<a href="{m["document_pdf_url"]}" style="display:inline-block;margin-top:8px;'
+                f'padding:5px 12px;background:#ef4444;color:#fff;font-size:12px;font-weight:600;'
+                f'border-radius:4px;text-decoration:none;">↓ PDF</a>'
+            )
+
         cards_html += f"""
         <div style="background:#f8f9fa;border-left:4px solid #2563eb;padding:16px;margin-bottom:16px;border-radius:4px;">
             <p style="margin:0 0 4px;font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;">
                 Ključna riječ: <strong>{m['keyword']}</strong>
             </p>
+            {meta_html}
             <p style="margin:0 0 8px;font-size:15px;font-weight:600;color:#111827;">
                 {m['document_title']}
             </p>
             <a href="{m['document_url']}" style="color:#2563eb;font-size:14px;text-decoration:none;">
                 Otvori dokument →
             </a>
+            {pdf_html}
         </div>"""
 
     html = f"""<!DOCTYPE html>
@@ -121,6 +191,7 @@ def _build_email(user, matches: List[Dict]) -> tuple[str, str]:
 def send_keyword_notifications(new_document_ids: List[int], db: Session) -> Dict[str, int]:
     """
     Pronalazi matcheve između novih dokumenata i korisničkih ključnih riječi.
+    Primjenjuje filtere (tip, institucija, dio) po ključnoj riječi.
     Šalje objedinjeni email po korisniku.
     Vraća {"sent": N, "failed": N}.
     """
@@ -148,21 +219,27 @@ def send_keyword_notifications(new_document_ids: List[int], db: Session) -> Dict
         if not user.keywords:
             continue
 
+        plan = getattr(user, "plan_type", "free")
+        show_pdf = plan in ("pro", "expert")
+
         matches = []
         for kw_obj in user.keywords:
-            kw = kw_obj.keyword.lower()
             for doc in documents:
-                if kw in doc.title.lower():
-                    matches.append({
-                        "keyword": kw_obj.keyword,
-                        "document_title": doc.title,
-                        "document_url": doc.url,
-                    })
+                if not _keyword_matches_document(kw_obj, doc):
+                    continue
+                matches.append({
+                    "keyword": kw_obj.keyword,
+                    "document_title": doc.title,
+                    "document_url": doc.url,
+                    "document_pdf_url": doc.pdf_url,
+                    "doc_type": doc.type or None,
+                    "institution": doc.institution or None,
+                })
 
         if not matches:
             continue
 
-        html_body, text_body = _build_email(user, matches)
+        html_body, text_body = _build_email(user, matches, show_pdf=show_pdf)
         subject = f"PratimZakon: {len(matches)} novih pronalazaka u NN"
         success = _send_smtp(user.email, subject, html_body, text_body)
 
