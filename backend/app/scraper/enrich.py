@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Enrichment skript — dopunjava postojeće dokumente u bazi s podacima iz ELI API-ja.
-Za svaki dokument koji nema `institution`, konstruira ELI URL iz HTML URL-a,
-dohvaća JSON-LD i upisuje: pdf_url, institution, legal_area, date_document.
+Enrichment skript — dopunjava postojeće dokumente u bazi s podacima iz ELI RDFa metapodataka.
+Narodne novine embedaju ELI metapodatke kao RDFa <meta> tagove u HTML stranicama.
+
+Dohvaća: institution, pdf_url, date_document iz HTML stranice dokumenta.
 
 Pokretanje:
     python -m app.scraper.enrich [--batch 500] [--offset 0] [--dry-run]
@@ -14,7 +15,6 @@ import os
 import time
 import logging
 import argparse
-from datetime import datetime
 
 load_env_path = os.path.join(os.path.dirname(__file__), "../../../.env")
 import dotenv
@@ -28,92 +28,12 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()],
 )
 
-SLEEP_BETWEEN = 0.4  # sekunde između API poziva
+SLEEP_BETWEEN = 0.4  # sekunde između zahtjeva
 ELI_TIMEOUT = (5, 10)  # (connect, read) timeout u sekundama
+ELI_NS = "http://data.europa.eu/eli/ontology#"
 
-
-def _fetch_eli_jsonld(html_url: str, session) -> dict | None:
-    """Dohvaća JSON-LD embeddan u HTML stranicu akta."""
-    import json
-    from html.parser import HTMLParser
-
-    class _JsonLdParser(HTMLParser):
-        def __init__(self):
-            super().__init__()
-            self.in_jsonld = False
-            self.data = []
-            self.result = None
-
-        def handle_starttag(self, tag, attrs):
-            if tag == "script":
-                attrs_dict = dict(attrs)
-                if attrs_dict.get("type") == "application/ld+json":
-                    self.in_jsonld = True
-
-        def handle_endtag(self, tag):
-            if tag == "script" and self.in_jsonld:
-                self.in_jsonld = False
-                raw = "".join(self.data).strip()
-                if raw:
-                    try:
-                        self.result = json.loads(raw)
-                    except Exception:
-                        pass
-                self.data = []
-
-        def handle_data(self, data):
-            if self.in_jsonld:
-                self.data.append(data)
-
-    try:
-        resp = session.get(
-            html_url,
-            headers={"Accept": "text/html,application/xhtml+xml"},
-            timeout=ELI_TIMEOUT,
-        )
-        if resp.status_code == 404:
-            logging.info(f"  404: {html_url}")
-            return None
-        resp.raise_for_status()
-        parser = _JsonLdParser()
-        parser.feed(resp.text)
-        if parser.result is None:
-            logging.info(f"  Nema JSON-LD (HTTP {resp.status_code}, {len(resp.text)} B): {html_url}")
-        return parser.result
-    except Exception as e:
-        logging.warning(f"HTML dohvat neuspješan za {html_url}: {e}")
-        return None
-
-
-def _extract_label(obj) -> str:
-    if obj is None:
-        return ""
-    if isinstance(obj, str):
-        return obj
-    if isinstance(obj, list):
-        return _extract_label(obj[0]) if obj else ""
-    if isinstance(obj, dict):
-        for key in ("skos:prefLabel", "rdfs:label", "eli:name", "@value", "name"):
-            if key in obj:
-                val = obj[key]
-                if isinstance(val, list):
-                    for item in val:
-                        if isinstance(item, dict) and item.get("@language") in ("hr", "hrv"):
-                            return item.get("@value", "")
-                    return _extract_label(val[0])
-                if isinstance(val, str):
-                    return val
-    return ""
-
-
-def _extract_url(obj) -> str:
-    if not obj:
-        return ""
-    if isinstance(obj, str):
-        return obj
-    if isinstance(obj, dict):
-        return obj.get("@id", obj.get("url", obj.get("eli:url", "")))
-    return ""
+# Cache za ime institucije (institution URL → naziv)
+_institution_cache: dict = {}
 
 
 def _parse_date(datum_str):
@@ -126,47 +46,132 @@ def _parse_date(datum_str):
         return None
 
 
-def _parse_act_jsonld(data: dict) -> dict:
-    """Izvlači institution, pdf_url, legal_area, date_document iz JSON-LD akta."""
-    # Pronađi relevantni akt u @graph ili direktno u rootu
-    act = data
-    if "@graph" in data:
-        for item in data["@graph"]:
-            if isinstance(item, dict) and any(
-                k in item for k in ("eli:title", "eli:passed_by", "eli:is_realized_by")
-            ):
-                act = item
-                break
+def _parse_rdfa(html_text: str) -> dict:
+    """Parsira ELI RDFa <meta> tagove iz HTML stranice. Vraća dict s metapodacima."""
+    from html.parser import HTMLParser
 
-    institution = _extract_label(act.get("eli:passed_by") or act.get("passed_by", ""))
+    class _Parser(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.props = {}   # (about, property) -> value (content ili resource)
+            self.types = {}   # about -> typeof
 
-    pdf_url = ""
-    for fmt in act.get("eli:is_realized_by", []) or []:
-        if not isinstance(fmt, dict):
-            continue
-        fmt_type = _extract_label(fmt.get("eli:format") or fmt.get("format", ""))
-        url_val = _extract_url(fmt.get("eli:uri") or fmt.get("url") or fmt.get("@id"))
-        if not url_val:
-            continue
-        if "pdf" in fmt_type.lower() or url_val.lower().endswith(".pdf"):
-            pdf_url = url_val
+        def handle_starttag(self, tag, attrs):
+            if tag != "meta":
+                return
+            d = dict(attrs)
+            about = d.get("about", "")
+            prop = d.get("property", "")
+            typeof = d.get("typeof", "")
+            content = d.get("content", "")
+            resource = d.get("resource", "")
+            if about and prop:
+                self.props[(about, prop)] = content or resource
+            if about and typeof:
+                self.types[about] = typeof
+
+    parser = _Parser()
+    parser.feed(html_text)
+
+    # Pronađi LegalResource (glavni dokument)
+    legal_resource = None
+    for about, typeof in parser.types.items():
+        if "LegalResource" in typeof:
+            legal_resource = about
             break
 
-    is_about_raw = act.get("eli:is_about") or act.get("is_about", [])
-    if isinstance(is_about_raw, list):
-        legal_area = ", ".join(
-            _extract_label(x) for x in is_about_raw if _extract_label(x)
-        )
-    else:
-        legal_area = _extract_label(is_about_raw)
+    if not legal_resource:
+        return {}
 
-    date_document = _parse_date(act.get("eli:date_document") or act.get("date_document"))
+    result = {"_legal_resource": legal_resource}
+
+    # date_document
+    date_val = parser.props.get((legal_resource, f"{ELI_NS}date_document"), "")
+    if date_val:
+        result["date_document"] = date_val
+
+    # passed_by → institution URL
+    inst_url = parser.props.get((legal_resource, f"{ELI_NS}passed_by"), "")
+    if inst_url:
+        result["institution_url"] = inst_url
+
+    # PDF URL — traži meta tag s format = application/pdf
+    for (about, prop), value in parser.props.items():
+        if prop == f"{ELI_NS}format" and "pdf" in value.lower():
+            result["pdf_url"] = about
+            break
+
+    return result
+
+
+def _fetch_institution_name(inst_url: str, session) -> str | None:
+    """Dohvaća naziv institucije iz ELI vocabulary URL-a (s cacheom)."""
+    if inst_url in _institution_cache:
+        return _institution_cache[inst_url]
+
+    from html.parser import HTMLParser
+
+    class _TitleParser(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.in_title = False
+            self.title = ""
+        def handle_starttag(self, tag, attrs):
+            if tag == "title":
+                self.in_title = True
+        def handle_endtag(self, tag):
+            if tag == "title":
+                self.in_title = False
+        def handle_data(self, data):
+            if self.in_title:
+                self.title += data
+
+    try:
+        resp = session.get(inst_url, timeout=ELI_TIMEOUT,
+                           headers={"Accept": "text/html,application/xhtml+xml"})
+        if resp.status_code != 200:
+            _institution_cache[inst_url] = None
+            return None
+        p = _TitleParser()
+        p.feed(resp.text)
+        name = p.title.strip() or None
+        _institution_cache[inst_url] = name
+        return name
+    except Exception as e:
+        logging.debug(f"Institucija dohvat neuspješan za {inst_url}: {e}")
+        _institution_cache[inst_url] = None
+        return None
+
+
+def _enrich_doc(html_url: str, session) -> dict | None:
+    """Dohvaća HTML stranicu i vraća enrichment dict ili None ako nije uspjelo."""
+    try:
+        resp = session.get(
+            html_url,
+            headers={"Accept": "text/html,application/xhtml+xml"},
+            timeout=ELI_TIMEOUT,
+        )
+        if resp.status_code == 404:
+            return None
+        resp.raise_for_status()
+    except Exception as e:
+        logging.warning(f"Dohvat neuspješan za {html_url}: {e}")
+        return None
+
+    rdfa = _parse_rdfa(resp.text)
+    if not rdfa:
+        return None
+
+    institution = None
+    inst_url = rdfa.get("institution_url", "")
+    if inst_url:
+        institution = _fetch_institution_name(inst_url, session)
 
     return {
-        "institution": institution or None,
-        "pdf_url": pdf_url or None,
-        "legal_area": legal_area or None,
-        "date_document": date_document,
+        "institution": institution,
+        "pdf_url": rdfa.get("pdf_url"),
+        "legal_area": None,  # nije dostupno u RDFa
+        "date_document": _parse_date(rdfa.get("date_document")),
     }
 
 
@@ -185,7 +190,7 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
     total_skipped = 0
     total_failed = 0
 
-    # Provjeri dostupnost narodne-novine.nn.hr prije obrade
+    # Provjeri dostupnost narodne-novine.nn.hr
     try:
         test_resp = session.get(
             "https://narodne-novine.nn.hr/clanci/sluzbeni/2020_01_10_67.html",
@@ -194,14 +199,13 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
         )
         logging.info(f"Connectivity check: HTTP {test_resp.status_code}")
         if test_resp.status_code >= 400:
-            logging.error("narodne-novine.nn.hr nije dostupan ili vraća grešku. Prekidam.")
+            logging.error("narodne-novine.nn.hr nije dostupan. Prekidam.")
             return 0
     except Exception as e:
         logging.error(f"narodne-novine.nn.hr nije dostupan: {e}")
         return 0
 
     try:
-        # Ukupan broj dohvatamo u zasebnoj kratkoj sesiji
         with SessionLocal() as count_db:
             total_count = (
                 count_db.query(Document)
@@ -212,10 +216,8 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
 
         processed = 0
         current_offset = offset
-        first_doc_logged = False
 
         while True:
-            # Svaki batch dobiva svježu DB sesiju — izbjegavamo SSL timeout
             db = SessionLocal()
             try:
                 docs = (
@@ -230,28 +232,15 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
                     break
 
                 for doc in docs:
-                    if not first_doc_logged:
-                        first_doc_logged = True
-                        logging.info(f"PRVI DOK HTML URL: {doc.url!r}")
-                        # Privremeni debug — ispiši dio HTML-a da vidimo strukturu
-                        try:
-                            import requests as _req
-                            _r = _req.get(doc.url, headers={"User-Agent": "PratimZakon/2.0", "Accept": "text/html"}, timeout=ELI_TIMEOUT)
-                            snippet = _r.text[:4000]
-                            logging.info(f"HTML snippet (prvih 4000 znakova):\n{snippet}")
-                        except Exception as _e:
-                            logging.info(f"Nije moguće dohvatiti HTML snippet: {_e}")
+                    enriched = _enrich_doc(doc.url, session)
 
-                    data = _fetch_eli_jsonld(doc.url, session)
-                    if not data:
+                    if enriched is None:
                         total_failed += 1
                         processed += 1
-                        if total_failed <= 5 or total_failed % 50 == 0:
-                            logging.warning(f"  HTML fail #{total_failed}: {doc.url}")
+                        if total_failed <= 5 or total_failed % 100 == 0:
+                            logging.warning(f"  Fail #{total_failed}: {doc.url}")
                         time.sleep(SLEEP_BETWEEN)
                         continue
-
-                    enriched = _parse_act_jsonld(data)
 
                     if not dry_run:
                         if enriched["institution"]:
@@ -303,7 +292,7 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Enrichment dokumenata iz ELI API-ja")
+    parser = argparse.ArgumentParser(description="Enrichment dokumenata iz ELI RDFa metapodataka")
     parser.add_argument("--batch", type=int, default=500, help="Veličina batcha (default: 500)")
     parser.add_argument("--offset", type=int, default=0, help="Početni offset (default: 0)")
     parser.add_argument("--dry-run", action="store_true", help="Ne upisuj u bazu, samo logiraj")
