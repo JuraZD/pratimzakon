@@ -32,10 +32,9 @@ logging.basicConfig(
 SLEEP_BETWEEN = 0.4  # sekunde između API poziva
 
 # Regex za parsiranje HTML URL-a
-# SL:  .../clanci/sluzbeni/YYYY_NN_AAAA.html
-# MU:  .../clanci/medunarodni/YYYY_NN_AAAA.html
+# Format: .../clanci/sluzbeni/YYYY_BROJ_SEQ_ID.html
 HTML_URL_RE = re.compile(
-    r"/clanci/(sluzbeni|medunarodni)/(\d{4})_(\d+)_(\d+)\.html", re.IGNORECASE
+    r"/clanci/(sluzbeni|medunarodni)/(\d{4})_(\d+)_(\d+)_(\d+)\.html", re.IGNORECASE
 )
 
 
@@ -44,7 +43,7 @@ def _html_url_to_eli_url(html_url: str) -> str | None:
     m = HTML_URL_RE.search(html_url)
     if not m:
         return None
-    section, year, issue, act_id = m.group(1), m.group(2), m.group(3), m.group(4)
+    section, year, issue, act_id = m.group(1), m.group(2), m.group(3), m.group(5)
     eli_section = "sluzbeni-list" if section == "sluzbeni" else "medunarodni-ugovori"
     return f"https://narodne-novine.nn.hr/eli/{eli_section}/{year}/{issue}/{act_id}/"
 
@@ -180,11 +179,6 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
 
         processed = 0
         current_offset = offset
-
-        # Log prvih 5 URL-ova za debug
-        sample_docs = query.limit(5).all()
-        for sd in sample_docs:
-            logging.info(f"SAMPLE URL: {sd.url!r}")
 
         while True:
             docs = query.offset(current_offset).limit(batch).all()
