@@ -244,10 +244,15 @@ def _enrich_doc(html_url: str, session) -> dict | None:
     institution = None
     legal_area = None
 
+    _dbg = getattr(html_url, '__debug_sample', False)
+
     # Pokušaj dohvatiti institution i legal_area iz JSON-LD (ELI act URL iz RDFa)
     legal_resource_url = rdfa.get("_legal_resource", "")
+    logging.debug(f"  rdfa keys={list(rdfa.keys())} legal_resource={legal_resource_url!r}")
     if legal_resource_url:
         jsonld = _fetch_jsonld_act(legal_resource_url, session)
+        if not jsonld:
+            logging.debug(f"  JSON-LD nije vraćen za {legal_resource_url}")
         if jsonld:
             # JSON-LD može biti lista na vrhu ili dict s @graph
             if isinstance(jsonld, list):
@@ -260,9 +265,9 @@ def _enrich_doc(html_url: str, session) -> dict | None:
                         break
 
             if isinstance(act, dict):
-                institution = _extract_label(
-                    act.get("eli:passed_by") or act.get("passed_by")
-                ) or None
+                passed_by_raw = act.get("eli:passed_by") or act.get("passed_by")
+                logging.debug(f"  JSON-LD passed_by_raw={passed_by_raw!r}")
+                institution = _extract_label(passed_by_raw) or None
 
                 is_about = act.get("eli:is_about") or act.get("is_about", [])
                 if isinstance(is_about, list):
@@ -271,12 +276,16 @@ def _enrich_doc(html_url: str, session) -> dict | None:
                     ) or None
                 else:
                     legal_area = _extract_label(is_about) or None
+    else:
+        logging.debug(f"  Nema _legal_resource u rdfa za {html_url}")
 
     # Fallback za institution: HTML stranica institucije
     if not institution:
         inst_url = rdfa.get("institution_url", "")
+        logging.debug(f"  institution_url fallback={inst_url!r}")
         if inst_url:
             institution = _fetch_institution_name(inst_url, session)
+            logging.debug(f"  _fetch_institution_name → {institution!r}")
 
     return {
         "institution": institution,
@@ -430,5 +439,8 @@ if __name__ == "__main__":
     parser.add_argument("--batch", type=int, default=500, help="Veličina batcha (default: 500)")
     parser.add_argument("--offset", type=int, default=0, help="Početni offset (default: 0)")
     parser.add_argument("--dry-run", action="store_true", help="Ne upisuj u bazu, samo logiraj")
+    parser.add_argument("--debug", action="store_true", help="Uključi DEBUG razinu logiranja")
     args = parser.parse_args()
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
     run_enrich(args.batch, args.offset, args.dry_run)
