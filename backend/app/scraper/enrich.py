@@ -108,7 +108,7 @@ def _parse_date(datum_str):
 
 
 def _parse_act_jsonld(data: dict) -> dict:
-    """Izvlači institution, pdf_url, legal_area, date_document iz JSON-LD akta."""
+    """Izvlači institution, pdf_url, legal_area, date_document, type iz JSON-LD akta."""
     # Pronađi relevantni akt u @graph ili direktno u rootu
     act = data
     if "@graph" in data:
@@ -143,11 +143,15 @@ def _parse_act_jsonld(data: dict) -> dict:
 
     date_document = _parse_date(act.get("eli:date_document") or act.get("date_document"))
 
+    doc_type_raw = _extract_label(act.get("eli:type_document") or act.get("type_document", ""))
+    doc_type = doc_type_raw.upper() if doc_type_raw else None
+
     return {
         "institution": institution or None,
         "pdf_url": pdf_url or None,
         "legal_area": legal_area or None,
         "date_document": date_document,
+        "doc_type": doc_type,
     }
 
 
@@ -225,6 +229,8 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
                             doc.legal_area = enriched["legal_area"]
                         if enriched["date_document"] and not doc.date_document:
                             doc.date_document = enriched["date_document"]
+                        if enriched["doc_type"] and not doc.type:
+                            doc.type = enriched["doc_type"]
 
                     total_updated += 1
                     processed += 1
