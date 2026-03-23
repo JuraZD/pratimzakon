@@ -181,6 +181,11 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
         processed = 0
         current_offset = offset
 
+        # Log prvih 5 URL-ova za debug
+        sample_docs = query.limit(5).all()
+        for sd in sample_docs:
+            logging.info(f"SAMPLE URL: {sd.url!r}")
+
         while True:
             docs = query.offset(current_offset).limit(batch).all()
             if not docs:
