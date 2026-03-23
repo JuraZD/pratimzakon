@@ -1,0 +1,55 @@
+name: Backfill NN API (2015–danas)
+
+on:
+  workflow_dispatch:
+    inputs:
+      year_from:
+        description: "Godina od (default: 2015)"
+        required: false
+        default: "2015"
+      year_to:
+        description: "Godina do (default: trenutna)"
+        required: false
+        default: ""
+      dry_run:
+        description: "Dry run (ne upisuj u bazu)"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instaliraj ovisnosti
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Pokreni API backfill
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          ARGS="--from ${{ github.event.inputs.year_from }}"
+
+          if [ -n "${{ github.event.inputs.year_to }}" ]; then
+            ARGS="$ARGS --to ${{ github.event.inputs.year_to }}"
+          fi
+
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            ARGS="$ARGS --dry-run"
+          fi
+
+          python -m app.scraper.api_scraper backfill $ARGS
