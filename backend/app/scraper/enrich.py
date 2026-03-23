@@ -70,6 +70,44 @@ def _parse_date(datum_str):
         return None
 
 
+def _extract_institution_from_html(html_text: str) -> str | None:
+    """Pokušava izvući naziv institucije iz <h2> taga u HTML-u članka NN-a."""
+    from html.parser import HTMLParser
+
+    class _H2Parser(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.in_h2 = False
+            self.depth = 0
+            self.first_h2 = None
+
+        def handle_starttag(self, tag, attrs):
+            if tag == "h2":
+                self.in_h2 = True
+                self.depth += 1
+
+        def handle_endtag(self, tag):
+            if tag == "h2" and self.in_h2:
+                self.depth -= 1
+                if self.depth <= 0:
+                    self.in_h2 = False
+
+        def handle_data(self, data):
+            if self.in_h2 and self.first_h2 is None:
+                text = data.strip()
+                if text:
+                    self.first_h2 = text
+
+    p = _H2Parser()
+    p.feed(html_text)
+    name = p.first_h2
+    if name:
+        # Ukloni eventualne oznake poput "Na temelju..." koje nisu ime institucije
+        if len(name) > 100 or name[0].islower():
+            return None
+    return name or None
+
+
 def _parse_rdfa(html_text: str) -> dict:
     """Parsira ELI RDFa <meta> tagove iz HTML stranice. Vraća dict s metapodacima."""
     from html.parser import HTMLParser
@@ -237,14 +275,13 @@ def _enrich_doc(html_url: str, session) -> dict | None:
         logging.warning(f"Dohvat neuspješan za {html_url}: {e}")
         return None
 
-    rdfa = _parse_rdfa(resp.text)
+    html_text = resp.text
+    rdfa = _parse_rdfa(html_text)
     if not rdfa:
         return None
 
     institution = None
     legal_area = None
-
-    _dbg = getattr(html_url, '__debug_sample', False)
 
     # Pokušaj dohvatiti institution i legal_area iz JSON-LD (ELI act URL iz RDFa)
     legal_resource_url = rdfa.get("_legal_resource", "")
@@ -258,18 +295,44 @@ def _enrich_doc(html_url: str, session) -> dict | None:
             if isinstance(jsonld, list):
                 jsonld = jsonld[0] if jsonld else {}
             act = jsonld
-            if isinstance(jsonld, dict) and "@graph" in jsonld:
-                for item in jsonld["@graph"]:
-                    if isinstance(item, dict) and item.get("@id") == legal_resource_url:
-                        act = item
-                        break
+
+            if isinstance(jsonld, dict):
+                if "@graph" in jsonld:
+                    # Normalizirano matchanje @id (trim trailing slash)
+                    norm_url = legal_resource_url.rstrip("/")
+                    for item in jsonld["@graph"]:
+                        if isinstance(item, dict):
+                            item_id = item.get("@id", "").rstrip("/")
+                            if item_id == norm_url:
+                                act = item
+                                break
+                    else:
+                        # Ako nismo našli po @id, traži LegalResource tip
+                        for item in jsonld["@graph"]:
+                            if isinstance(item, dict):
+                                itype = item.get("@type", "")
+                                if "LegalResource" in str(itype):
+                                    act = item
+                                    break
+                    logging.debug(f"  JSON-LD @graph len={len(jsonld['@graph'])}, act @id={act.get('@id', 'N/A')!r}")
+                else:
+                    logging.debug(f"  JSON-LD top-level keys={list(jsonld.keys())[:10]}")
 
             if isinstance(act, dict):
-                passed_by_raw = act.get("eli:passed_by") or act.get("passed_by")
+                # Probaj prefixed i full-URI ključeve za passed_by
+                passed_by_raw = (
+                    act.get("eli:passed_by")
+                    or act.get("passed_by")
+                    or act.get(f"{ELI_NS}passed_by")
+                )
                 logging.debug(f"  JSON-LD passed_by_raw={passed_by_raw!r}")
                 institution = _extract_label(passed_by_raw) or None
 
-                is_about = act.get("eli:is_about") or act.get("is_about", [])
+                is_about = (
+                    act.get("eli:is_about")
+                    or act.get("is_about")
+                    or act.get(f"{ELI_NS}is_about", [])
+                )
                 if isinstance(is_about, list):
                     legal_area = ", ".join(
                         _extract_label(x) for x in is_about if _extract_label(x)
@@ -279,13 +342,18 @@ def _enrich_doc(html_url: str, session) -> dict | None:
     else:
         logging.debug(f"  Nema _legal_resource u rdfa za {html_url}")
 
-    # Fallback za institution: HTML stranica institucije
+    # Fallback 1: HTML stranica institucije (ELI vocabulary)
     if not institution:
         inst_url = rdfa.get("institution_url", "")
         logging.debug(f"  institution_url fallback={inst_url!r}")
         if inst_url:
             institution = _fetch_institution_name(inst_url, session)
             logging.debug(f"  _fetch_institution_name → {institution!r}")
+
+    # Fallback 2: <h2> tag u HTML-u članka (ako vocabulary endpoint ne radi)
+    if not institution:
+        institution = _extract_institution_from_html(html_text)
+        logging.debug(f"  h2 fallback → {institution!r}")
 
     return {
         "institution": institution,
