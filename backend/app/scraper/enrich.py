@@ -221,7 +221,20 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
         logging.info(f"Dokumenata bez institution: {total_count}, krećem od offseta {offset}")
 
         processed = 0
-        current_offset = offset
+        last_id = 0
+
+        # Dohvati ID prvog dokumenta od zadanog offseta
+        if offset > 0:
+            with SessionLocal() as skip_db:
+                skip_doc = (
+                    skip_db.query(Document.id)
+                    .filter(Document.institution.is_(None))
+                    .order_by(Document.id)
+                    .offset(offset)
+                    .limit(1)
+                    .scalar()
+                )
+                last_id = skip_doc - 1 if skip_doc else 0
 
         while True:
             db = SessionLocal()
@@ -229,8 +242,8 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
                 docs = (
                     db.query(Document)
                     .filter(Document.institution.is_(None))
+                    .filter(Document.id > last_id)
                     .order_by(Document.id)
-                    .offset(current_offset)
                     .limit(batch)
                     .all()
                 )
@@ -276,10 +289,10 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
                 if not dry_run:
                     db.commit()
 
+                last_id = docs[-1].id
+
             finally:
                 db.close()
-
-            current_offset += batch
 
         with SessionLocal() as log_db:
             if not dry_run:
