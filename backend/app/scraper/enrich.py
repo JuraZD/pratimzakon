@@ -165,6 +165,9 @@ def _parse_rdfa(html_text: str) -> dict:
     parser = _Parser()
     parser.feed(html_text)
 
+    logging.debug(f"  RDFa about-entities={list(parser.types.keys())}")
+    logging.debug(f"  RDFa props keys (first 10)={list(parser.props.keys())[:10]}")
+
     # Pronađi LegalResource (glavni dokument)
     legal_resource = None
     for about, typeof in parser.types.items():
@@ -191,6 +194,22 @@ def _parse_rdfa(html_text: str) -> dict:
     inst_url = parser.props.get((legal_resource, f"{ELI_NS}passed_by"), "")
     if inst_url:
         result["institution_url"] = inst_url
+        # Pokušaj naći institution label direktno u RDFa (skos:prefLabel, rdfs:label, ...)
+        _INST_LABEL_PROPS = (
+            "skos:prefLabel",
+            "rdfs:label",
+            "schema:name",
+            "http://www.w3.org/2004/02/skos/core#prefLabel",
+            "http://www.w3.org/2000/01/rdf-schema#label",
+        )
+        for lp in _INST_LABEL_PROPS:
+            lv = parser.props.get((inst_url, lp), "")
+            if lv:
+                result["institution_label"] = lv
+                logging.debug(f"  RDFa institution_label nađen via {lp!r}: {lv!r}")
+                break
+        else:
+            logging.debug(f"  RDFa institution_label nije u <meta> tagovima")
 
     # type_document → zadnji segment URL-a (npr. ODLUKA, ZAKON, UREDBA...)
     type_url = parser.props.get((legal_resource, f"{ELI_NS}type_document"), "")
@@ -251,20 +270,40 @@ def _fetch_institution_name(inst_url: str, session) -> str | None:
     except Exception as e:
         logging.debug(f"Institucija JSON-LD neuspješan za {inst_url}: {e}")
 
-    # HTML fallback
+    # HTML fallback (pokušaj i kod 404 - stranica može imati sadržaj)
     try:
         resp = session.get(inst_url, timeout=ELI_TIMEOUT,
                            headers={"Accept": "text/html,application/xhtml+xml"})
-        if resp.status_code != 200:
+        logging.debug(f"  _fetch_institution_name HTML status={resp.status_code} len={len(resp.content)} ct={resp.headers.get('content-type','')!r}")
+        if resp.status_code not in (200, 404):
             _institution_cache[inst_url] = None
             return None
+        # Logiraj dio HTML-a za dijagnostiku
+        logging.debug(f"  institution HTML (300ch): {resp.text[:300]!r}")
+        # Pokušaj JSON-LD embedded u HTML-u
+        embedded = _extract_jsonld_from_html(resp.text)
+        if embedded:
+            if isinstance(embedded, list):
+                for item in embedded:
+                    if isinstance(item, dict):
+                        lbl = _extract_label(item)
+                        if lbl:
+                            _institution_cache[inst_url] = lbl
+                            return lbl
+            elif isinstance(embedded, dict):
+                lbl = _extract_label(embedded)
+                if lbl:
+                    _institution_cache[inst_url] = lbl
+                    return lbl
         p = _TitleParser()
         p.feed(resp.text)
         name = p.title.strip()
         # Ukloni suffix " | Narodne novine" i slično
         if " | " in name:
             name = name.split(" | ")[0].strip()
-        name = name or None
+        # Odbaci generičke NN naslove koji nisu ime institucije
+        if name.lower() in ("narodne novine", "stranica nije pronađena", "not found", ""):
+            name = None
         _institution_cache[inst_url] = name
         return name
     except Exception as e:
@@ -413,6 +452,12 @@ def _enrich_doc(html_url: str, session) -> dict | None:
     else:
         logging.debug(f"  Nema _legal_resource u rdfa za {html_url}")
 
+    # Fallback 0: institution_label direktno iz RDFa <meta> tagova
+    if not institution:
+        institution = rdfa.get("institution_label") or None
+        if institution:
+            logging.debug(f"  rdfa institution_label → {institution!r}")
+
     # Fallback 1: Pretraži jsonld_index po institution_url iz RDFa
     if not institution:
         inst_url = rdfa.get("institution_url", "")
@@ -430,7 +475,7 @@ def _enrich_doc(html_url: str, session) -> dict | None:
             institution = _fetch_institution_name(inst_url, session)
             logging.debug(f"  _fetch_institution_name → {institution!r}")
 
-    # Fallback 2: <h2> tag u HTML-u članka (ako vocabulary endpoint ne radi)
+    # Fallback 3: <h2> tag u HTML-u članka (ako ništa drugo ne radi)
     if not institution:
         institution = _extract_institution_from_html(html_text)
         logging.debug(f"  h2 fallback → {institution!r}")
