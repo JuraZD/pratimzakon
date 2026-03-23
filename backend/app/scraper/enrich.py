@@ -156,7 +156,6 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
     from app.database import SessionLocal
     from app.models import Document, Log
 
-    db = SessionLocal()
     session = requests.Session()
     session.headers.update({
         "User-Agent": "PratimZakon/2.0 (+https://pratimzakon.hr)",
@@ -168,13 +167,13 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
     total_failed = 0
 
     try:
-        # Dohvati dokumente bez institution, po batchevima
-        query = (
-            db.query(Document)
-            .filter(Document.institution.is_(None))
-            .order_by(Document.id)
-        )
-        total_count = query.count()
+        # Ukupan broj dohvatamo u zasebnoj kratkoj sesiji
+        with SessionLocal() as count_db:
+            total_count = (
+                count_db.query(Document)
+                .filter(Document.institution.is_(None))
+                .count()
+            )
         logging.info(f"Dokumenata bez institution: {total_count}, krećem od offseta {offset}")
 
         processed = 0
@@ -182,72 +181,85 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
         first_doc_logged = False
 
         while True:
-            docs = query.offset(current_offset).limit(batch).all()
-            if not docs:
-                break
+            # Svaki batch dobiva svježu DB sesiju — izbjegavamo SSL timeout
+            db = SessionLocal()
+            try:
+                docs = (
+                    db.query(Document)
+                    .filter(Document.institution.is_(None))
+                    .order_by(Document.id)
+                    .offset(current_offset)
+                    .limit(batch)
+                    .all()
+                )
+                if not docs:
+                    break
 
-            for doc in docs:
-                eli_url = _html_url_to_eli_url(doc.url)
-                if not first_doc_logged:
-                    first_doc_logged = True
-                    logging.info(f"PRVI DOK HTML URL: {doc.url!r}")
-                    logging.info(f"PRVI DOK ELI URL: {eli_url!r}")
-                if not eli_url:
-                    logging.debug(f"Ne mogu konstruirati ELI URL za: {doc.url}")
-                    total_skipped += 1
-                    processed += 1
-                    continue
+                for doc in docs:
+                    eli_url = _html_url_to_eli_url(doc.url)
+                    if not first_doc_logged:
+                        first_doc_logged = True
+                        logging.info(f"PRVI DOK HTML URL: {doc.url!r}")
+                        logging.info(f"PRVI DOK ELI URL: {eli_url!r}")
+                    if not eli_url:
+                        logging.debug(f"Ne mogu konstruirati ELI URL za: {doc.url}")
+                        total_skipped += 1
+                        processed += 1
+                        continue
 
-                data = _fetch_eli_jsonld(eli_url, session)
-                if not data:
-                    total_failed += 1
+                    data = _fetch_eli_jsonld(eli_url, session)
+                    if not data:
+                        total_failed += 1
+                        processed += 1
+                        time.sleep(SLEEP_BETWEEN)
+                        continue
+
+                    enriched = _parse_act_jsonld(data)
+
+                    if not dry_run:
+                        if enriched["institution"]:
+                            doc.institution = enriched["institution"]
+                        if enriched["pdf_url"] and not doc.pdf_url:
+                            doc.pdf_url = enriched["pdf_url"]
+                        if enriched["legal_area"] and not doc.legal_area:
+                            doc.legal_area = enriched["legal_area"]
+                        if enriched["date_document"] and not doc.date_document:
+                            doc.date_document = enriched["date_document"]
+
+                    total_updated += 1
                     processed += 1
+
+                    if processed % 100 == 0:
+                        if not dry_run:
+                            db.commit()
+                        logging.info(
+                            f"  Napredak: {processed}/{total_count - offset} | "
+                            f"ažurirano={total_updated}, preskočeno={total_skipped}, greška={total_failed}"
+                        )
+
                     time.sleep(SLEEP_BETWEEN)
-                    continue
-
-                enriched = _parse_act_jsonld(data)
 
                 if not dry_run:
-                    if enriched["institution"]:
-                        doc.institution = enriched["institution"]
-                    if enriched["pdf_url"] and not doc.pdf_url:
-                        doc.pdf_url = enriched["pdf_url"]
-                    if enriched["legal_area"] and not doc.legal_area:
-                        doc.legal_area = enriched["legal_area"]
-                    if enriched["date_document"] and not doc.date_document:
-                        doc.date_document = enriched["date_document"]
+                    db.commit()
 
-                total_updated += 1
-                processed += 1
-
-                if processed % 100 == 0:
-                    if not dry_run:
-                        db.commit()
-                    logging.info(
-                        f"  Napredak: {processed}/{total_count - offset} | "
-                        f"ažurirano={total_updated}, preskočeno={total_skipped}, greška={total_failed}"
-                    )
-
-                time.sleep(SLEEP_BETWEEN)
-
-            if not dry_run:
-                db.commit()
+            finally:
+                db.close()
 
             current_offset += batch
 
-        if not dry_run:
-            db.add(Log(
-                event_type="enrich",
-                detail=f"Enrichment završen: ažurirano={total_updated}, preskočeno={total_skipped}, greška={total_failed}",
-            ))
-            db.commit()
+        with SessionLocal() as log_db:
+            if not dry_run:
+                log_db.add(Log(
+                    event_type="enrich",
+                    detail=f"Enrichment završen: ažurirano={total_updated}, preskočeno={total_skipped}, greška={total_failed}",
+                ))
+                log_db.commit()
 
         logging.info(
             f"Enrichment završen. Ažurirano={total_updated}, preskočeno={total_skipped}, greška={total_failed}"
         )
 
     finally:
-        db.close()
         session.close()
 
     return total_updated
