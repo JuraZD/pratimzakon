@@ -325,12 +325,17 @@ class NarodneNovineScraper:
 
     def scrape_issue(self, year: int, issue: int, part: str = "SL") -> List[Dict]:
         """Dohvaća akte za jedno NN izdanje — JSON-LD primarno, HTML fallback."""
-        data = self._fetch_jsonld_issue(year, issue, part)
-        if data:
-            results = self._parse_jsonld_issue(data, issue, part)
-            if results:
-                return results
-            logging.warning(f"JSON-LD vratio 0 akata za {part} {issue}/{year}, koristim HTML fallback")
+        try:
+            data = self._fetch_jsonld_issue(year, issue, part)
+            if data:
+                results = self._parse_jsonld_issue(data, issue, part)
+                if results:
+                    return results
+                logging.warning(f"JSON-LD vratio 0 akata za {part} {issue}/{year}, koristim HTML fallback")
+            else:
+                logging.warning(f"JSON-LD vratio None za {part} {issue}/{year}, koristim HTML fallback")
+        except Exception as e:
+            logging.error(f"JSON-LD iznimka za {part} {issue}/{year}: {type(e).__name__}: {e}")
         return self._scrape_html_issue(year, issue, part)
 
     def get_latest_issue(self, db_session=None, part: str = "SL") -> Tuple[int, int]:
