@@ -36,6 +36,30 @@ ELI_NS = "http://data.europa.eu/eli/ontology#"
 _institution_cache: dict = {}
 
 
+def _extract_label(obj) -> str:
+    """Izvlači string iz ELI/SKOS objekta koji može biti dict, lista ili string."""
+    if obj is None:
+        return ""
+    if isinstance(obj, str):
+        return obj
+    if isinstance(obj, list):
+        if not obj:
+            return ""
+        for item in obj:
+            if isinstance(item, dict) and item.get("@language") in ("hr", "hrv"):
+                return item.get("@value", "")
+        return _extract_label(obj[0])
+    if isinstance(obj, dict):
+        for key in ("skos:prefLabel", "rdfs:label", "eli:name", "@value", "name"):
+            if key in obj:
+                val = obj[key]
+                if isinstance(val, list):
+                    return _extract_label(val)
+                if isinstance(val, str):
+                    return val
+    return ""
+
+
 def _parse_date(datum_str):
     from datetime import date
     if not datum_str:
@@ -90,6 +114,11 @@ def _parse_rdfa(html_text: str) -> dict:
     if date_val:
         result["date_document"] = date_val
 
+    # date_publication
+    date_pub = parser.props.get((legal_resource, f"{ELI_NS}date_publication"), "")
+    if date_pub:
+        result["date_publication"] = date_pub
+
     # passed_by → institution URL
     inst_url = parser.props.get((legal_resource, f"{ELI_NS}passed_by"), "")
     if inst_url:
@@ -110,7 +139,8 @@ def _parse_rdfa(html_text: str) -> dict:
 
 
 def _fetch_institution_name(inst_url: str, session) -> str | None:
-    """Dohvaća naziv institucije iz ELI vocabulary URL-a (s cacheom)."""
+    """Dohvaća naziv institucije iz ELI vocabulary URL-a (s cacheom).
+    Pokušava JSON-LD prvo, pa HTML fallback."""
     if inst_url in _institution_cache:
         return _institution_cache[inst_url]
 
@@ -131,6 +161,29 @@ def _fetch_institution_name(inst_url: str, session) -> str | None:
             if self.in_title:
                 self.title += data
 
+    # Pokušaj JSON-LD (NN ELI institution stranice podržavaju content negotiation)
+    try:
+        resp = session.get(inst_url, timeout=ELI_TIMEOUT,
+                           headers={"Accept": "application/ld+json, application/json;q=0.9"})
+        if resp.status_code == 200:
+            ct = resp.headers.get("content-type", "")
+            if "json" in ct:
+                try:
+                    data = resp.json()
+                    # JSON-LD može biti list ili dict
+                    if isinstance(data, list):
+                        data = data[0] if data else {}
+                    for key in ("skos:prefLabel", "rdfs:label", "eli:name", "name"):
+                        name = _extract_label(data.get(key))
+                        if name:
+                            _institution_cache[inst_url] = name
+                            return name
+                except Exception:
+                    pass
+    except Exception as e:
+        logging.debug(f"Institucija JSON-LD neuspješan za {inst_url}: {e}")
+
+    # HTML fallback
     try:
         resp = session.get(inst_url, timeout=ELI_TIMEOUT,
                            headers={"Accept": "text/html,application/xhtml+xml"})
@@ -139,13 +192,34 @@ def _fetch_institution_name(inst_url: str, session) -> str | None:
             return None
         p = _TitleParser()
         p.feed(resp.text)
-        name = p.title.strip() or None
+        name = p.title.strip()
+        # Ukloni suffix " | Narodne novine" i slično
+        if " | " in name:
+            name = name.split(" | ")[0].strip()
+        name = name or None
         _institution_cache[inst_url] = name
         return name
     except Exception as e:
-        logging.debug(f"Institucija dohvat neuspješan za {inst_url}: {e}")
+        logging.debug(f"Institucija HTML neuspješan za {inst_url}: {e}")
         _institution_cache[inst_url] = None
         return None
+
+
+def _fetch_jsonld_act(eli_url: str, session) -> dict | None:
+    """Dohvaća JSON-LD za pojedini akt putem ELI URL-a (legal_resource)."""
+    try:
+        resp = session.get(
+            eli_url,
+            headers={"Accept": "application/ld+json, application/json;q=0.9"},
+            timeout=ELI_TIMEOUT,
+        )
+        if resp.ok:
+            ct = resp.headers.get("content-type", "")
+            if "json" in ct:
+                return resp.json()
+    except Exception as e:
+        logging.debug(f"JSON-LD act dohvat neuspješan za {eli_url}: {e}")
+    return None
 
 
 def _enrich_doc(html_url: str, session) -> dict | None:
@@ -168,21 +242,52 @@ def _enrich_doc(html_url: str, session) -> dict | None:
         return None
 
     institution = None
-    inst_url = rdfa.get("institution_url", "")
-    if inst_url:
-        institution = _fetch_institution_name(inst_url, session)
+    legal_area = None
+
+    # Pokušaj dohvatiti institution i legal_area iz JSON-LD (ELI act URL iz RDFa)
+    legal_resource_url = rdfa.get("_legal_resource", "")
+    if legal_resource_url:
+        jsonld = _fetch_jsonld_act(legal_resource_url, session)
+        if jsonld:
+            # JSON-LD može biti @graph lista
+            act = jsonld
+            if "@graph" in jsonld:
+                for item in jsonld["@graph"]:
+                    if isinstance(item, dict) and item.get("@id") == legal_resource_url:
+                        act = item
+                        break
+
+            institution = _extract_label(
+                act.get("eli:passed_by") or act.get("passed_by")
+            ) or None
+
+            is_about = act.get("eli:is_about") or act.get("is_about", [])
+            if isinstance(is_about, list):
+                legal_area = ", ".join(
+                    _extract_label(x) for x in is_about if _extract_label(x)
+                ) or None
+            else:
+                legal_area = _extract_label(is_about) or None
+
+    # Fallback za institution: HTML stranica institucije
+    if not institution:
+        inst_url = rdfa.get("institution_url", "")
+        if inst_url:
+            institution = _fetch_institution_name(inst_url, session)
 
     return {
         "institution": institution,
         "pdf_url": rdfa.get("pdf_url"),
-        "legal_area": None,  # nije dostupno u RDFa
+        "legal_area": legal_area,
         "date_document": _parse_date(rdfa.get("date_document")),
+        "published_date": _parse_date(rdfa.get("date_publication")),
         "type_document": rdfa.get("type_document"),
     }
 
 
 def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
     import requests
+    from sqlalchemy import or_
     from app.database import SessionLocal
     from app.models import Document, Log
 
@@ -211,14 +316,19 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
         logging.error(f"narodne-novine.nn.hr nije dostupan: {e}")
         return 0
 
+    # Filter: dokumenti kojima nedostaje barem jedno od ključnih polja
+    def _incomplete_filter(q):
+        return q.filter(
+            or_(
+                Document.institution.is_(None),
+                Document.published_date.is_(None),
+            )
+        )
+
     try:
         with SessionLocal() as count_db:
-            total_count = (
-                count_db.query(Document)
-                .filter(Document.institution.is_(None))
-                .count()
-            )
-        logging.info(f"Dokumenata bez institution: {total_count}, krećem od offseta {offset}")
+            total_count = _incomplete_filter(count_db.query(Document)).count()
+        logging.info(f"Dokumenata bez institution ili published_date: {total_count}, krećem od offseta {offset}")
 
         processed = 0
         last_id = 0
@@ -227,8 +337,7 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
         if offset > 0:
             with SessionLocal() as skip_db:
                 skip_doc = (
-                    skip_db.query(Document.id)
-                    .filter(Document.institution.is_(None))
+                    _incomplete_filter(skip_db.query(Document.id))
                     .order_by(Document.id)
                     .offset(offset)
                     .limit(1)
@@ -240,8 +349,7 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
             db = SessionLocal()
             try:
                 docs = (
-                    db.query(Document)
-                    .filter(Document.institution.is_(None))
+                    _incomplete_filter(db.query(Document))
                     .filter(Document.id > last_id)
                     .order_by(Document.id)
                     .limit(batch)
@@ -262,7 +370,7 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
                         continue
 
                     if not dry_run:
-                        if enriched["institution"]:
+                        if enriched["institution"] and not doc.institution:
                             doc.institution = enriched["institution"]
                         if enriched["pdf_url"] and not doc.pdf_url:
                             doc.pdf_url = enriched["pdf_url"]
@@ -270,6 +378,8 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
                             doc.legal_area = enriched["legal_area"]
                         if enriched["date_document"] and not doc.date_document:
                             doc.date_document = enriched["date_document"]
+                        if enriched["published_date"] and not doc.published_date:
+                            doc.published_date = enriched["published_date"]
                         if enriched["type_document"] and not doc.type:
                             doc.type = enriched["type_document"]
 
