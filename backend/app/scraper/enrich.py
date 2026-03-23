@@ -95,6 +95,11 @@ def _parse_rdfa(html_text: str) -> dict:
     if inst_url:
         result["institution_url"] = inst_url
 
+    # type_document → zadnji segment URL-a (npr. ODLUKA, ZAKON, UREDBA...)
+    type_url = parser.props.get((legal_resource, f"{ELI_NS}type_document"), "")
+    if type_url:
+        result["type_document"] = type_url.rstrip("/").split("/")[-1]
+
     # PDF URL — traži meta tag s format = application/pdf
     for (about, prop), value in parser.props.items():
         if prop == f"{ELI_NS}format" and "pdf" in value.lower():
@@ -172,6 +177,7 @@ def _enrich_doc(html_url: str, session) -> dict | None:
         "pdf_url": rdfa.get("pdf_url"),
         "legal_area": None,  # nije dostupno u RDFa
         "date_document": _parse_date(rdfa.get("date_document")),
+        "type_document": rdfa.get("type_document"),
     }
 
 
@@ -251,6 +257,8 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
                             doc.legal_area = enriched["legal_area"]
                         if enriched["date_document"] and not doc.date_document:
                             doc.date_document = enriched["date_document"]
+                        if enriched["type_document"] and not doc.type:
+                            doc.type = enriched["type_document"]
 
                     total_updated += 1
                     processed += 1
