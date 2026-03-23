@@ -179,6 +179,7 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
 
         processed = 0
         current_offset = offset
+        first_doc_logged = False
 
         while True:
             docs = query.offset(current_offset).limit(batch).all()
@@ -187,6 +188,10 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
 
             for doc in docs:
                 eli_url = _html_url_to_eli_url(doc.url)
+                if not first_doc_logged:
+                    first_doc_logged = True
+                    logging.info(f"PRVI DOK HTML URL: {doc.url!r}")
+                    logging.info(f"PRVI DOK ELI URL: {eli_url!r}")
                 if not eli_url:
                     logging.debug(f"Ne mogu konstruirati ELI URL za: {doc.url}")
                     total_skipped += 1
