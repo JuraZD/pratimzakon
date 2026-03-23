@@ -30,6 +30,7 @@ logging.basicConfig(
 )
 
 SLEEP_BETWEEN = 0.4  # sekunde između API poziva
+ELI_TIMEOUT = (5, 10)  # (connect, read) timeout u sekundama
 
 # Regex za parsiranje HTML URL-a
 # Format: .../clanci/sluzbeni/YYYY_BROJ_SEQ_ID.html
@@ -55,7 +56,7 @@ def _fetch_eli_jsonld(url: str, session) -> dict | None:
         resp = session.get(
             url,
             headers={"Accept": "application/ld+json, application/json;q=0.9"},
-            timeout=20,
+            timeout=ELI_TIMEOUT,
         )
         if resp.status_code == 404:
             return None
@@ -166,6 +167,19 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
     total_skipped = 0
     total_failed = 0
 
+    # Provjeri dostupnost ELI API-ja prije obrade
+    try:
+        test_resp = session.get(
+            "https://narodne-novine.nn.hr/eli/sluzbeni-list/2020/1/1/",
+            headers={"Accept": "application/ld+json, application/json;q=0.9"},
+            timeout=ELI_TIMEOUT,
+        )
+        logging.info(f"ELI API connectivity check: HTTP {test_resp.status_code}")
+    except Exception as e:
+        logging.error(f"ELI API nije dostupan: {e}")
+        logging.error("Prekidam — bez pristupa ELI API-ju nema smisla nastaviti.")
+        return 0
+
     try:
         # Ukupan broj dohvatamo u zasebnoj kratkoj sesiji
         with SessionLocal() as count_db:
@@ -211,6 +225,8 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
                     if not data:
                         total_failed += 1
                         processed += 1
+                        if total_failed <= 5 or total_failed % 50 == 0:
+                            logging.warning(f"  ELI fail #{total_failed}: {eli_url}")
                         time.sleep(SLEEP_BETWEEN)
                         continue
 
