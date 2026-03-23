@@ -11,7 +11,7 @@ import time
 import logging
 from datetime import datetime
 
-load_env_path = os.path.join(os.path.dirname(__file__), "../../../.env")
+load_env_path = os.path.join(os.path.dirname(__file__), "../../.env")
 
 import dotenv
 dotenv.load_dotenv(load_env_path)
