@@ -216,6 +216,16 @@ def _parse_rdfa(html_text: str) -> dict:
     if type_url:
         result["type_document"] = type_url.rstrip("/").split("/")[-1]
 
+    # eli:publisher na /hrv LegalExpression entitetu (alternativni path za instituciju)
+    hrv_entity = legal_resource + "/hrv"
+    publisher_url = parser.props.get((hrv_entity, f"{ELI_NS}publisher"), "")
+    if publisher_url:
+        result["publisher_url"] = publisher_url
+        logging.debug(f"  RDFa publisher_url={publisher_url!r}")
+
+    # Logiraj sve props za dijagnostiku
+    logging.debug(f"  RDFa all props={[(k,v) for k,v in parser.props.items() if 'institution' in str(v).lower() or 'publisher' in str(k[1]).lower()]}")
+
     # PDF URL — traži meta tag s format = application/pdf
     for (about, prop), value in parser.props.items():
         if prop == f"{ELI_NS}format" and "pdf" in value.lower():
