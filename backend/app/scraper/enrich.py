@@ -70,6 +70,23 @@ def _parse_date(datum_str):
         return None
 
 
+def _extract_jsonld_from_html(html_text: str) -> dict | None:
+    """Izvlači JSON-LD iz <script type='application/ld+json'> u HTML-u."""
+    import json, re
+    pattern = re.compile(
+        r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+        re.DOTALL | re.IGNORECASE,
+    )
+    for m in pattern.finditer(html_text):
+        try:
+            data = json.loads(m.group(1))
+            logging.debug(f"  HTML embedded JSON-LD (200ch): {m.group(1)[:200]!r}")
+            return data
+        except Exception:
+            pass
+    return None
+
+
 def _extract_institution_from_html(html_text: str) -> str | None:
     """Pokušava izvući naziv institucije iz <h2> taga u HTML-u članka NN-a."""
     from html.parser import HTMLParser
@@ -253,8 +270,13 @@ def _fetch_jsonld_act(eli_url: str, session) -> dict | None:
         )
         if resp.ok:
             ct = resp.headers.get("content-type", "")
+            logging.debug(f"  JSON-LD resp ct={ct!r} len={len(resp.content)} url={resp.url}")
             if "json" in ct:
-                return resp.json()
+                data = resp.json()
+                logging.debug(f"  JSON-LD raw (500 ch): {resp.text[:500]!r}")
+                return data
+            else:
+                logging.debug(f"  JSON-LD preskočen (ct nije json): {resp.text[:200]!r}")
     except Exception as e:
         logging.debug(f"JSON-LD act dohvat neuspješan za {eli_url}: {e}")
     return None
@@ -286,8 +308,19 @@ def _enrich_doc(html_url: str, session) -> dict | None:
     # Pokušaj dohvatiti institution i legal_area iz JSON-LD (ELI act URL iz RDFa)
     legal_resource_url = rdfa.get("_legal_resource", "")
     logging.debug(f"  rdfa keys={list(rdfa.keys())} legal_resource={legal_resource_url!r}")
+
+    # Provjeri postoji li JSON-LD embedan direktno u HTML-u članka
+    html_embedded_jsonld = _extract_jsonld_from_html(html_text)
+    if html_embedded_jsonld:
+        logging.debug(f"  HTML embedded JSON-LD nađen")
+
     if legal_resource_url:
         jsonld = _fetch_jsonld_act(legal_resource_url, session)
+        # Ako ELI endpoint vraća samo @id (prazno), pokušaj HTML embedded
+        if not jsonld or (isinstance(jsonld, dict) and list(jsonld.keys()) == ["@id"]):
+            if html_embedded_jsonld:
+                logging.debug(f"  Koristim HTML embedded JSON-LD umjesto ELI endpoint odgovora")
+                jsonld = html_embedded_jsonld
         if not jsonld:
             logging.debug(f"  JSON-LD nije vraćen za {legal_resource_url}")
         if jsonld:
