@@ -119,7 +119,6 @@ class NarodneNovineScraper:
                 headers={"Accept": "application/ld+json, application/json;q=0.9"},
                 timeout=20,
             )
-            logging.info(f"JSON-LD {part} {issue}/{year}: HTTP {resp.status_code}, URL={url}")
             if resp.status_code == 404:
                 return None
             resp.raise_for_status()
@@ -151,13 +150,6 @@ class NarodneNovineScraper:
         published_date = _parse_date(
             data.get("eli:date_publication") or data.get("dcterms:date")
         )
-
-        # DEBUG: pokaži strukturu prvog akta
-        if acts:
-            first = acts[0] if isinstance(acts[0], dict) else {}
-            logging.info(f"DEBUG prvi akt ključevi: {list(first.keys())}")
-            for k, v in list(first.items())[:15]:
-                logging.info(f"  {k}: {repr(v)[:200]}")
 
         for act in acts:
             if not isinstance(act, dict):
