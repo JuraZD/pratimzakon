@@ -8,7 +8,6 @@ services:
   - type: web
     name: pratimzakon-api
     runtime: python
-    plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
@@ -49,6 +48,5 @@ services:
   - type: web
     name: pratimzakon
     runtime: static
-    plan: free
     buildCommand: ""
     staticPublishPath: frontend
