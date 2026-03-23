@@ -151,6 +151,13 @@ class NarodneNovineScraper:
             data.get("eli:date_publication") or data.get("dcterms:date")
         )
 
+        # DEBUG: pokaži strukturu prvog akta
+        if acts:
+            first = acts[0] if isinstance(acts[0], dict) else {}
+            logging.info(f"DEBUG prvi akt ključevi: {list(first.keys())}")
+            for k, v in list(first.items())[:15]:
+                logging.info(f"  {k}: {repr(v)[:200]}")
+
         for act in acts:
             if not isinstance(act, dict):
                 continue
