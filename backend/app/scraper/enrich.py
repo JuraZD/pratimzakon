@@ -36,6 +36,19 @@ ELI_NS = "http://data.europa.eu/eli/ontology#"
 _institution_cache: dict = {}
 
 
+_SKOS_LABEL_KEYS = (
+    "skos:prefLabel",
+    "rdfs:label",
+    "eli:name",
+    "@value",
+    "name",
+    # full-URI ključevi iz JSON-LD expanded formata
+    "http://www.w3.org/2004/02/skos/core#prefLabel",
+    "http://www.w3.org/2000/01/rdf-schema#label",
+    f"{ELI_NS}name",
+)
+
+
 def _extract_label(obj) -> str:
     """Izvlači string iz ELI/SKOS objekta koji može biti dict, lista ili string."""
     if obj is None:
@@ -50,7 +63,7 @@ def _extract_label(obj) -> str:
                 return item.get("@value", "")
         return _extract_label(obj[0])
     if isinstance(obj, dict):
-        for key in ("skos:prefLabel", "rdfs:label", "eli:name", "@value", "name"):
+        for key in _SKOS_LABEL_KEYS:
             if key in obj:
                 val = obj[key]
                 if isinstance(val, list):
@@ -324,32 +337,41 @@ def _enrich_doc(html_url: str, session) -> dict | None:
         if not jsonld:
             logging.debug(f"  JSON-LD nije vraćen za {legal_resource_url}")
         if jsonld:
-            # JSON-LD može biti lista na vrhu ili dict s @graph
-            if isinstance(jsonld, list):
-                jsonld = jsonld[0] if jsonld else {}
-            act = jsonld
+            # Izgradi index svih stavki po @id (za cross-reference institucija itd.)
+            jsonld_index: dict = {}
+            items_iter = jsonld if isinstance(jsonld, list) else jsonld.get("@graph", [])
+            for _item in items_iter:
+                if isinstance(_item, dict) and "@id" in _item:
+                    jsonld_index[_item["@id"].rstrip("/")] = _item
 
-            if isinstance(jsonld, dict):
+            # Pronađi pravi akt: item čiji @id odgovara legal_resource_url
+            norm_url = legal_resource_url.rstrip("/")
+            act = jsonld_index.get(norm_url, {})
+
+            # JSON-LD može biti lista na vrhu ili dict s @graph
+            if not act and isinstance(jsonld, list):
+                # Fallback: traži po tipu LegalResource
+                for _item in jsonld:
+                    if isinstance(_item, dict):
+                        itype = _item.get("@type", "")
+                        if "LegalResource" in str(itype):
+                            act = _item
+                            break
+                if not act:
+                    act = {}
+            elif not act and isinstance(jsonld, dict):
                 if "@graph" in jsonld:
-                    # Normalizirano matchanje @id (trim trailing slash)
-                    norm_url = legal_resource_url.rstrip("/")
-                    for item in jsonld["@graph"]:
-                        if isinstance(item, dict):
-                            item_id = item.get("@id", "").rstrip("/")
-                            if item_id == norm_url:
-                                act = item
+                    for _item in jsonld["@graph"]:
+                        if isinstance(_item, dict):
+                            itype = _item.get("@type", "")
+                            if "LegalResource" in str(itype):
+                                act = _item
                                 break
-                    else:
-                        # Ako nismo našli po @id, traži LegalResource tip
-                        for item in jsonld["@graph"]:
-                            if isinstance(item, dict):
-                                itype = item.get("@type", "")
-                                if "LegalResource" in str(itype):
-                                    act = item
-                                    break
-                    logging.debug(f"  JSON-LD @graph len={len(jsonld['@graph'])}, act @id={act.get('@id', 'N/A')!r}")
+                    logging.debug(f"  JSON-LD @graph len={len(jsonld['@graph'])}")
                 else:
-                    logging.debug(f"  JSON-LD top-level keys={list(jsonld.keys())[:10]}")
+                    act = jsonld
+
+            logging.debug(f"  JSON-LD act @id={act.get('@id', 'N/A')!r} keys={list(act.keys())[:8]}")
 
             if isinstance(act, dict):
                 # Probaj prefixed i full-URI ključeve za passed_by
@@ -359,7 +381,23 @@ def _enrich_doc(html_url: str, session) -> dict | None:
                     or act.get(f"{ELI_NS}passed_by")
                 )
                 logging.debug(f"  JSON-LD passed_by_raw={passed_by_raw!r}")
+
+                # Iz passed_by izvuci label ili @id referendu za cross-lookup
                 institution = _extract_label(passed_by_raw) or None
+                if not institution and passed_by_raw:
+                    # passed_by može biti {"@id": "...institutions/XXXXX"} ili lista
+                    ref_id = None
+                    if isinstance(passed_by_raw, dict):
+                        ref_id = passed_by_raw.get("@id", "")
+                    elif isinstance(passed_by_raw, list) and passed_by_raw:
+                        first = passed_by_raw[0]
+                        if isinstance(first, dict):
+                            ref_id = first.get("@id", "")
+                    if ref_id:
+                        inst_item = jsonld_index.get(ref_id.rstrip("/"))
+                        if inst_item:
+                            institution = _extract_label(inst_item) or None
+                            logging.debug(f"  jsonld_index institution lookup → {institution!r}")
 
                 is_about = (
                     act.get("eli:is_about")
@@ -375,10 +413,19 @@ def _enrich_doc(html_url: str, session) -> dict | None:
     else:
         logging.debug(f"  Nema _legal_resource u rdfa za {html_url}")
 
-    # Fallback 1: HTML stranica institucije (ELI vocabulary)
+    # Fallback 1: Pretraži jsonld_index po institution_url iz RDFa
     if not institution:
         inst_url = rdfa.get("institution_url", "")
         logging.debug(f"  institution_url fallback={inst_url!r}")
+        if inst_url and "jsonld_index" in dir():
+            inst_item = jsonld_index.get(inst_url.rstrip("/"))
+            if inst_item:
+                institution = _extract_label(inst_item) or None
+                logging.debug(f"  jsonld_index rdfa inst lookup → {institution!r}")
+
+    # Fallback 2: HTML stranica institucije (ELI vocabulary)
+    if not institution:
+        inst_url = rdfa.get("institution_url", "")
         if inst_url:
             institution = _fetch_institution_name(inst_url, session)
             logging.debug(f"  _fetch_institution_name → {institution!r}")
