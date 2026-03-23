@@ -11,7 +11,6 @@ Pokretanje:
 
 import sys
 import os
-import re
 import time
 import logging
 import argparse
@@ -32,39 +31,54 @@ logging.basicConfig(
 SLEEP_BETWEEN = 0.4  # sekunde između API poziva
 ELI_TIMEOUT = (5, 10)  # (connect, read) timeout u sekundama
 
-# Regex za parsiranje HTML URL-a
-# Format: .../clanci/sluzbeni/YYYY_BROJ_SEQ_ID.html
-HTML_URL_RE = re.compile(
-    r"/clanci/(sluzbeni|medunarodni)/(\d{4})_(\d+)_(\d+)_(\d+)\.html", re.IGNORECASE
-)
 
+def _fetch_eli_jsonld(html_url: str, session) -> dict | None:
+    """Dohvaća JSON-LD embeddan u HTML stranicu akta."""
+    import json
+    from html.parser import HTMLParser
 
-def _html_url_to_eli_url(html_url: str) -> str | None:
-    """Pretvara HTML URL akta u ELI URL za JSON-LD dohvat."""
-    m = HTML_URL_RE.search(html_url)
-    if not m:
-        return None
-    section, year, issue, act_id = m.group(1), m.group(2), m.group(3), m.group(5)
-    eli_section = "sluzbeni-list" if section == "sluzbeni" else "medunarodni-ugovori"
-    # ELI API ne prihvaća zero-padded brojeve (npr. "01" → "1")
-    return f"https://narodne-novine.nn.hr/eli/{eli_section}/{year}/{int(issue)}/{int(act_id)}/"
+    class _JsonLdParser(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.in_jsonld = False
+            self.data = []
+            self.result = None
 
+        def handle_starttag(self, tag, attrs):
+            if tag == "script":
+                attrs_dict = dict(attrs)
+                if attrs_dict.get("type") == "application/ld+json":
+                    self.in_jsonld = True
 
-def _fetch_eli_jsonld(url: str, session) -> dict | None:
-    """Dohvaća JSON-LD za pojedini akt. Vraća parsed dict ili None."""
-    import requests
+        def handle_endtag(self, tag):
+            if tag == "script" and self.in_jsonld:
+                self.in_jsonld = False
+                raw = "".join(self.data).strip()
+                if raw:
+                    try:
+                        self.result = json.loads(raw)
+                    except Exception:
+                        pass
+                self.data = []
+
+        def handle_data(self, data):
+            if self.in_jsonld:
+                self.data.append(data)
+
     try:
         resp = session.get(
-            url,
-            headers={"Accept": "application/ld+json, application/json;q=0.9"},
+            html_url,
+            headers={"Accept": "text/html,application/xhtml+xml"},
             timeout=ELI_TIMEOUT,
         )
         if resp.status_code == 404:
             return None
         resp.raise_for_status()
-        return resp.json()
+        parser = _JsonLdParser()
+        parser.feed(resp.text)
+        return parser.result
     except Exception as e:
-        logging.warning(f"ELI dohvat neuspješan za {url}: {e}")
+        logging.warning(f"HTML dohvat neuspješan za {html_url}: {e}")
         return None
 
 
@@ -168,17 +182,19 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
     total_skipped = 0
     total_failed = 0
 
-    # Provjeri dostupnost ELI API-ja prije obrade
+    # Provjeri dostupnost narodne-novine.nn.hr prije obrade
     try:
         test_resp = session.get(
-            "https://narodne-novine.nn.hr/eli/sluzbeni-list/2020/1/67/",
-            headers={"Accept": "application/ld+json, application/json;q=0.9"},
+            "https://narodne-novine.nn.hr/clanci/sluzbeni/2020_01_10_67.html",
+            headers={"Accept": "text/html"},
             timeout=ELI_TIMEOUT,
         )
-        logging.info(f"ELI API connectivity check: HTTP {test_resp.status_code}")
+        logging.info(f"Connectivity check: HTTP {test_resp.status_code}")
+        if test_resp.status_code >= 400:
+            logging.error("narodne-novine.nn.hr nije dostupan ili vraća grešku. Prekidam.")
+            return 0
     except Exception as e:
-        logging.error(f"ELI API nije dostupan: {e}")
-        logging.error("Prekidam — bez pristupa ELI API-ju nema smisla nastaviti.")
+        logging.error(f"narodne-novine.nn.hr nije dostupan: {e}")
         return 0
 
     try:
@@ -211,23 +227,16 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
                     break
 
                 for doc in docs:
-                    eli_url = _html_url_to_eli_url(doc.url)
                     if not first_doc_logged:
                         first_doc_logged = True
                         logging.info(f"PRVI DOK HTML URL: {doc.url!r}")
-                        logging.info(f"PRVI DOK ELI URL: {eli_url!r}")
-                    if not eli_url:
-                        logging.debug(f"Ne mogu konstruirati ELI URL za: {doc.url}")
-                        total_skipped += 1
-                        processed += 1
-                        continue
 
-                    data = _fetch_eli_jsonld(eli_url, session)
+                    data = _fetch_eli_jsonld(doc.url, session)
                     if not data:
                         total_failed += 1
                         processed += 1
                         if total_failed <= 5 or total_failed % 50 == 0:
-                            logging.warning(f"  ELI fail #{total_failed}: {eli_url}")
+                            logging.warning(f"  HTML fail #{total_failed}: {doc.url}")
                         time.sleep(SLEEP_BETWEEN)
                         continue
 
