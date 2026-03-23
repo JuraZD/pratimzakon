@@ -233,6 +233,14 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
                     if not first_doc_logged:
                         first_doc_logged = True
                         logging.info(f"PRVI DOK HTML URL: {doc.url!r}")
+                        # Privremeni debug — ispiši dio HTML-a da vidimo strukturu
+                        try:
+                            import requests as _req
+                            _r = _req.get(doc.url, headers={"User-Agent": "PratimZakon/2.0", "Accept": "text/html"}, timeout=ELI_TIMEOUT)
+                            snippet = _r.text[:4000]
+                            logging.info(f"HTML snippet (prvih 4000 znakova):\n{snippet}")
+                        except Exception as _e:
+                            logging.info(f"Nije moguće dohvatiti HTML snippet: {_e}")
 
                     data = _fetch_eli_jsonld(doc.url, session)
                     if not data:
