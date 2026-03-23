@@ -119,6 +119,7 @@ class NarodneNovineScraper:
                 headers={"Accept": "application/ld+json, application/json;q=0.9"},
                 timeout=20,
             )
+            logging.info(f"JSON-LD {part} {issue}/{year}: HTTP {resp.status_code}, URL={url}")
             if resp.status_code == 404:
                 return None
             resp.raise_for_status()
