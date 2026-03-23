@@ -34,6 +34,15 @@ ELI_NS = "http://data.europa.eu/eli/ontology#"
 
 # Cache za ime institucije (institution URL → naziv)
 _institution_cache: dict = {}
+# Flag da li je lista svih institucija već dohvaćena
+_institution_list_fetched: bool = False
+
+# Prefiksi naslova dokumenata koji nisu nazivi institucija
+_DOC_TYPE_PREFIXES = (
+    "Odluka", "Pravilnik", "Uredba", "Zakon", "Naredba", "Rješenje", "Naputak",
+    "Statut", "Plan", "Program", "Strategija", "Ugovor", "Sporazum", "Protokol",
+    "Pravilni", "Opći", "Posebni", "Izmjen", "Dopun", "Na temelju", "Temeljem",
+)
 
 
 _SKOS_LABEL_KEYS = (
@@ -132,9 +141,13 @@ def _extract_institution_from_html(html_text: str) -> str | None:
     p.feed(html_text)
     name = p.first_h2
     if name:
-        # Ukloni eventualne oznake poput "Na temelju..." koje nisu ime institucije
-        if len(name) > 100 or name[0].islower():
+        # Odbaci preduge tekstove i one koji počinju malim slovom
+        if len(name) > 120 or name[0].islower():
             return None
+        # Odbaci naslove dokumenata (počinju tipom dokumenta, ne imenom institucije)
+        for prefix in _DOC_TYPE_PREFIXES:
+            if name.startswith(prefix):
+                return None
     return name or None
 
 
@@ -233,6 +246,52 @@ def _parse_rdfa(html_text: str) -> dict:
             break
 
     return result
+
+
+def _prefetch_institution_list(session) -> None:
+    """Jednokratni dohvat liste svih institucija iz NN ELI vocabulary.
+    Puni _institution_cache za sve institucije odjednom."""
+    global _institution_list_fetched
+    if _institution_list_fetched:
+        return
+    _institution_list_fetched = True
+
+    base_url = "https://narodne-novine.nn.hr/eli/vocabularies/nn-institutions"
+    for url in (
+        base_url + "?format=json-ld",
+        base_url + "?format=json",
+        base_url,
+    ):
+        try:
+            resp = session.get(
+                url,
+                headers={"Accept": "application/ld+json, application/json;q=0.9, text/turtle;q=0.8"},
+                timeout=ELI_TIMEOUT,
+            )
+            logging.debug(f"  institution list fetch: {url} → {resp.status_code} ct={resp.headers.get('content-type','')!r} len={len(resp.content)}")
+            if resp.status_code != 200:
+                continue
+            ct = resp.headers.get("content-type", "")
+            if "json" not in ct:
+                continue
+            data = resp.json()
+            items = data if isinstance(data, list) else data.get("@graph", [data])
+            count = 0
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
+                item_id = item.get("@id", "")
+                if not item_id or "nn-institutions" not in item_id:
+                    continue
+                label = _extract_label(item)
+                if label:
+                    _institution_cache[item_id.rstrip("/")] = label
+                    count += 1
+            logging.info(f"  institution list: {count} institucija učitano iz {url}")
+            if count:
+                return
+        except Exception as e:
+            logging.debug(f"  institution list fetch failed {url}: {e}")
 
 
 def _fetch_institution_name(inst_url: str, session) -> str | None:
@@ -530,6 +589,9 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
     except Exception as e:
         logging.error(f"narodne-novine.nn.hr nije dostupan: {e}")
         return 0
+
+    # Jednokratni prefetch liste svih institucija
+    _prefetch_institution_list(session)
 
     # Filter: dokumenti kojima nedostaje barem jedno od ključnih polja
     def _incomplete_filter(q):
