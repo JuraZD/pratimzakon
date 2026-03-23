@@ -249,25 +249,28 @@ def _enrich_doc(html_url: str, session) -> dict | None:
     if legal_resource_url:
         jsonld = _fetch_jsonld_act(legal_resource_url, session)
         if jsonld:
-            # JSON-LD može biti @graph lista
+            # JSON-LD može biti lista na vrhu ili dict s @graph
+            if isinstance(jsonld, list):
+                jsonld = jsonld[0] if jsonld else {}
             act = jsonld
-            if "@graph" in jsonld:
+            if isinstance(jsonld, dict) and "@graph" in jsonld:
                 for item in jsonld["@graph"]:
                     if isinstance(item, dict) and item.get("@id") == legal_resource_url:
                         act = item
                         break
 
-            institution = _extract_label(
-                act.get("eli:passed_by") or act.get("passed_by")
-            ) or None
-
-            is_about = act.get("eli:is_about") or act.get("is_about", [])
-            if isinstance(is_about, list):
-                legal_area = ", ".join(
-                    _extract_label(x) for x in is_about if _extract_label(x)
+            if isinstance(act, dict):
+                institution = _extract_label(
+                    act.get("eli:passed_by") or act.get("passed_by")
                 ) or None
-            else:
-                legal_area = _extract_label(is_about) or None
+
+                is_about = act.get("eli:is_about") or act.get("is_about", [])
+                if isinstance(is_about, list):
+                    legal_area = ", ".join(
+                        _extract_label(x) for x in is_about if _extract_label(x)
+                    ) or None
+                else:
+                    legal_area = _extract_label(is_about) or None
 
     # Fallback za institution: HTML stranica institucije
     if not institution:
