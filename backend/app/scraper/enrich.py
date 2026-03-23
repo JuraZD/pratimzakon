@@ -72,10 +72,13 @@ def _fetch_eli_jsonld(html_url: str, session) -> dict | None:
             timeout=ELI_TIMEOUT,
         )
         if resp.status_code == 404:
+            logging.info(f"  404: {html_url}")
             return None
         resp.raise_for_status()
         parser = _JsonLdParser()
         parser.feed(resp.text)
+        if parser.result is None:
+            logging.info(f"  Nema JSON-LD (HTTP {resp.status_code}, {len(resp.text)} B): {html_url}")
         return parser.result
     except Exception as e:
         logging.warning(f"HTML dohvat neuspješan za {html_url}: {e}")
