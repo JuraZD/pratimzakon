@@ -963,8 +963,11 @@
   }
 
   if (localStorage.getItem("token")) {
-    const loginBtn = document.querySelector('[onclick="openModal(\'login\')"]');
-    if (loginBtn) { loginBtn.textContent = "Dashboard"; loginBtn.href = "dashboard.html"; loginBtn.removeAttribute("onclick"); }
+    const navLinks = document.querySelector('.nav-links');
+    navLinks.innerHTML = `
+      <a href="dashboard.html" class="btn btn-ghost">Dashboard</a>
+      <a href="#" class="btn btn-solid" onclick="(function(){localStorage.removeItem('token');window.location.reload();})()">Odjava</a>
+    `;
   }
 </script>
 </body>
