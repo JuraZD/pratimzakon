@@ -4,81 +4,382 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard – PratimZakon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --blue: #2563eb;
-      --blue-dark: #1d4ed8;
-      --gray-50: #f9fafb;
-      --gray-100: #f3f4f6;
-      --gray-200: #e5e7eb;
-      --gray-600: #4b5563;
-      --gray-900: #111827;
-      --red: #dc2626;
+      --ink: #0d0d0d;
+      --paper: #f8f7f4;
+      --white: #ffffff;
+      --mid: #6b6b6b;
+      --rule: #d4d0c9;
+      --serif: 'Playfair Display', Georgia, serif;
+      --sans: 'DM Sans', sans-serif;
+      --cx: max(5%, calc((100% - 1140px) / 2));
     }
-    body { font-family: system-ui, -apple-system, sans-serif; color: var(--gray-900); background: var(--gray-50); min-height: 100vh; }
+
+    body {
+      font-family: var(--sans);
+      color: var(--ink);
+      background: var(--paper);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
 
     /* NAV */
-    nav { display: flex; justify-content: space-between; align-items: center; padding: 14px 5%; background: #fff; border-bottom: 1px solid var(--gray-200); }
-    .logo { font-size: 18px; font-weight: 700; color: var(--blue); text-decoration: none; }
-    .nav-right { display: flex; gap: 12px; align-items: center; font-size: 14px; }
-    #userEmail { color: var(--gray-600); }
-    .btn { display: inline-block; padding: 8px 18px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; }
-    .btn-primary { background: var(--blue); color: #fff; }
-    .btn-primary:hover { background: var(--blue-dark); }
-    .btn-outline { border: 1px solid var(--gray-200); color: var(--gray-600); background: #fff; }
-    .btn-danger { background: #fee2e2; color: var(--red); border: none; padding: 6px 12px; border-radius: 4px; font-size: 13px; cursor: pointer; }
-    .btn-danger:hover { background: #fecaca; }
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px var(--cx);
+      border-bottom: 1px solid var(--ink);
+      background: var(--white);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .logo {
+      font-family: var(--serif);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -.3px;
+    }
+
+    .nav-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    #userEmail {
+      font-size: 12px;
+      color: var(--mid);
+      margin-right: 8px;
+    }
+
+    /* BUTTONS */
+    .btn {
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .4px;
+      padding: 8px 18px;
+      cursor: pointer;
+      border: 1px solid var(--ink);
+      display: inline-block;
+      transition: background .18s, color .18s;
+      background: transparent;
+      color: var(--ink);
+    }
+
+    .btn:hover { background: var(--ink); color: var(--white); }
+
+    .btn-solid {
+      background: var(--ink);
+      color: var(--white);
+    }
+
+    .btn-solid:hover { background: #2a2a2a; }
+
+    .btn-danger {
+      background: transparent;
+      color: #b91c1c;
+      border: 1px solid #fca5a5;
+      padding: 5px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: .3px;
+      font-family: var(--sans);
+      transition: background .15s;
+    }
+
+    .btn-danger:hover { background: #fef2f2; }
 
     /* LAYOUT */
-    main { max-width: 860px; margin: 0 auto; padding: 40px 5%; }
-    .card { background: #fff; border: 1px solid var(--gray-200); border-radius: 12px; padding: 28px; margin-bottom: 24px; }
-    .card-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 40px 24px;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--ink);
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-family: var(--serif);
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      letter-spacing: -.2px;
+    }
 
     /* STATUS BAR */
-    .status-bar { display: flex; gap: 24px; flex-wrap: wrap; }
-    .status-item { flex: 1; min-width: 120px; }
-    .status-label { font-size: 12px; color: var(--gray-600); text-transform: uppercase; letter-spacing: .5px; }
-    .status-value { font-size: 22px; font-weight: 700; margin-top: 4px; }
-    .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
-    .badge-free { background: var(--gray-100); color: var(--gray-600); }
-    .badge-active { background: #dcfce7; color: #15803d; }
-    .badge-expired { background: #fee2e2; color: var(--red); }
+    .status-bar {
+      display: flex;
+      border: 1px solid var(--rule);
+    }
+
+    .status-item {
+      flex: 1;
+      padding: 18px 20px;
+      border-right: 1px solid var(--rule);
+    }
+
+    .status-item:last-child { border-right: none; }
+
+    .status-label {
+      font-size: 10px;
+      color: var(--mid);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .status-value {
+      font-family: var(--serif);
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .5px;
+      border: 1px solid;
+      font-family: var(--sans);
+    }
+
+    .badge-free { border-color: var(--rule); color: var(--mid); }
+    .badge-active { border-color: #166534; color: #166534; background: #f0fdf4; }
+    .badge-expired { border-color: #b91c1c; color: #b91c1c; background: #fef2f2; }
 
     /* KEYWORDS */
     .kw-list { list-style: none; margin-bottom: 20px; }
-    .kw-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+
+    .kw-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
     .kw-item:last-child { border-bottom: none; }
-    .kw-tag { font-size: 14px; background: #eff6ff; color: var(--blue); padding: 4px 12px; border-radius: 999px; font-weight: 500; }
-    .kw-empty { font-size: 14px; color: var(--gray-600); text-align: center; padding: 24px 0; }
+
+    .kw-tag {
+      font-size: 13px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border: 1px solid var(--ink);
+      letter-spacing: .2px;
+    }
+
+    .kw-empty {
+      font-size: 14px;
+      color: var(--mid);
+      text-align: center;
+      padding: 24px 0;
+    }
 
     /* ADD KEYWORD */
     .kw-add { display: flex; gap: 10px; }
-    .kw-add input { flex: 1; padding: 10px 14px; border: 1px solid var(--gray-200); border-radius: 6px; font-size: 14px; }
-    .kw-add input:focus { outline: none; border-color: var(--blue); }
+
+    .kw-add input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid var(--rule);
+      font-family: var(--sans);
+      font-size: 14px;
+      outline: none;
+      transition: border-color .15s;
+      background: var(--white);
+      border-radius: 0;
+    }
+
+    .kw-add input:focus { border-color: var(--ink); }
 
     /* LIMIT BAR */
     .limit-bar { margin-top: 16px; }
-    .limit-text { font-size: 13px; color: var(--gray-600); margin-bottom: 6px; }
-    .limit-track { height: 6px; background: var(--gray-100); border-radius: 999px; overflow: hidden; }
-    .limit-fill { height: 100%; background: var(--blue); border-radius: 999px; transition: width .3s; }
 
-    /* UPGRADE */
-    .upgrade-card { background: #eff6ff; border-color: #bfdbfe; }
-    .upgrade-plans { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
-    .upgrade-plan { background: #fff; border: 1px solid var(--gray-200); border-radius: 8px; padding: 20px; }
-    .upgrade-plan h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-    .upgrade-plan p { font-size: 13px; color: var(--gray-600); margin-bottom: 12px; }
-    .upgrade-plan .price { font-size: 22px; font-weight: 800; margin-bottom: 12px; }
-    .upgrade-plan .price span { font-size: 13px; font-weight: 400; color: var(--gray-600); }
+    .limit-text {
+      font-size: 12px;
+      color: var(--mid);
+      margin-bottom: 6px;
+      letter-spacing: .2px;
+    }
+
+    .limit-track {
+      height: 3px;
+      background: var(--rule);
+      overflow: hidden;
+    }
+
+    .limit-fill {
+      height: 100%;
+      background: var(--ink);
+      transition: width .3s;
+    }
+
+    /* UPGRADE CARD */
+    .upgrade-card {
+      border-color: var(--rule);
+      background: var(--paper);
+    }
+
+    .upgrade-plans {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .upgrade-plan {
+      background: var(--white);
+      border: 1px solid var(--rule);
+      padding: 20px;
+    }
+
+    .upgrade-plan.featured { border-color: var(--ink); }
+
+    .upgrade-plan h3 {
+      font-family: var(--serif);
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .upgrade-plan p {
+      font-size: 12px;
+      color: var(--mid);
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .upgrade-plan .price {
+      font-family: var(--serif);
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -1px;
+    }
+
+    .upgrade-plan .price span {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--mid);
+      font-family: var(--sans);
+    }
+
+    .upgrade-plan .btn { width: 100%; text-align: center; display: block; }
 
     .msg { font-size: 13px; margin-top: 10px; }
-    .msg-error { color: var(--red); }
-    .msg-success { color: #15803d; }
+    .msg-error { color: #b91c1c; }
+    .msg-success { color: #166534; }
 
-    @media (max-width: 480px) {
+    /* SUBSCRIPTION MODAL */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.5);
+      z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-box {
+      background: var(--white);
+      border: 1px solid var(--ink);
+      width: 100%; max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 20px 24px 16px;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .modal-header h2 {
+      font-family: var(--serif);
+      font-size: 20px; font-weight: 700;
+    }
+
+    .modal-close {
+      background: none; border: none; font-size: 22px;
+      cursor: pointer; color: var(--mid); line-height: 1; padding: 0 4px;
+      font-family: var(--sans);
+    }
+
+    .modal-close:hover { color: var(--ink); }
+
+    .modal-body { padding: 24px; }
+
+    .modal-section-title {
+      font-size: 10px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--mid); margin-bottom: 14px;
+    }
+
+    .modal-divider { border: none; border-top: 1px solid var(--rule); margin: 24px 0; }
+
+    .cancel-zone {
+      background: #fef2f2;
+      border: 1px solid #fca5a5;
+      padding: 16px;
+    }
+
+    .cancel-zone > p {
+      font-size: 13px; color: #7f1d1d;
+      margin-bottom: 14px; line-height: 1.5;
+    }
+
+    .cancel-confirm-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .btn-cancel-confirm {
+      background: #b91c1c; color: var(--white);
+      border: none; padding: 8px 18px;
+      font-size: 12px; font-weight: 600; letter-spacing: .4px;
+      cursor: pointer; font-family: var(--sans);
+      transition: background .15s;
+    }
+
+    .btn-cancel-confirm:hover { background: #991b1b; }
+
+    .btn-cancel-back {
+      background: transparent; color: var(--ink);
+      border: 1px solid var(--ink); padding: 8px 18px;
+      font-size: 12px; font-weight: 600; letter-spacing: .4px;
+      cursor: pointer; font-family: var(--sans);
+      transition: background .15s, color .15s;
+    }
+
+    .btn-cancel-back:hover { background: var(--ink); color: var(--white); }
+
+    @media (max-width: 540px) {
       .upgrade-plans { grid-template-columns: 1fr; }
-      .status-bar { flex-direction: column; gap: 12px; }
+      .status-bar { flex-direction: column; }
+      .status-item { border-right: none; border-bottom: 1px solid var(--rule); }
+      .status-item:last-child { border-bottom: none; }
+      nav { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+      main { padding: 24px 16px; }
+      #userEmail { display: none; }
+      .nav-right { gap: 6px; }
+      .btn { padding: 7px 12px; font-size: 11px; }
     }
   </style>
 </head>
@@ -88,7 +389,10 @@
   <a href="index.html" class="logo">PratimZakon</a>
   <div class="nav-right">
     <span id="userEmail">–</span>
-    <button class="btn btn-outline" onclick="logout()">Odjava</button>
+    <a href="search.html" class="btn">Pretraga arhive</a>
+    <a href="stats.html" id="statsLink" class="btn" style="display:none">Statistike</a>
+    <button class="btn" id="subscriptionBtn" style="display:none" onclick="openSubscriptionModal()">Pretplata</button>
+    <button class="btn" onclick="logout()">Odjava</button>
   </div>
 </nav>
 
@@ -116,11 +420,12 @@
   <!-- KEYWORDS -->
   <div class="card">
     <div class="card-title">Moje ključne riječi</div>
+    <p style="font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--rule);">Automatska obavijest stiže svaki radni dan u 07:00 — pratimo nova objavljivanja u Narodnim novinama i javljamo se samo kad ima nešto relevantno za vaše ključne riječi.</p>
     <ul class="kw-list" id="kwList"></ul>
 
     <div class="kw-add">
       <input type="text" id="kwInput" placeholder="npr. zakon o radu" maxlength="100" onkeydown="if(event.key==='Enter')addKeyword()">
-      <button class="btn btn-primary" onclick="addKeyword()">Dodaj</button>
+      <button class="btn btn-solid" onclick="addKeyword()">Dodaj</button>
     </div>
     <div class="msg msg-error" id="kwError" style="display:none"></div>
     <div class="msg msg-success" id="kwSuccess" style="display:none"></div>
@@ -131,30 +436,80 @@
     </div>
   </div>
 
-  <!-- UPGRADE (skriveno ako je already paid) -->
+  <!-- UPGRADE -->
   <div class="card upgrade-card" id="upgradeCard">
     <div class="card-title">Nadogradite plan</div>
-    <p style="font-size:14px;color:var(--gray-600);margin-bottom:4px;">Pratite više ključnih pojmova uz plaćeni plan.</p>
+    <p style="font-size:13px;color:var(--mid);margin-bottom:4px;">Pratite više ključnih pojmova uz plaćeni plan.</p>
     <div class="upgrade-plans">
-      <div class="upgrade-plan">
+      <div class="upgrade-plan featured">
         <h3>Basic</h3>
         <div class="price">4,99 <span>€/mj</span></div>
-        <p>Do 10 ključnih riječi</p>
-        <button class="btn btn-primary" style="width:100%" onclick="checkout('basic')">Odaberi Basic</button>
+        <p>Do 10 ključnih riječi · email obavijesti</p>
+        <button class="btn btn-solid" onclick="checkout('basic')">Odaberi Basic</button>
       </div>
       <div class="upgrade-plan">
         <h3>Plus</h3>
         <div class="price">7,99 <span>€/mj</span></div>
-        <p>Do 20 ključnih riječi</p>
-        <button class="btn btn-outline" style="width:100%" onclick="checkout('plus')">Odaberi Plus</button>
+        <p>Do 20 ključnih riječi · pretraga arhive · statistike</p>
+        <button class="btn" onclick="checkout('plus')">Odaberi Plus</button>
       </div>
     </div>
   </div>
 
 </main>
 
+<!-- PRETPLATA MODAL -->
+<div id="subModal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeSubscriptionModal()">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h2>Pretplata</h2>
+      <button class="modal-close" onclick="closeSubscriptionModal()">&#215;</button>
+    </div>
+    <div class="modal-body">
+
+      <p class="modal-section-title">Odaberite plan</p>
+      <div class="upgrade-plans">
+        <div class="upgrade-plan featured" id="mPlanBasic">
+          <h3>Basic</h3>
+          <div class="price">4,99 <span>€/mj</span></div>
+          <p>Do 10 ključnih riječi · email obavijesti</p>
+          <button class="btn btn-solid" id="mBtnBasic" onclick="requestPlan('basic')">Odaberi Basic</button>
+        </div>
+        <div class="upgrade-plan" id="mPlanPlus">
+          <h3>Plus</h3>
+          <div class="price">7,99 <span>€/mj</span></div>
+          <p>Do 20 ključnih riječi · pretraga arhive · statistike</p>
+          <button class="btn" id="mBtnPlus" onclick="requestPlan('plus')">Odaberi Plus</button>
+        </div>
+      </div>
+      <div class="msg msg-error" id="mPlanError" style="display:none"></div>
+      <div class="msg msg-success" id="mPlanSuccess" style="display:none"></div>
+
+      <hr class="modal-divider" id="cancelDivider">
+
+      <p class="modal-section-title" id="cancelTitle">Otkazivanje pretplate</p>
+      <div class="cancel-zone" id="cancelZone">
+        <p>Otkazivanjem pretplate šaljete zahtjev za prekid aktivne pretplate. Kontaktirat ćemo vas s potvrdom. Email obavijesti ostaju aktivne do kraja obračunskog perioda.</p>
+        <div id="cancelInitRow">
+          <button class="btn-danger" onclick="showCancelConfirm()">Otkaži pretplatu</button>
+        </div>
+        <div id="cancelConfirmRow" style="display:none">
+          <p style="font-size:12px;color:#7f1d1d;font-weight:600;margin-bottom:12px;">Jeste li sigurni da želite otkazati pretplatu?</p>
+          <div class="cancel-confirm-row">
+            <button class="btn-cancel-confirm" onclick="confirmCancel()">Da, otkažite pretplatu</button>
+            <button class="btn-cancel-back" onclick="hideCancelConfirm()">Odustani</button>
+          </div>
+        </div>
+        <div class="msg msg-error" id="cancelError" style="display:none"></div>
+        <div class="msg msg-success" id="cancelSuccess" style="display:none"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <script>
-  const API = "https://pratimzakon-api.onrender.com";
+  const API = "https://pratimzakon.onrender.com";
 
   let userData = null;
   let keywords = [];
@@ -191,6 +546,12 @@
     if (userData.subscription_status === "active") {
       document.getElementById("upgradeCard").style.display = "none";
     }
+    if (userData.plan_type === "plus") {
+      document.getElementById("statsLink").style.display = "inline-block";
+    }
+
+    document.getElementById("subscriptionBtn").style.display = "inline-block";
+    updateSubscriptionModal();
   }
 
   async function loadKeywords() {
@@ -266,6 +627,127 @@
     if (data.checkout_url) window.location.href = data.checkout_url;
   }
 
+  // --- SUBSCRIPTION MODAL ---
+
+  function openSubscriptionModal() {
+    document.getElementById("subModal").style.display = "flex";
+  }
+
+  function closeSubscriptionModal() {
+    document.getElementById("subModal").style.display = "none";
+  }
+
+  function updateSubscriptionModal() {
+    if (!userData) return;
+    const isActive = userData.subscription_status === "active";
+    const planType = userData.plan_type;
+
+    if (isActive) {
+      const currentPlan = (planType === "basic" || planType === "pro") ? "basic" : "plus";
+      ["basic", "plus"].forEach(p => {
+        const card = document.getElementById(p === "basic" ? "mPlanBasic" : "mPlanPlus");
+        const btn  = document.getElementById(p === "basic" ? "mBtnBasic"  : "mBtnPlus");
+        if (p === currentPlan) {
+          card.style.outline = "2px solid var(--ink)";
+          btn.disabled = true;
+          btn.textContent = "Trenutni plan";
+          btn.style.opacity = "0.4";
+          btn.style.cursor = "default";
+          if (!card.querySelector(".modal-current-badge")) {
+            const badge = document.createElement("span");
+            badge.className = "modal-current-badge";
+            badge.textContent = "Vaš plan";
+            badge.style.cssText = "display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;border:1px solid var(--ink);padding:1px 8px;margin-bottom:8px;font-family:var(--sans);";
+            card.insertBefore(badge, card.firstChild);
+          }
+        }
+      });
+    }
+
+    // Sakrij cancel sekciju ako nema aktivne pretplate
+    if (!isActive) {
+      document.getElementById("cancelDivider").style.display = "none";
+      document.getElementById("cancelTitle").style.display = "none";
+      document.getElementById("cancelZone").style.display = "none";
+    }
+  }
+
+  async function requestPlan(plan) {
+    const errEl = document.getElementById("mPlanError");
+    const okEl  = document.getElementById("mPlanSuccess");
+    errEl.style.display = "none"; okEl.style.display = "none";
+
+    const btnBasic = document.getElementById("mBtnBasic");
+    const btnPlus  = document.getElementById("mBtnPlus");
+    btnBasic.disabled = true;
+    btnPlus.disabled = true;
+
+    const planLabels = { basic: "Basic (€4,99/mj)", plus: "Plus (€7,99/mj)" };
+
+    try {
+      const res = await authFetch(`/auth/request-plan?plan=${plan}`, { method: "POST" });
+      if (!res) { btnBasic.disabled = false; btnPlus.disabled = false; return; }
+
+      if (res.ok) {
+        okEl.textContent = `Zahtjev za ${planLabels[plan]} primljen — aktivacija stiže mailom u roku 24h.`;
+        okEl.style.display = "block";
+      } else {
+        let msg = "Greška pri slanju zahtjeva.";
+        try { const d = await res.json(); msg = d.detail || msg; } catch (_) {}
+        errEl.textContent = msg;
+        errEl.style.display = "block";
+        btnBasic.disabled = false;
+        btnPlus.disabled = false;
+      }
+    } catch (e) {
+      errEl.textContent = "Greška pri slanju zahtjeva.";
+      errEl.style.display = "block";
+      btnBasic.disabled = false;
+      btnPlus.disabled = false;
+    }
+  }
+
+  function showCancelConfirm() {
+    document.getElementById("cancelInitRow").style.display = "none";
+    document.getElementById("cancelConfirmRow").style.display = "block";
+  }
+
+  function hideCancelConfirm() {
+    document.getElementById("cancelConfirmRow").style.display = "none";
+    document.getElementById("cancelInitRow").style.display = "block";
+  }
+
+  async function confirmCancel() {
+    const errEl = document.getElementById("cancelError");
+    const okEl  = document.getElementById("cancelSuccess");
+    errEl.style.display = "none"; okEl.style.display = "none";
+
+    const confirmBtn = document.querySelector(".btn-cancel-confirm");
+    confirmBtn.disabled = true;
+
+    try {
+      const res = await authFetch("/auth/cancel-subscription", { method: "POST" });
+      if (!res) { confirmBtn.disabled = false; return; }
+
+      if (res.ok) {
+        document.getElementById("cancelConfirmRow").style.display = "none";
+        document.getElementById("cancelInitRow").style.display = "none";
+        okEl.textContent = "Zahtjev za otkazivanje primljen — kontaktirat ćemo vas s potvrdom.";
+        okEl.style.display = "block";
+      } else {
+        let msg = "Greška pri slanju zahtjeva.";
+        try { const d = await res.json(); msg = d.detail || msg; } catch (_) {}
+        errEl.textContent = msg;
+        errEl.style.display = "block";
+        confirmBtn.disabled = false;
+      }
+    } catch (e) {
+      errEl.textContent = "Greška pri slanju zahtjeva.";
+      errEl.style.display = "block";
+      confirmBtn.disabled = false;
+    }
+  }
+
   function escHtml(str) {
     return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
   }
@@ -276,7 +758,6 @@
   } else {
     loadUser().then(loadKeywords);
 
-    // Handle post-Stripe redirect
     const params = new URLSearchParams(window.location.search);
     if (params.get("success")) {
       document.getElementById("kwSuccess").textContent = "Pretplata aktivirana! Osvježite stranicu.";

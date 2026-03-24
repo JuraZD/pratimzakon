@@ -40,7 +40,13 @@ def add_keyword(
             detail=f"Dostigli ste limit od {current_user.keyword_limit} ključnih riječi. Nadogradite paket.",
         )
 
-    kw = Keyword(user_id=current_user.id, keyword=keyword)
+    kw = Keyword(
+        user_id=current_user.id,
+        keyword=keyword,
+        doc_type_filter=data.doc_type_filter or None,
+        institution_filter=data.institution_filter or None,
+        part_filter=data.part_filter or None,
+    )
     db.add(kw)
     db.commit()
     db.refresh(kw)

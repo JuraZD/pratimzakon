@@ -1,0 +1,60 @@
+name: Enrich dokumenata (ELI API)
+
+on:
+  workflow_dispatch:
+    inputs:
+      batch:
+        description: "Veličina batcha"
+        required: false
+        default: "500"
+        type: number
+      offset:
+        description: "Početni offset"
+        required: false
+        default: "0"
+        type: number
+      dry_run:
+        description: "Dry run — ne upisuj u bazu"
+        required: false
+        default: false
+        type: boolean
+      debug:
+        description: "Debug logiranje"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: enrich
+  cancel-in-progress: false
+
+jobs:
+  enrich:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instaliraj ovisnosti
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Pokreni enrichment
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          ARGS="--batch ${{ github.event.inputs.batch }} --offset ${{ github.event.inputs.offset }}"
+          if ${{ github.event.inputs.dry_run }}; then
+            ARGS="$ARGS --dry-run"
+          fi
+          if ${{ github.event.inputs.debug }}; then
+            ARGS="$ARGS --debug"
+          fi
+          python -m app.scraper.enrich $ARGS

@@ -32,4 +32,4 @@ jobs:
           BASE_URL: ${{ secrets.BASE_URL }}
         run: |
           cd backend
-          python -m app.scraper.nn_scraper
+          python -m app.scraper.api_scraper daily
