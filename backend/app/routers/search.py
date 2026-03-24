@@ -53,10 +53,10 @@ def search_documents(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if getattr(current_user, "plan_type", "free") != "expert":
+    if getattr(current_user, "plan_type", "free") != "plus":
         raise HTTPException(
             status_code=403,
-            detail="Pretraga arhive dostupna je samo korisnicima Expert paketa.",
+            detail="Pretraga arhive dostupna je samo korisnicima Plus paketa.",
         )
 
     if not q and not doc_type and not institution and not part and not date_from and not date_to:

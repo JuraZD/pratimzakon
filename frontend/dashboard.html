@@ -4,81 +4,299 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard – PratimZakon</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     :root {
-      --blue: #2563eb;
-      --blue-dark: #1d4ed8;
-      --gray-50: #f9fafb;
-      --gray-100: #f3f4f6;
-      --gray-200: #e5e7eb;
-      --gray-600: #4b5563;
-      --gray-900: #111827;
-      --red: #dc2626;
+      --ink: #0d0d0d;
+      --paper: #f8f7f4;
+      --white: #ffffff;
+      --mid: #6b6b6b;
+      --rule: #d4d0c9;
+      --serif: 'Playfair Display', Georgia, serif;
+      --sans: 'DM Sans', sans-serif;
     }
-    body { font-family: system-ui, -apple-system, sans-serif; color: var(--gray-900); background: var(--gray-50); min-height: 100vh; }
+
+    body {
+      font-family: var(--sans);
+      color: var(--ink);
+      background: var(--paper);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: inherit; text-decoration: none; }
 
     /* NAV */
-    nav { display: flex; justify-content: space-between; align-items: center; padding: 14px 5%; background: #fff; border-bottom: 1px solid var(--gray-200); }
-    .logo { font-size: 18px; font-weight: 700; color: var(--blue); text-decoration: none; }
-    .nav-right { display: flex; gap: 12px; align-items: center; font-size: 14px; }
-    #userEmail { color: var(--gray-600); }
-    .btn { display: inline-block; padding: 8px 18px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; border: none; }
-    .btn-primary { background: var(--blue); color: #fff; }
-    .btn-primary:hover { background: var(--blue-dark); }
-    .btn-outline { border: 1px solid var(--gray-200); color: var(--gray-600); background: #fff; }
-    .btn-danger { background: #fee2e2; color: var(--red); border: none; padding: 6px 12px; border-radius: 4px; font-size: 13px; cursor: pointer; }
-    .btn-danger:hover { background: #fecaca; }
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 6%;
+      border-bottom: 1px solid var(--ink);
+      background: var(--white);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .logo {
+      font-family: var(--serif);
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -.3px;
+    }
+
+    .nav-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    #userEmail {
+      font-size: 12px;
+      color: var(--mid);
+      margin-right: 8px;
+    }
+
+    /* BUTTONS */
+    .btn {
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .4px;
+      padding: 8px 18px;
+      cursor: pointer;
+      border: 1px solid var(--ink);
+      display: inline-block;
+      transition: background .18s, color .18s;
+      background: transparent;
+      color: var(--ink);
+    }
+
+    .btn:hover { background: var(--ink); color: var(--white); }
+
+    .btn-solid {
+      background: var(--ink);
+      color: var(--white);
+    }
+
+    .btn-solid:hover { background: #2a2a2a; }
+
+    .btn-danger {
+      background: transparent;
+      color: #b91c1c;
+      border: 1px solid #fca5a5;
+      padding: 5px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      letter-spacing: .3px;
+      font-family: var(--sans);
+      transition: background .15s;
+    }
+
+    .btn-danger:hover { background: #fef2f2; }
 
     /* LAYOUT */
-    main { max-width: 860px; margin: 0 auto; padding: 40px 5%; }
-    .card { background: #fff; border: 1px solid var(--gray-200); border-radius: 12px; padding: 28px; margin-bottom: 24px; }
-    .card-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; }
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 40px 6%;
+    }
+
+    .card {
+      background: var(--white);
+      border: 1px solid var(--ink);
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-family: var(--serif);
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      letter-spacing: -.2px;
+    }
 
     /* STATUS BAR */
-    .status-bar { display: flex; gap: 24px; flex-wrap: wrap; }
-    .status-item { flex: 1; min-width: 120px; }
-    .status-label { font-size: 12px; color: var(--gray-600); text-transform: uppercase; letter-spacing: .5px; }
-    .status-value { font-size: 22px; font-weight: 700; margin-top: 4px; }
-    .badge { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
-    .badge-free { background: var(--gray-100); color: var(--gray-600); }
-    .badge-active { background: #dcfce7; color: #15803d; }
-    .badge-expired { background: #fee2e2; color: var(--red); }
+    .status-bar {
+      display: flex;
+      border: 1px solid var(--rule);
+    }
+
+    .status-item {
+      flex: 1;
+      padding: 18px 20px;
+      border-right: 1px solid var(--rule);
+    }
+
+    .status-item:last-child { border-right: none; }
+
+    .status-label {
+      font-size: 10px;
+      color: var(--mid);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .status-value {
+      font-family: var(--serif);
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 3px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .5px;
+      border: 1px solid;
+      font-family: var(--sans);
+    }
+
+    .badge-free { border-color: var(--rule); color: var(--mid); }
+    .badge-active { border-color: #166534; color: #166534; background: #f0fdf4; }
+    .badge-expired { border-color: #b91c1c; color: #b91c1c; background: #fef2f2; }
 
     /* KEYWORDS */
     .kw-list { list-style: none; margin-bottom: 20px; }
-    .kw-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--gray-100); }
+
+    .kw-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--rule);
+    }
+
     .kw-item:last-child { border-bottom: none; }
-    .kw-tag { font-size: 14px; background: #eff6ff; color: var(--blue); padding: 4px 12px; border-radius: 999px; font-weight: 500; }
-    .kw-empty { font-size: 14px; color: var(--gray-600); text-align: center; padding: 24px 0; }
+
+    .kw-tag {
+      font-size: 13px;
+      font-weight: 500;
+      padding: 3px 10px;
+      border: 1px solid var(--ink);
+      letter-spacing: .2px;
+    }
+
+    .kw-empty {
+      font-size: 14px;
+      color: var(--mid);
+      text-align: center;
+      padding: 24px 0;
+    }
 
     /* ADD KEYWORD */
     .kw-add { display: flex; gap: 10px; }
-    .kw-add input { flex: 1; padding: 10px 14px; border: 1px solid var(--gray-200); border-radius: 6px; font-size: 14px; }
-    .kw-add input:focus { outline: none; border-color: var(--blue); }
+
+    .kw-add input {
+      flex: 1;
+      padding: 10px 14px;
+      border: 1px solid var(--rule);
+      font-family: var(--sans);
+      font-size: 14px;
+      outline: none;
+      transition: border-color .15s;
+      background: var(--white);
+      border-radius: 0;
+    }
+
+    .kw-add input:focus { border-color: var(--ink); }
 
     /* LIMIT BAR */
     .limit-bar { margin-top: 16px; }
-    .limit-text { font-size: 13px; color: var(--gray-600); margin-bottom: 6px; }
-    .limit-track { height: 6px; background: var(--gray-100); border-radius: 999px; overflow: hidden; }
-    .limit-fill { height: 100%; background: var(--blue); border-radius: 999px; transition: width .3s; }
 
-    /* UPGRADE */
-    .upgrade-card { background: #eff6ff; border-color: #bfdbfe; }
-    .upgrade-plans { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
-    .upgrade-plan { background: #fff; border: 1px solid var(--gray-200); border-radius: 8px; padding: 20px; }
-    .upgrade-plan h3 { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
-    .upgrade-plan p { font-size: 13px; color: var(--gray-600); margin-bottom: 12px; }
-    .upgrade-plan .price { font-size: 22px; font-weight: 800; margin-bottom: 12px; }
-    .upgrade-plan .price span { font-size: 13px; font-weight: 400; color: var(--gray-600); }
+    .limit-text {
+      font-size: 12px;
+      color: var(--mid);
+      margin-bottom: 6px;
+      letter-spacing: .2px;
+    }
+
+    .limit-track {
+      height: 3px;
+      background: var(--rule);
+      overflow: hidden;
+    }
+
+    .limit-fill {
+      height: 100%;
+      background: var(--ink);
+      transition: width .3s;
+    }
+
+    /* UPGRADE CARD */
+    .upgrade-card {
+      border-color: var(--rule);
+      background: var(--paper);
+    }
+
+    .upgrade-plans {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 16px;
+    }
+
+    .upgrade-plan {
+      background: var(--white);
+      border: 1px solid var(--rule);
+      padding: 20px;
+    }
+
+    .upgrade-plan.featured { border-color: var(--ink); }
+
+    .upgrade-plan h3 {
+      font-family: var(--serif);
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .upgrade-plan p {
+      font-size: 12px;
+      color: var(--mid);
+      margin-bottom: 12px;
+      line-height: 1.5;
+    }
+
+    .upgrade-plan .price {
+      font-family: var(--serif);
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -1px;
+    }
+
+    .upgrade-plan .price span {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--mid);
+      font-family: var(--sans);
+    }
+
+    .upgrade-plan .btn { width: 100%; text-align: center; display: block; }
 
     .msg { font-size: 13px; margin-top: 10px; }
-    .msg-error { color: var(--red); }
-    .msg-success { color: #15803d; }
+    .msg-error { color: #b91c1c; }
+    .msg-success { color: #166534; }
 
-    @media (max-width: 480px) {
+    @media (max-width: 540px) {
       .upgrade-plans { grid-template-columns: 1fr; }
-      .status-bar { flex-direction: column; gap: 12px; }
+      .status-bar { flex-direction: column; }
+      .status-item { border-right: none; border-bottom: 1px solid var(--rule); }
+      .status-item:last-child { border-bottom: none; }
+      nav { padding: 14px 5%; }
+      main { padding: 28px 5%; }
     }
   </style>
 </head>
@@ -88,9 +306,9 @@
   <a href="index.html" class="logo">PratimZakon</a>
   <div class="nav-right">
     <span id="userEmail">–</span>
-    <a href="search.html" id="searchLink" class="btn btn-outline" style="display:none">Pretraga arhive</a>
-    <a href="stats.html" id="statsLink" class="btn btn-outline" style="display:none">Statistike</a>
-    <button class="btn btn-outline" onclick="logout()">Odjava</button>
+    <a href="search.html" id="searchLink" class="btn" style="display:none">Pretraga arhive</a>
+    <a href="stats.html" id="statsLink" class="btn" style="display:none">Statistike</a>
+    <button class="btn" onclick="logout()">Odjava</button>
   </div>
 </nav>
 
@@ -122,7 +340,7 @@
 
     <div class="kw-add">
       <input type="text" id="kwInput" placeholder="npr. zakon o radu" maxlength="100" onkeydown="if(event.key==='Enter')addKeyword()">
-      <button class="btn btn-primary" onclick="addKeyword()">Dodaj</button>
+      <button class="btn btn-solid" onclick="addKeyword()">Dodaj</button>
     </div>
     <div class="msg msg-error" id="kwError" style="display:none"></div>
     <div class="msg msg-success" id="kwSuccess" style="display:none"></div>
@@ -133,22 +351,22 @@
     </div>
   </div>
 
-  <!-- UPGRADE (skriveno ako je already paid) -->
+  <!-- UPGRADE -->
   <div class="card upgrade-card" id="upgradeCard">
     <div class="card-title">Nadogradite plan</div>
-    <p style="font-size:14px;color:var(--gray-600);margin-bottom:4px;">Pratite više ključnih pojmova uz plaćeni plan.</p>
+    <p style="font-size:13px;color:var(--mid);margin-bottom:4px;">Pratite više ključnih pojmova uz plaćeni plan.</p>
     <div class="upgrade-plans">
-      <div class="upgrade-plan">
+      <div class="upgrade-plan featured">
         <h3>Basic</h3>
         <div class="price">4,99 <span>€/mj</span></div>
-        <p>Do 10 ključnih riječi</p>
-        <button class="btn btn-primary" style="width:100%" onclick="checkout('basic')">Odaberi Basic</button>
+        <p>Do 10 ključnih riječi · email obavijesti</p>
+        <button class="btn btn-solid" onclick="checkout('basic')">Odaberi Basic</button>
       </div>
       <div class="upgrade-plan">
         <h3>Plus</h3>
         <div class="price">7,99 <span>€/mj</span></div>
-        <p>Do 20 ključnih riječi</p>
-        <button class="btn btn-outline" style="width:100%" onclick="checkout('plus')">Odaberi Plus</button>
+        <p>Do 20 ključnih riječi · pretraga arhive · statistike</p>
+        <button class="btn" onclick="checkout('plus')">Odaberi Plus</button>
       </div>
     </div>
   </div>
@@ -193,7 +411,7 @@
     if (userData.subscription_status === "active") {
       document.getElementById("upgradeCard").style.display = "none";
     }
-    if (userData.plan_type === "expert") {
+    if (userData.plan_type === "plus") {
       document.getElementById("searchLink").style.display = "inline-block";
       document.getElementById("statsLink").style.display = "inline-block";
     }
@@ -282,7 +500,6 @@
   } else {
     loadUser().then(loadKeywords);
 
-    // Handle post-Stripe redirect
     const params = new URLSearchParams(window.location.search);
     if (params.get("success")) {
       document.getElementById("kwSuccess").textContent = "Pretplata aktivirana! Osvježite stranicu.";
