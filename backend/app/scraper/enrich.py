@@ -674,7 +674,10 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
                 last_id = docs[-1].id
 
             finally:
-                db.close()
+                try:
+                    db.close()
+                except Exception:
+                    pass
 
         with SessionLocal() as log_db:
             if not dry_run:
@@ -689,7 +692,10 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
         )
 
     finally:
-        session.close()
+        try:
+            session.close()
+        except Exception:
+            pass
 
     return total_updated
 
