@@ -282,6 +282,165 @@ def me(current_user: User = Depends(get_current_user)):
     return current_user
 
 
+def _send_plan_confirmation_email(user_email: str, plan: str):
+    """Šalje korisniku potvrdu zahtjeva za plaćeni plan s opisom odabranog plana."""
+    dashboard_url = os.getenv("FRONTEND_URL", "https://jurazd.github.io/pratimzakon/dashboard.html")
+
+    plans = {
+        "basic": {
+            "name": "Basic",
+            "price": "4,99 €/mj",
+            "features": [
+                "Do <strong>10 ključnih riječi</strong>",
+                "Automatske <strong>email obavijesti</strong> svaki radni dan u 07:00",
+                "Pratimo nova objavljivanja u Narodnim novinama",
+            ],
+            "color": "#2563eb",
+        },
+        "plus": {
+            "name": "Plus",
+            "price": "7,99 €/mj",
+            "features": [
+                "Do <strong>20 ključnih riječi</strong>",
+                "Automatske <strong>email obavijesti</strong> svaki radni dan u 07:00",
+                "<strong>Pretraga arhive</strong> Narodnih novina",
+                "<strong>Statistike</strong> i analitika",
+                "<strong>PDF dokumenti</strong> u obavijestima",
+            ],
+            "color": "#7c3aed",
+        },
+    }
+    p = plans.get(plan, plans["basic"])
+    features_html = "".join(f'<li style="color:#374151;font-size:14px;line-height:2;">{f}</li>' for f in p["features"])
+    features_plain = "\n".join(f"- {f.replace('<strong>', '').replace('</strong>', '')}" for f in p["features"])
+
+    plain = f"""Zahtjev za {p['name']} plan primljen – PratimZakon
+
+Poštovani {user_email},
+
+zaprimili smo vaš zahtjev za {p['name']} plan ({p['price']}).
+Kontaktirat ćemo vas s uputama za aktivaciju u roku 24 sata.
+
+Što dobivate uz {p['name']} plan:
+{features_plain}
+
+Otvorite dashboard: {dashboard_url}
+
+S poštovanjem,
+Tim PratimZakon
+"""
+
+    html = f"""<!DOCTYPE html>
+<html lang="hr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="font-family:system-ui,-apple-system,sans-serif;background:#f3f4f6;margin:0;padding:32px 0;">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.10);">
+    <div style="background:{p['color']};padding:28px 36px;">
+      <h1 style="color:#fff;margin:0;font-size:22px;font-weight:800;letter-spacing:-.3px;">PratimZakon</h1>
+      <p style="color:rgba(255,255,255,.7);margin:6px 0 0;font-size:14px;">pratimo zakone umjesto vas</p>
+    </div>
+    <div style="padding:36px;">
+      <h2 style="margin:0 0 6px;font-size:20px;color:#111827;">Zahtjev primljen!</h2>
+      <p style="color:#374151;font-size:15px;margin:0 0 24px;line-height:1.6;">
+        Zaprimili smo vaš zahtjev za <strong>{p['name']} plan</strong> ({p['price']}).<br>
+        Kontaktirat ćemo vas s uputama za aktivaciju u roku <strong>24 sata</strong>.
+      </p>
+      <div style="background:#f8f9ff;border:1px solid #e0e7ff;border-left:4px solid {p['color']};border-radius:8px;padding:20px;margin-bottom:28px;">
+        <p style="margin:0 0 12px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:{p['color']};">
+          {p['name']} plan · {p['price']}
+        </p>
+        <ul style="margin:0;padding:0 0 0 18px;">
+          {features_html}
+        </ul>
+      </div>
+      <a href="{dashboard_url}"
+         style="display:inline-block;background:{p['color']};color:#fff;font-size:15px;font-weight:700;
+                padding:13px 28px;border-radius:7px;text-decoration:none;">
+        Otvori dashboard →
+      </a>
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:28px 0 18px;">
+      <p style="font-size:12px;color:#9ca3af;margin:0;line-height:1.6;">
+        Primili ste ovaj email jer ste zatražili nadogradnju plana na PratimZakon.
+      </p>
+    </div>
+  </div>
+</body>
+</html>"""
+
+    _send_multipart(user_email, f"Zahtjev za {p['name']} plan primljen – PratimZakon", html, plain)
+
+
+def _send_cancel_confirmation_email(user_email: str):
+    """Šalje korisniku potvrdu zahtjeva za otkazivanje pretplate."""
+    dashboard_url = os.getenv("FRONTEND_URL", "https://jurazd.github.io/pratimzakon/dashboard.html")
+
+    plain = f"""Zahtjev za otkazivanje pretplate primljen – PratimZakon
+
+Poštovani {user_email},
+
+zaprimili smo vaš zahtjev za otkazivanje pretplate.
+Obrada zahtjeva traje do 24 sata — kontaktirat ćemo vas s potvrdom.
+
+Do kraja obračunskog perioda nastavljate koristiti sve pogodnosti
+vašeg trenutnog plana.
+
+Nakon otkazivanja vaš račun prelazi na besplatni plan:
+- Do 3 ključne riječi
+- Bez email obavijesti
+
+Otvorite dashboard: {dashboard_url}
+
+S poštovanjem,
+Tim PratimZakon
+"""
+
+    html = f"""<!DOCTYPE html>
+<html lang="hr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="font-family:system-ui,-apple-system,sans-serif;background:#f3f4f6;margin:0;padding:32px 0;">
+  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.10);">
+    <div style="background:#2563eb;padding:28px 36px;">
+      <h1 style="color:#fff;margin:0;font-size:22px;font-weight:800;letter-spacing:-.3px;">PratimZakon</h1>
+      <p style="color:#bfdbfe;margin:6px 0 0;font-size:14px;">pratimo zakone umjesto vas</p>
+    </div>
+    <div style="padding:36px;">
+      <h2 style="margin:0 0 6px;font-size:20px;color:#111827;">Zahtjev za otkazivanje primljen</h2>
+      <p style="color:#374151;font-size:15px;margin:0 0 20px;line-height:1.6;">
+        Poštovani <strong>{user_email}</strong>,<br><br>
+        zaprimili smo vaš zahtjev za otkazivanje pretplate.
+        Obrada traje do <strong>24 sata</strong> — kontaktirat ćemo vas s potvrdom.
+      </p>
+      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:18px;margin-bottom:20px;">
+        <p style="margin:0;font-size:14px;color:#78350f;line-height:1.6;">
+          ⏳ Do kraja obračunskog perioda nastavljate koristiti sve pogodnosti
+          vašeg trenutnog plana bez ograničenja.
+        </p>
+      </div>
+      <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:18px;margin-bottom:28px;">
+        <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#374151;">Nakon otkazivanja prelazite na besplatni plan:</p>
+        <ul style="margin:0;padding:0 0 0 18px;font-size:14px;color:#6b7280;line-height:2;">
+          <li>Do 3 ključne riječi</li>
+          <li>Bez automatskih email obavijesti</li>
+        </ul>
+      </div>
+      <a href="{dashboard_url}"
+         style="display:inline-block;background:#2563eb;color:#fff;font-size:15px;font-weight:700;
+                padding:13px 28px;border-radius:7px;text-decoration:none;">
+        Otvori dashboard →
+      </a>
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:28px 0 18px;">
+      <p style="font-size:12px;color:#9ca3af;margin:0;line-height:1.6;">
+        Ako ste se predomislili, jednostavno odgovorite na ovaj email
+        i nastavit ćemo vašu pretplatu bez promjena.
+      </p>
+    </div>
+  </div>
+</body>
+</html>"""
+
+    _send_multipart(user_email, "Zahtjev za otkazivanje pretplate primljen – PratimZakon", html, plain)
+
+
 @router.post("/request-plan")
 def request_plan(plan: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if plan not in ("basic", "plus"):
@@ -289,7 +448,32 @@ def request_plan(plan: str, current_user: User = Depends(get_current_user), db: 
     db.add(Log(event_type="plan_request", user_id=current_user.id, detail=f"{current_user.email} [plan={plan}]"))
     db.commit()
     _send_plan_interest_email(current_user.email, plan)
+    _send_plan_confirmation_email(current_user.email, plan)
     return {"message": "Zahtjev primljen"}
+
+
+@router.post("/cancel-subscription")
+def cancel_subscription(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if current_user.subscription_status != "active":
+        raise HTTPException(status_code=400, detail="Nemate aktivnu pretplatu")
+    db.add(Log(event_type="cancel_request", user_id=current_user.id, detail=current_user.email))
+    db.commit()
+    cfg = _smtp_cfg()
+    # Obavijesti admina
+    msg_body = f"Korisnik {current_user.email} poslao zahtjev za otkazivanje pretplate (plan: {current_user.plan_type})."
+    msg = MIMEText(msg_body, "plain", "utf-8")
+    msg["Subject"] = f"PratimZakon: Zahtjev za otkazivanje – {current_user.email}"
+    msg["From"] = f"{cfg['from_name']} <{cfg['from_email']}>"
+    msg["To"] = ADMIN_EMAIL
+    try:
+        with smtplib.SMTP(cfg["server"], cfg["port"]) as s:
+            s.starttls()
+            s.login(cfg["user"], cfg["password"])
+            s.sendmail(cfg["from_email"], [ADMIN_EMAIL], msg.as_string())
+    except Exception:
+        pass
+    _send_cancel_confirmation_email(current_user.email)
+    return {"message": "Zahtjev za otkazivanje primljen"}
 
 
 @router.get("/unsubscribe")
