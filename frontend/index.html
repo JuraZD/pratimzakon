@@ -815,13 +815,13 @@
       <div class="pricing-cta">
         <div class="pricing-cta-empty"></div>
         <div class="pricing-cta-cell">
-          <a href="#" class="btn" onclick="openModal('register')">Počnite besplatno</a>
+          <a href="#" class="btn" onclick="openModal('register', 'free')">Počnite besplatno</a>
         </div>
         <div class="pricing-cta-cell">
-          <a href="#" class="btn btn-cta-primary" onclick="openModal('register')">Odaberi Pro</a>
+          <a href="#" class="btn btn-cta-primary" onclick="openModal('register', 'pro')">Odaberi Pro</a>
         </div>
         <div class="pricing-cta-cell col-expert">
-          <a href="#" class="btn" onclick="openModal('register')">Odaberi Expert</a>
+          <a href="#" class="btn" onclick="openModal('register', 'expert')">Odaberi Expert</a>
         </div>
       </div>
     </div>
@@ -844,6 +844,7 @@
 
     <div id="registerForm">
       <h2>Kreirajte račun</h2>
+      <div id="planBanner" style="display:none;margin-bottom:16px;padding:12px 16px;border-radius:8px;background:#f0f7ff;border:1px solid #b3d4f5;font-size:0.95rem;color:#1a4a7a;"></div>
       <div class="form-error" id="regError"></div>
       <div class="form-success" id="regSuccess"></div>
       <div class="form-group">
@@ -884,13 +885,19 @@
   }, { threshold: .08 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-  function openModal(type) {
+  const PLAN_LABELS = { pro: "Pro (€4,99/mj)", expert: "Expert (€7,99/mj)" };
+  let selectedPlan = null;
+
+  function openModal(type, plan) {
+    selectedPlan = plan || null;
     document.getElementById("authOverlay").classList.add("active");
     type === "login" ? showLogin() : showRegister();
   }
   function closeModal(e) {
-    if (!e || e.target === document.getElementById("authOverlay"))
+    if (!e || e.target === document.getElementById("authOverlay")) {
       document.getElementById("authOverlay").classList.remove("active");
+      selectedPlan = null;
+    }
   }
   function showLogin() {
     document.getElementById("registerForm").style.display = "none";
@@ -899,6 +906,13 @@
   function showRegister() {
     document.getElementById("loginForm").style.display = "none";
     document.getElementById("registerForm").style.display = "block";
+    const banner = document.getElementById("planBanner");
+    if (selectedPlan && PLAN_LABELS[selectedPlan]) {
+      banner.innerHTML = `Odabrali ste plan <strong>${PLAN_LABELS[selectedPlan]}</strong>.<br>Nakon registracije kontaktirajte nas na <a href="mailto:info@pratimzakon.hr">info@pratimzakon.hr</a> ili pričekajte naš email za aktivaciju.`;
+      banner.style.display = "block";
+    } else {
+      banner.style.display = "none";
+    }
   }
 
   async function register() {
@@ -914,14 +928,21 @@
     }
     btn.disabled = true; btn.textContent = "Molimo pričekajte...";
     try {
+      const body = { email, password };
+      if (selectedPlan && selectedPlan !== "free") body.selected_plan = selectedPlan;
       const res = await fetch(`${API}/auth/register`, {
         method: "POST", headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify(body)
       });
       const data = await res.json();
       if (res.ok) {
-        okEl.textContent = "Registracija uspješna! Provjerite email za potvrdu.";
+        if (selectedPlan && PLAN_LABELS[selectedPlan]) {
+          okEl.innerHTML = `Registracija uspješna! Odabrali ste plan <strong>${PLAN_LABELS[selectedPlan]}</strong> — aktivacija stiže mailom. Možete nas kontaktirati na <a href="mailto:info@pratimzakon.hr">info@pratimzakon.hr</a>.`;
+        } else {
+          okEl.textContent = "Registracija uspješna! Provjerite email za potvrdu.";
+        }
         okEl.style.display = "block";
+        document.getElementById("planBanner").style.display = "none";
       } else {
         errEl.textContent = data.detail || "Greška pri registraciji.";
         errEl.style.display = "block";

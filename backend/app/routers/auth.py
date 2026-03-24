@@ -15,6 +15,43 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 
 
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", os.getenv("FROM_EMAIL", ""))
+
+
+def _send_plan_interest_email(user_email: str, plan: str):
+    """Šalje adminu obavijest da je korisnik odabrao plaćeni plan."""
+    smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    smtp_user = os.getenv("SMTP_USERNAME", "")
+    smtp_pass = os.getenv("SMTP_PASSWORD", "")
+    from_email = os.getenv("FROM_EMAIL", smtp_user)
+    from_name = os.getenv("FROM_NAME", "PratimZakon")
+    admin_email = os.getenv("ADMIN_EMAIL", from_email)
+
+    plan_labels = {"pro": "Pro (€4,99/mj)", "expert": "Expert (€7,99/mj)"}
+    label = plan_labels.get(plan, plan)
+
+    body = f"""Novi korisnik odabrao plaćeni plan pri registraciji.
+
+Email: {user_email}
+Plan: {label}
+
+Kontaktirajte korisnika za aktivaciju plana.
+"""
+    msg = MIMEText(body, "plain", "utf-8")
+    msg["Subject"] = f"PratimZakon: Novi zahtjev za plan {label}"
+    msg["From"] = f"{from_name} <{from_email}>"
+    msg["To"] = admin_email
+
+    try:
+        with smtplib.SMTP(smtp_server, smtp_port) as s:
+            s.starttls()
+            s.login(smtp_user, smtp_pass)
+            s.sendmail(from_email, [admin_email], msg.as_string())
+    except Exception:
+        pass
+
+
 def _send_verification_email(email: str, token: str):
     link = f"{BASE_URL}/auth/verify-email?token={token}"
     smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
@@ -63,10 +100,17 @@ def register(data: UserRegister, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
-    db.add(Log(event_type="signup", user_id=user.id, detail=user.email))
+    log_detail = user.email
+    if data.selected_plan and data.selected_plan in ("pro", "expert"):
+        log_detail = f"{user.email} [plan_interest={data.selected_plan}]"
+    db.add(Log(event_type="signup", user_id=user.id, detail=log_detail))
     db.commit()
 
     _send_verification_email(data.email, user.unsubscribe_token)
+
+    if data.selected_plan and data.selected_plan in ("pro", "expert"):
+        _send_plan_interest_email(data.email, data.selected_plan)
+
     return user
 
 
