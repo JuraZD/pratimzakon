@@ -8,6 +8,7 @@ from pydantic import BaseModel, EmailStr
 class UserRegister(BaseModel):
     email: EmailStr
     password: str
+    selected_plan: Optional[str] = None  # "pro" | "expert" | None
 
 
 class UserLogin(BaseModel):
@@ -29,6 +30,7 @@ class UserOut(BaseModel):
     keyword_limit: int
     plan: str
     include_mu: bool
+    plan_type: str
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -38,13 +40,17 @@ class UserOut(BaseModel):
 
 class KeywordCreate(BaseModel):
     keyword: str
-    document_types: Optional[str] = None  # npr. "ZAKON,UREDBA" – null = svi tipovi
+    doc_type_filter: Optional[str] = None    # "ZAKON,UREDBA" ili None
+    institution_filter: Optional[str] = None
+    part_filter: Optional[str] = None        # "SL" | "MU" | None
 
 
 class KeywordOut(BaseModel):
     id: int
     keyword: str
-    document_types: Optional[str] = None
+    doc_type_filter: Optional[str] = None
+    institution_filter: Optional[str] = None
+    part_filter: Optional[str] = None
 
     model_config = {"from_attributes": True}
 

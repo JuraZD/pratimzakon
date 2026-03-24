@@ -40,12 +40,13 @@ def add_keyword(
             detail=f"Dostigli ste limit od {current_user.keyword_limit} ključnih riječi. Nadogradite paket.",
         )
 
-    # Filter po tipu dokumenta dostupan samo Pro i Expert korisnicima
-    document_types = data.document_types
-    if document_types and current_user.plan == "free":
-        document_types = None
-
-    kw = Keyword(user_id=current_user.id, keyword=keyword, document_types=document_types)
+    kw = Keyword(
+        user_id=current_user.id,
+        keyword=keyword,
+        doc_type_filter=data.doc_type_filter or None,
+        institution_filter=data.institution_filter or None,
+        part_filter=data.part_filter or None,
+    )
     db.add(kw)
     db.commit()
     db.refresh(kw)

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PratimZakon – Dijagram projekta</title>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <script src="https://unpkg.com/roughjs@4.6.6/bundled/rough.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #fdf8f0;
+      font-family: 'Caveat', cursive;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2.4rem;
+      color: #2d2d2d;
+      margin-bottom: 8px;
+      letter-spacing: 1px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 1.2rem;
+      color: #888;
+      margin-bottom: 50px;
+    }
+
+    .section-title {
+      font-size: 1.6rem;
+      color: #444;
+      margin: 40px 0 16px 0;
+      text-align: center;
+    }
+
+    /* ── CANVAS WRAPPERS ── */
+    .canvas-wrap {
+      position: relative;
+      margin: 0 auto;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    /* ── LABELS over canvas ── */
+    .label {
+      position: absolute;
+      font-family: 'Caveat', cursive;
+      pointer-events: none;
+      line-height: 1.25;
+    }
+
+    /* ── PLANOVI (cards) ── */
+    .plans {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+      margin: 20px auto 60px;
+      max-width: 700px;
+    }
+
+    .plan-card {
+      position: relative;
+      width: 180px;
+      height: 160px;
+    }
+
+    .plan-card canvas {
+      position: absolute;
+      top: 0; left: 0;
+    }
+
+    .plan-card .card-content {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Caveat', cursive;
+      pointer-events: none;
+    }
+
+    .plan-name  { font-size: 1.6rem; font-weight: 700; }
+    .plan-limit { font-size: 1.1rem; color: #555; margin-top: 4px; }
+    .plan-price { font-size: 1rem;   color: #888; margin-top: 8px; }
+
+    /* ── TOK (flow) ── */
+    .flow {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 0;
+      flex-wrap: wrap;
+      max-width: 900px;
+      margin: 10px auto 60px;
+    }
+
+    .flow-step {
+      position: relative;
+      width: 150px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .flow-step canvas { display: block; }
+
+    .flow-step .step-content {
+      position: absolute;
+      top: 0; left: 0;
+      width: 150px;
+      height: 130px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      font-family: 'Caveat', cursive;
+      pointer-events: none;
+      padding: 10px;
+    }
+
+    .step-num  { font-size: 1.8rem; font-weight: 700; }
+    .step-text { font-size: 1rem; color: #444; margin-top: 2px; }
+
+    .flow-arrow {
+      font-size: 2.2rem;
+      color: #888;
+      align-self: center;
+      margin: 0 -6px;
+      margin-top: -30px;
+      font-family: 'Caveat', cursive;
+    }
+  </style>
+</head>
+<body>
+
+<h1>🗺 PratimZakon</h1>
+<p class="subtitle">kako sve funkcionira zajedno</p>
+
+<!-- ════════════════════════════════════════════
+     DIJAGRAM 1 – Arhitektura sustava
+     ════════════════════════════════════════════ -->
+<p class="section-title">Arhitektura sustava</p>
+<div class="canvas-wrap" id="arch-wrap" style="width:820px;height:580px;">
+  <canvas id="arch" width="820" height="580"></canvas>
+</div>
+
+<!-- ════════════════════════════════════════════
+     DIJAGRAM 2 – Tok korisnika
+     ════════════════════════════════════════════ -->
+<p class="section-title">Korisnikova priča</p>
+<div class="flow" id="flow"></div>
+
+<!-- ════════════════════════════════════════════
+     DIJAGRAM 3 – Planovi pretplate
+     ════════════════════════════════════════════ -->
+<p class="section-title">Planovi pretplate</p>
+<div class="plans" id="plans"></div>
+
+
+<script>
+/* ─────────────────────────────────────────────────────────
+   HELPERS
+───────────────────────────────────────────────────────── */
+const COLORS = {
+  browser:  '#4a90d9',
+  backend:  '#e07b39',
+  db:       '#5aab61',
+  stripe:   '#7b5ea7',
+  email:    '#d95f5f',
+  jobs:     '#c49a28',
+  arrow:    '#555',
+  text:     '#2d2d2d',
+  muted:    '#666',
+};
+
+function rc(canvas, options = {}) {
+  return rough.canvas(canvas, { options: { roughness: 1.6, bowing: 1.2, ...options } });
+}
+
+function label(wrap, x, y, lines, opts = {}) {
+  const el = document.createElement('div');
+  el.className = 'label';
+  el.style.left   = x + 'px';
+  el.style.top    = y + 'px';
+  el.style.fontSize    = (opts.size   || 15) + 'px';
+  el.style.color       = opts.color  || COLORS.text;
+  el.style.fontWeight  = opts.bold   ? '700' : '400';
+  el.style.textAlign   = opts.align  || 'left';
+  el.style.width       = (opts.width || 'auto') + (opts.width ? 'px' : '');
+  el.innerHTML = lines.join('<br>');
+  wrap.appendChild(el);
+}
+
+/* ─────────────────────────────────────────────────────────
+   DIJAGRAM 1 – Arhitektura
+───────────────────────────────────────────────────────── */
+(function buildArch() {
+  const canvas = document.getElementById('arch');
+  const wrap   = document.getElementById('arch-wrap');
+  const rg = rc(canvas);
+
+  const opts = (fill, stroke) => ({
+    fill, stroke, fillStyle: 'hachure',
+    fillWeight: 1.5, hachureAngle: -45, hachureGap: 7,
+    roughness: 1.8,
+  });
+
+  /* ── Browser box ── */
+  rg.rectangle(30, 20, 760, 120, opts('#d6eaff', COLORS.browser));
+  label(wrap, 370, 28, ['🖥  KORISNIK (Browser)'], { size: 17, bold: true, color: COLORS.browser, align: 'center', width: 80 });
+  label(wrap, 90, 58, ['index.html', '─────────', 'Landing page', 'prijava / registracija'], { size: 13, color: '#334', align: 'center', width: 120 });
+  label(wrap, 430, 58, ['dashboard.html', '─────────', 'Upravljačka ploča', 'ključne riječi & pretplata'], { size: 13, color: '#334', align: 'center', width: 140 });
+
+  /* ── Arrow down to backend ── */
+  rg.line(410, 140, 410, 190, { stroke: COLORS.arrow, strokeWidth: 2 });
+  rg.line(410, 190, 404, 178, { stroke: COLORS.arrow, strokeWidth: 2 });
+  rg.line(410, 190, 416, 178, { stroke: COLORS.arrow, strokeWidth: 2 });
+  label(wrap, 415, 158, ['HTTP'], { size: 12, color: '#888' });
+
+  /* ── Backend box ── */
+  rg.rectangle(30, 190, 760, 140, opts('#ffe8d4', COLORS.backend));
+  label(wrap, 350, 198, ['⚙️  BACKEND  –  FastAPI  (Render)'], { size: 17, bold: true, color: COLORS.backend, align: 'center', width: 120 });
+
+  const routes = [
+    ['/auth/*\nRegistracija\nPrijava', 60],
+    ['/keywords/*\nDodaj / briši\nključne riječi', 210],
+    ['/stripe/*\nPlaćanje\n& webhook', 370],
+    ['/admin/*\nStatistike\n& logovi', 530],
+    ['/health\nStatus\nservera', 680],
+  ];
+  routes.forEach(([txt, x]) => {
+    rg.rectangle(x, 228, 120, 88, { stroke: '#c06020', roughness: 1.4, fill: 'rgba(255,255,255,0.3)', fillStyle: 'solid' });
+    label(wrap, x + 8, 232, txt.split('\n'), { size: 12, color: '#5a2a00' });
+  });
+
+  /* ── Three arrows down from backend ── */
+  [[150, 'DB'], [410, 'Stripe'], [670, 'Email']].forEach(([x, lbl]) => {
+    rg.line(x, 330, x, 390, { stroke: COLORS.arrow, strokeWidth: 2 });
+    rg.line(x, 390, x - 6, 378, { stroke: COLORS.arrow, strokeWidth: 2 });
+    rg.line(x, 390, x + 6, 378, { stroke: COLORS.arrow, strokeWidth: 2 });
+  });
+
+  /* ── DB box ── */
+  rg.rectangle(30, 390, 220, 130, opts('#d4f0d8', COLORS.db));
+  label(wrap, 65, 398, ['🗄  Supabase (PostgreSQL)'], { size: 14, bold: true, color: '#2a6e30', width: 160 });
+  label(wrap, 55, 426, ['Korisnici\nKljučne riječi\nDokumenti\nLogovi'], { size: 12, color: '#334' });
+
+  /* ── Stripe box ── */
+  rg.rectangle(300, 390, 220, 130, opts('#e8daf7', COLORS.stripe));
+  label(wrap, 340, 398, ['💳  Stripe'], { size: 14, bold: true, color: '#4a2a80' });
+  label(wrap, 318, 426, ['Checkout session\nWebhook\nUpgrade pretplate'], { size: 12, color: '#334' });
+
+  /* ── Email box ── */
+  rg.rectangle(570, 390, 220, 130, opts('#ffd4d4', COLORS.email));
+  label(wrap, 610, 398, ['📧  Gmail SMTP'], { size: 14, bold: true, color: '#8a2020' });
+  label(wrap, 588, 426, ['Verifikacija emaila\nObavijesti o\nnovim dokumentima'], { size: 12, color: '#334' });
+
+  /* ── Jobs box ── */
+  rg.rectangle(30, 540, 760, 28, opts('#fff6cc', COLORS.jobs));
+  label(wrap, 40, 545, ['⏰  GitHub Actions:   🌐 Scraper Narodnih novina  →  07:00h svaki radni dan   |   🔄 Provjera isteklih pretplata  →  01:00h svaki dan'], { size: 12, color: '#6a4e00' });
+})();
+
+
+/* ─────────────────────────────────────────────────────────
+   DIJAGRAM 2 – Tok korisnika (flow steps)
+───────────────────────────────────────────────────────── */
+(function buildFlow() {
+  const container = document.getElementById('flow');
+
+  const steps = [
+    { num: '1', emoji: '📝', text: 'Registracija\ni prijava' },
+    { num: '2', emoji: '💳', text: 'Odabir plana\n(Basic / Plus)' },
+    { num: '3', emoji: '🔑', text: 'Dodavanje\nključnih riječi' },
+    { num: '4', emoji: '🤖', text: 'Robot čita\nNarodne novine' },
+    { num: '5', emoji: '📧', text: 'Email s\nrezultatima' },
+  ];
+
+  const palette = ['#4a90d9','#7b5ea7','#e07b39','#5aab61','#d95f5f'];
+
+  steps.forEach((s, i) => {
+    /* step card */
+    const div = document.createElement('div');
+    div.className = 'flow-step';
+    div.innerHTML = `
+      <canvas width="150" height="130"></canvas>
+      <div class="step-content">
+        <div class="step-num" style="color:${palette[i]}">${s.emoji}</div>
+        <div style="font-size:0.95rem;font-weight:700;color:${palette[i]};margin-top:2px">Korak ${s.num}</div>
+        <div class="step-text">${s.text.replace(/\n/,'<br>')}</div>
+      </div>`;
+    container.appendChild(div);
+
+    const cvs = div.querySelector('canvas');
+    const rg = rc(cvs);
+    rg.rectangle(8, 8, 134, 114, {
+      stroke: palette[i], strokeWidth: 2,
+      fill: palette[i] + '22', fillStyle: 'hachure',
+      hachureGap: 9, hachureAngle: -40,
+      roughness: 2,
+    });
+
+    /* arrow between steps */
+    if (i < steps.length - 1) {
+      const arrow = document.createElement('div');
+      arrow.className = 'flow-arrow';
+      arrow.textContent = '→';
+      arrow.style.color = palette[i];
+      container.appendChild(arrow);
+    }
+  });
+})();
+
+
+/* ─────────────────────────────────────────────────────────
+   DIJAGRAM 3 – Planovi pretplate
+───────────────────────────────────────────────────────── */
+(function buildPlans() {
+  const container = document.getElementById('plans');
+
+  const plans = [
+    { name: 'FREE',  limit: '3 ključne riječi',  price: 'besplatno', color: '#5aab61' },
+    { name: 'BASIC', limit: '10 ključnih riječi', price: 'plaćeno',   color: '#4a90d9' },
+    { name: 'PLUS',  limit: '20 ključnih riječi', price: 'plaćeno ⭐', color: '#7b5ea7' },
+  ];
+
+  plans.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'plan-card';
+    div.innerHTML = `
+      <canvas width="180" height="160"></canvas>
+      <div class="card-content">
+        <div class="plan-name"  style="color:${p.color}">${p.name}</div>
+        <div class="plan-limit">${p.limit}</div>
+        <div class="plan-price">${p.price}</div>
+      </div>`;
+    container.appendChild(div);
+
+    const cvs = div.querySelector('canvas');
+    const rg = rc(cvs);
+    rg.rectangle(8, 8, 164, 144, {
+      stroke: p.color, strokeWidth: 2.5,
+      fill: p.color + '22', fillStyle: 'hachure',
+      hachureGap: 8, hachureAngle: -50,
+      roughness: 2.2,
+    });
+  });
+})();
+</script>
+</body>
+</html>

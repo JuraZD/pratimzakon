@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_PORT = int(os.getenv("SMTP_PORT") or "587")
 SMTP_USERNAME = os.getenv("SMTP_USERNAME", "")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 FROM_EMAIL = os.getenv("FROM_EMAIL", SMTP_USERNAME)
@@ -40,38 +40,88 @@ def _send_smtp(to_email: str, subject: str, html_body: str, text_body: str) -> b
         return False
 
 
-def _build_email(user, matches: List[Dict]) -> tuple[str, str]:
+def _keyword_matches_document(kw_obj, doc) -> bool:
+    """
+    Provjerava odgovara li keyword filtrima za dani dokument.
+    Ako filter nije postavljen (None), prolazi sve.
+    """
+    # Provjera teksta
+    if kw_obj.keyword.lower() not in doc.title.lower():
+        return False
+
+    # Filter po dijelu (SL/MU)
+    if kw_obj.part_filter and doc.part:
+        if kw_obj.part_filter.upper() != doc.part.upper():
+            return False
+
+    # Filter po tipu dokumenta (može biti lista: "ZAKON,UREDBA")
+    if kw_obj.doc_type_filter and doc.type:
+        allowed_types = [t.strip().upper() for t in kw_obj.doc_type_filter.split(",")]
+        if doc.type.upper() not in allowed_types:
+            return False
+
+    # Filter po instituciji (substring, case-insensitive)
+    if kw_obj.institution_filter and doc.institution:
+        if kw_obj.institution_filter.lower() not in doc.institution.lower():
+            return False
+
+    return True
+
+
+def _build_email(user, matches: List[Dict], show_pdf: bool = False) -> tuple[str, str]:
     """
     Gradi HTML i plain-text email s popisom matcheva.
-    matches = [{"keyword": str, "document_title": str, "document_url": str,
-                "pdf_url": str|None, "doc_type": str, "part": str}]
+    matches = [{
+        "keyword": str,
+        "document_title": str,
+        "document_url": str,
+        "document_pdf_url": str | None,
+        "doc_type": str | None,
+        "institution": str | None,
+    }]
+    show_pdf: True za Pro/Expert korisnike
     """
     unsubscribe_url = f"{BASE_URL}/auth/unsubscribe?token={user.unsubscribe_token}"
     is_paid = getattr(user, "plan", "free") in ("pro", "expert")
 
+    plan_labels = {
+        "free": "Besplatni plan",
+        "basic": "Basic plan",
+        "plus": "Plus plan",
+        "pro": "Pro plan",
+        "expert": "Expert plan",
+    }
+    plan_name = plan_labels.get(getattr(user, "plan_type", "free"), "Besplatni plan")
     if user.subscription_status == "active" and user.subscription_end:
-        plan_name = "Pro" if getattr(user, "plan", "") == "pro" else "Expert"
-        status_text = f"{plan_name} paket – aktivan do {user.subscription_end.strftime('%d.%m.%Y.')}"
+        status_text = f"{plan_name} · aktivna do {user.subscription_end.strftime('%d.%m.%Y.')}"
     else:
-        status_text = "Besplatni paket"
+        status_text = plan_name
+
+    user_display = user.email
 
     # Plain text
     lines = [
+        f"Poštovani {user_display},",
+        "",
         "Novi pronalasci u Narodnim novinama",
         "=" * 40,
         "",
     ]
     for m in matches:
+        lines += [f"Ključna riječ: {m['keyword']}"]
+        if m.get("doc_type"):
+            lines.append(f"Tip: {m['doc_type']}")
+        if m.get("institution"):
+            lines.append(f"Institucija: {m['institution']}")
         lines += [
-            f"Ključna riječ: {m['keyword']}",
             f"Dokument: {m['document_title']}",
             f"HTML: {m['document_url']}",
         ]
-        if is_paid and m.get("pdf_url"):
-            lines.append(f"PDF: {m['pdf_url']}")
+        if show_pdf and m.get("document_pdf_url"):
+            lines.append(f"PDF: {m['document_pdf_url']}")
         lines.append("")
     lines += [
-        f"Status: {status_text}",
+        f"Pretplata: {status_text}",
         "",
         f"Odjava od obavijesti: {unsubscribe_url}",
         "",
@@ -79,48 +129,71 @@ def _build_email(user, matches: List[Dict]) -> tuple[str, str]:
     ]
     plain = "\n".join(lines)
 
-    # HTML
+    # HTML kartice
     cards_html = ""
     for m in matches:
-        part_badge = ""
-        if m.get("part") == "MU":
-            part_badge = '<span style="font-size:10px;background:#7c3aed;color:#fff;padding:2px 6px;border-radius:3px;margin-left:6px;">MU</span>'
+        meta_parts = []
+        if m.get("doc_type"):
+            meta_parts.append(
+                f'<span style="background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.4px;">'
+                f'{m["doc_type"]}</span>'
+            )
+        if m.get("institution"):
+            meta_parts.append(
+                f'<span style="color:#6b7280;font-size:12px;">{m["institution"]}</span>'
+            )
+        meta_html = (
+            f'<p style="margin:0 0 8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
+            f'{"&nbsp;·&nbsp;".join(meta_parts)}</p>'
+            if meta_parts else ""
+        )
 
-        pdf_link = ""
-        if is_paid and m.get("pdf_url"):
-            pdf_link = f'<a href="{m["pdf_url"]}" style="color:#6b7280;font-size:13px;text-decoration:none;margin-left:12px;">Preuzmi PDF ↓</a>'
+        pdf_html = ""
+        if show_pdf and m.get("document_pdf_url"):
+            pdf_html = (
+                f'<a href="{m["document_pdf_url"]}" style="display:inline-block;margin-top:8px;'
+                f'padding:5px 12px;background:#ef4444;color:#fff;font-size:12px;font-weight:600;'
+                f'border-radius:4px;text-decoration:none;">↓ PDF</a>'
+            )
 
         cards_html += f"""
         <div style="background:#f8f9fa;border-left:4px solid #2563eb;padding:16px;margin-bottom:16px;border-radius:4px;">
             <p style="margin:0 0 4px;font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;">
                 Ključna riječ: <strong>{m['keyword']}</strong>{part_badge}
             </p>
+            {meta_html}
             <p style="margin:0 0 8px;font-size:15px;font-weight:600;color:#111827;">
                 {m['document_title']}
             </p>
             <a href="{m['document_url']}" style="color:#2563eb;font-size:14px;text-decoration:none;">
                 Otvori dokument →
-            </a>{pdf_link}
+            </a>
+            {pdf_html}
         </div>"""
 
     html = f"""<!DOCTYPE html>
 <html lang="hr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="font-family:system-ui,-apple-system,sans-serif;background:#f3f4f6;margin:0;padding:32px 0;">
-  <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1);">
-    <div style="background:#2563eb;padding:24px 32px;">
-      <h1 style="color:#fff;margin:0;font-size:20px;font-weight:700;">PratimZakon</h1>
-      <p style="color:#bfdbfe;margin:4px 0 0;font-size:14px;">Novi pronalasci u Narodnim novinama</p>
+  <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.10);">
+    <div style="background:#2563eb;padding:24px 36px;">
+      <h1 style="color:#fff;margin:0;font-size:22px;font-weight:800;letter-spacing:-.3px;">PratimZakon</h1>
+      <p style="color:#bfdbfe;margin:6px 0 0;font-size:14px;">Novi pronalasci u Narodnim novinama</p>
     </div>
-    <div style="padding:32px;">
-      <p style="color:#374151;margin:0 0 24px;">
-        Pronašli smo <strong>{len(matches)} {'dokument' if len(matches) == 1 else 'dokumenata'}</strong>
+    <div style="padding:32px 36px;">
+      <p style="color:#374151;margin:0 0 6px;font-size:14px;">Poštovani <strong>{user_display}</strong>,</p>
+      <p style="color:#374151;margin:0 0 24px;font-size:15px;line-height:1.6;">
+        Pronašli smo <strong>{len(matches)} {'novi dokument' if len(matches) == 1 else 'nova dokumenta' if len(matches) < 5 else 'novih dokumenata'}</strong>
         koji odgovaraju vašim ključnim riječima:
       </p>
       {cards_html}
-      <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
-      <p style="font-size:13px;color:#6b7280;margin:0 0 4px;">Status: {status_text}</p>
-      <p style="font-size:12px;color:#9ca3af;margin:0;">
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0 16px;">
+      <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:12px 16px;margin-bottom:16px;">
+        <p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;margin:0 0 4px;">Vaša pretplata</p>
+        <p style="font-size:14px;color:#111827;font-weight:600;margin:0;">{status_text}</p>
+      </div>
+      <p style="font-size:12px;color:#9ca3af;margin:0;line-height:1.6;">
+        Primili ste ovaj email jer pratite Narodne novine putem PratimZakon.<br>
         <a href="{unsubscribe_url}" style="color:#9ca3af;">Odjava od email obavijesti</a>
       </p>
     </div>
@@ -134,6 +207,7 @@ def _build_email(user, matches: List[Dict]) -> tuple[str, str]:
 def send_keyword_notifications(new_document_ids: List[int], db: Session) -> Dict[str, int]:
     """
     Pronalazi matcheve između novih dokumenata i korisničkih ključnih riječi.
+    Primjenjuje filtere (tip, institucija, dio) po ključnoj riječi.
     Šalje objedinjeni email po korisniku.
     Vraća {"sent": N, "failed": N}.
     """
@@ -161,42 +235,27 @@ def send_keyword_notifications(new_document_ids: List[int], db: Session) -> Dict
         if not user.keywords:
             continue
 
-        user_plan = getattr(user, "plan", "free")
-        include_mu = getattr(user, "include_mu", False)
+        plan = getattr(user, "plan_type", "free")
+        show_pdf = plan in ("pro", "expert")
 
         matches = []
         for kw_obj in user.keywords:
-            kw = kw_obj.keyword.lower()
-
-            # Parsiraj filter tipova za ovu ključnu riječ
-            allowed_types = None
-            if kw_obj.document_types:
-                allowed_types = {t.strip().upper() for t in kw_obj.document_types.split(",")}
-
             for doc in documents:
-                # MU dokumenti samo za Pro/Expert korisnike s uključenim MU
-                if getattr(doc, "part", "SL") == "MU":
-                    if user_plan not in ("pro", "expert") or not include_mu:
-                        continue
-
-                # Filter po tipu dokumenta (samo ako je postavljen)
-                if allowed_types and doc.type and doc.type.upper() not in allowed_types:
+                if not _keyword_matches_document(kw_obj, doc):
                     continue
-
-                if kw in doc.title.lower():
-                    matches.append({
-                        "keyword": kw_obj.keyword,
-                        "document_title": doc.title,
-                        "document_url": doc.url,
-                        "pdf_url": getattr(doc, "pdf_url", None),
-                        "doc_type": getattr(doc, "type", ""),
-                        "part": getattr(doc, "part", "SL"),
-                    })
+                matches.append({
+                    "keyword": kw_obj.keyword,
+                    "document_title": doc.title,
+                    "document_url": doc.url,
+                    "document_pdf_url": doc.pdf_url,
+                    "doc_type": doc.type or None,
+                    "institution": doc.institution or None,
+                })
 
         if not matches:
             continue
 
-        html_body, text_body = _build_email(user, matches)
+        html_body, text_body = _build_email(user, matches, show_pdf=show_pdf)
         subject = f"PratimZakon: {len(matches)} novih pronalazaka u NN"
         success = _send_smtp(user.email, subject, html_body, text_body)
 
