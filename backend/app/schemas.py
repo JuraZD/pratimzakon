@@ -8,6 +8,7 @@ from pydantic import BaseModel, EmailStr
 class UserRegister(BaseModel):
     email: EmailStr
     password: str
+    selected_plan: Optional[str] = None  # "pro" | "expert" | None
 
 
 class UserLogin(BaseModel):

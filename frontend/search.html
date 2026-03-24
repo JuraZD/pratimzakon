@@ -131,6 +131,8 @@
     .filter-row { grid-column: 1 / -1; }
 
     .filter-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .search-hint { font-size: 12px; color: var(--gray-600); line-height: 1.55; margin-top: 4px; }
+    .search-hint em { font-style: normal; font-weight: 600; color: var(--gray-900); background: var(--gray-100); padding: 1px 5px; border-radius: 3px; }
 
     /* RESULTS */
     .results-meta {
@@ -298,7 +300,10 @@
       <div class="filters-grid">
         <div class="filter-group filter-row">
           <label>Pretraga po naslovu</label>
-          <input type="text" id="fQ" placeholder='npr. "porez na dohodak"' onkeydown="if(event.key==='Enter')doSearch(1)">
+          <input type="text" id="fQ" placeholder='npr. porez dohodak ili zakon radu' onkeydown="if(event.key==='Enter')doSearch(1)">
+          <div class="search-hint">
+            Upišite jednu ili više ključnih riječi — pretražuje se naslov dokumenta. Više riječi sužava rezultate (npr. <em>zakon radu</em> pronalazi dokumente koji u naslovu imaju i "zakon" i "radu"). Nije osjetljivo na velika/mala slova.
+          </div>
         </div>
         <div class="filter-group">
           <label>Tip dokumenta</label>
