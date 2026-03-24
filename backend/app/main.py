@@ -23,9 +23,18 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost")
 
+# Podržava više origina odvojenih zarezom u FRONTEND_URL env varijabli
+# Npr: FRONTEND_URL=https://jurazd.github.io,https://pratimzakon.hr
+_extra_origins = [o.strip() for o in FRONTEND_URL.split(",") if o.strip()]
+ALLOWED_ORIGINS = _extra_origins + [
+    "http://localhost:3000",
+    "http://localhost:5500",
+    "http://localhost:8080",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL, "http://localhost:3000", "http://localhost:5500"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
