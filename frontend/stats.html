@@ -78,7 +78,7 @@
   <div id="expertGate" class="gate" style="display:none">
     <div style="font-size:40px;margin-bottom:12px;">📊</div>
     <h2>Expert paket</h2>
-    <p>Statistike i analitika dostupne su isključivo korisnicima Expert paketa.</p>
+    <p>Statistike i analitika dostupne su korisnicima Pro i Expert paketa.</p>
     <a href="dashboard.html" class="btn btn-primary">Nadogradite plan</a>
   </div>
 
@@ -154,7 +154,7 @@
     if (!meRes) return;
     const user = await meRes.json();
 
-    if (user.plan_type !== "expert") {
+    if (user.plan_type !== "expert" && user.plan_type !== "pro") {
       document.getElementById("loadingState").style.display = "none";
       document.getElementById("expertGate").style.display = "block";
       return;
