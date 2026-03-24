@@ -236,5 +236,8 @@ if __name__ == "__main__":
     parser.add_argument("--batch", type=int, default=500, help="Veličina batcha (default: 500)")
     parser.add_argument("--offset", type=int, default=0, help="Početni offset (default: 0)")
     parser.add_argument("--dry-run", action="store_true", help="Ne upisuj u bazu, samo logiraj")
+    parser.add_argument("--debug", action="store_true", help="Uključi DEBUG razinu logiranja")
     args = parser.parse_args()
+    if args.debug:
+        logging.getLogger().setLevel(logging.DEBUG)
     run_enrich(args.batch, args.offset, args.dry_run)

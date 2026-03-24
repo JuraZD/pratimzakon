@@ -20,6 +20,10 @@ on:
         required: false
         default: "false"
 
+concurrency:
+  group: enrich
+  cancel-in-progress: false
+
 jobs:
   enrich:
     runs-on: ubuntu-latest
