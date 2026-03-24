@@ -1,3 +1,4 @@
+import logging
 import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
@@ -13,12 +14,16 @@ from .migrate_db import run_migrations
 
 load_dotenv()
 
+logger = logging.getLogger(__name__)
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Pokreće se NAKON što uvicorn otvori port — Render ne timeouta
-    Base.metadata.create_all(bind=engine)
-    run_migrations()
+    try:
+        Base.metadata.create_all(bind=engine)
+        run_migrations()
+    except Exception as e:
+        logger.error(f"DB startup error (app still running): {e}")
     yield
 
 
