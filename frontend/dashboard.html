@@ -18,6 +18,7 @@
       --rule: #d4d0c9;
       --serif: 'Playfair Display', Georgia, serif;
       --sans: 'DM Sans', sans-serif;
+      --cx: max(5%, calc((100% - 1140px) / 2));
     }
 
     body {
@@ -35,7 +36,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 18px 6%;
+      padding: 18px var(--cx);
       border-bottom: 1px solid var(--ink);
       background: var(--white);
       position: sticky;
@@ -105,7 +106,7 @@
     main {
       max-width: 860px;
       margin: 0 auto;
-      padding: 40px 6%;
+      padding: 40px 24px;
     }
 
     .card {
@@ -295,8 +296,11 @@
       .status-bar { flex-direction: column; }
       .status-item { border-right: none; border-bottom: 1px solid var(--rule); }
       .status-item:last-child { border-bottom: none; }
-      nav { padding: 14px 5%; }
-      main { padding: 28px 5%; }
+      nav { padding: 12px 16px; flex-wrap: wrap; gap: 8px; }
+      main { padding: 24px 16px; }
+      #userEmail { display: none; }
+      .nav-right { gap: 6px; }
+      .btn { padding: 7px 12px; font-size: 11px; }
     }
   </style>
 </head>
