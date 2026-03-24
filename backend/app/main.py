@@ -1,4 +1,5 @@
 import os
+from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -12,12 +13,18 @@ from .migrate_db import run_migrations
 
 load_dotenv()
 
-Base.metadata.create_all(bind=engine)
-run_migrations()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Pokreće se NAKON što uvicorn otvori port — Render ne timeouta
+    Base.metadata.create_all(bind=engine)
+    run_migrations()
+    yield
+
 
 limiter = Limiter(key_func=get_remote_address)
 
-app = FastAPI(title="PratimZakon API", version="1.0.0")
+app = FastAPI(title="PratimZakon API", version="1.0.0", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
