@@ -248,6 +248,39 @@ def _parse_rdfa(html_text: str) -> dict:
     return result
 
 
+def _parse_institution_xml(xml_bytes: bytes) -> int:
+    """Parsira RDF/XML SKOS vocabulary s listom institucija. Vraća broj učitanih."""
+    import xml.etree.ElementTree as ET
+    SKOS = "http://www.w3.org/2004/02/skos/core#"
+    RDF = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    count = 0
+    try:
+        root = ET.fromstring(xml_bytes)
+    except ET.ParseError as e:
+        logging.debug(f"  institution XML parse error: {e}")
+        return 0
+    # Traži sve Concept elemente — mogu biti direktna djeca ili ugniježđena
+    for elem in root.iter():
+        # rdf:about atribut → URI institucije
+        about = elem.get(f"{{{RDF}}}about", "")
+        if not about or "nn-institutions" not in about:
+            continue
+        # Traži skos:prefLabel (preferiramo hr jezik)
+        label = ""
+        for child in elem:
+            if child.tag == f"{{{SKOS}}}prefLabel":
+                lang = child.get("{http://www.w3.org/XML/1998/namespace}lang", "")
+                if child.text:
+                    if lang in ("hr", "hrv") or not label:
+                        label = child.text.strip()
+                        if lang in ("hr", "hrv"):
+                            break
+        if label:
+            _institution_cache[about.rstrip("/")] = label
+            count += 1
+    return count
+
+
 def _prefetch_institution_list(session) -> None:
     """Jednokratni dohvat liste svih institucija iz NN ELI vocabulary.
     Puni _institution_cache za sve institucije odjednom."""
@@ -257,23 +290,21 @@ def _prefetch_institution_list(session) -> None:
     _institution_list_fetched = True
 
     base_url = "https://narodne-novine.nn.hr/eli/vocabularies/nn-institutions"
-    for url in (
-        base_url + "?format=json-ld",
-        base_url + "?format=json",
-        base_url,
-    ):
-        try:
-            resp = session.get(
-                url,
-                headers={"Accept": "application/ld+json, application/json;q=0.9, text/turtle;q=0.8"},
-                timeout=ELI_TIMEOUT,
-            )
-            logging.debug(f"  institution list fetch: {url} → {resp.status_code} ct={resp.headers.get('content-type','')!r} len={len(resp.content)}")
-            if resp.status_code != 200:
-                continue
-            ct = resp.headers.get("content-type", "")
-            if "json" not in ct:
-                continue
+    try:
+        resp = session.get(
+            base_url,
+            headers={"Accept": "application/rdf+xml, application/xml;q=0.9, */*;q=0.8"},
+            timeout=(5, 30),  # dulji read timeout za 2MB
+        )
+        ct = resp.headers.get("content-type", "")
+        logging.debug(f"  institution list fetch: {base_url} → {resp.status_code} ct={ct!r} len={len(resp.content)}")
+        if resp.status_code != 200:
+            return
+        if "xml" in ct or "rdf" in ct:
+            count = _parse_institution_xml(resp.content)
+            logging.info(f"  institution list: {count} institucija učitano iz XML")
+            return
+        if "json" in ct:
             data = resp.json()
             items = data if isinstance(data, list) else data.get("@graph", [data])
             count = 0
@@ -287,16 +318,17 @@ def _prefetch_institution_list(session) -> None:
                 if label:
                     _institution_cache[item_id.rstrip("/")] = label
                     count += 1
-            logging.info(f"  institution list: {count} institucija učitano iz {url}")
-            if count:
-                return
-        except Exception as e:
-            logging.debug(f"  institution list fetch failed {url}: {e}")
+            logging.info(f"  institution list: {count} institucija učitano iz JSON")
+    except Exception as e:
+        logging.debug(f"  institution list fetch failed: {e}")
 
 
 def _fetch_institution_name(inst_url: str, session) -> str | None:
     """Dohvaća naziv institucije iz ELI vocabulary URL-a (s cacheom).
     Pokušava JSON-LD prvo, pa HTML fallback."""
+    norm = inst_url.rstrip("/")
+    if norm in _institution_cache:
+        return _institution_cache[norm]
     if inst_url in _institution_cache:
         return _institution_cache[inst_url]
 
