@@ -719,7 +719,7 @@
         <li>Do 10 ključnih riječi</li>
         <li>Email obavijest</li>
       </ul>
-      <a href="dashboard.html" class="btn btn-ghost">Odaberi Basic</a>
+      <a href="#" class="btn btn-ghost" onclick="selectPlan('basic'); return false;">Odaberi Basic</a>
     </div>
 
     <div class="plan">
@@ -730,8 +730,10 @@
       <ul class="plan-features">
         <li>Do 20 ključnih riječi</li>
         <li>Email obavijest</li>
+        <li>Pretraga arhive (od 2015.)</li>
+        <li>Statistike i analitika</li>
       </ul>
-      <a href="dashboard.html" class="btn btn-ghost">Odaberi Plus</a>
+      <a href="#" class="btn btn-ghost" onclick="selectPlan('plus'); return false;">Odaberi Plus</a>
     </div>
 
   </div>
@@ -868,6 +870,27 @@
       errEl.style.display = "block";
     } finally {
       btn.disabled = false; btn.textContent = "Prijavi se";
+    }
+  }
+
+  async function selectPlan(plan) {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      openModal('register');
+      return;
+    }
+    const btn = document.querySelector(`[onclick="selectPlan('${plan}'); return false;"]`);
+    if (btn) { btn.textContent = "Molimo pričekajte..."; btn.style.pointerEvents = "none"; }
+    try {
+      const res = await fetch(`${API}/stripe/checkout/${plan}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.status === 401) { localStorage.removeItem("token"); openModal('register'); return; }
+      const data = await res.json();
+      if (data.checkout_url) window.location.href = data.checkout_url;
+    } catch {
+      if (btn) { btn.textContent = plan === "basic" ? "Odaberi Basic" : "Odaberi Plus"; btn.style.pointerEvents = ""; }
     }
   }
 
