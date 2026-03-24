@@ -1,8 +1,11 @@
 import os
 import smtplib
 import secrets
+import logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+
+logger = logging.getLogger(__name__)
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -224,15 +227,12 @@ def register(data: UserRegister, db: Session = Depends(get_db)):
     if db.query(User).filter(User.email == data.email).first():
         raise HTTPException(status_code=400, detail="Email već postoji")
 
-    verification_token = secrets.token_urlsafe(32)
     user = User(
         email=data.email,
         password_hash=hash_password(data.password),
         unsubscribe_token=secrets.token_urlsafe(32),
-        email_verified=True,  # Auto-verify za testiranje
+        email_verified=True,
     )
-    # Koristimo unsubscribe_token privremeno za verifikaciju – u produkciji dodaj poseban stupac
-    user._verification_token = verification_token
     db.add(user)
     db.commit()
     db.refresh(user)

@@ -449,9 +449,13 @@ class NarodneNovineScraper:
 
 def run_check():
     """Entry point za GitHub Actions job."""
-    scraper = NarodneNovineScraper()
-    count = scraper.check_for_updates()
-    logging.info(f"Scraper završen. Ukupno novih: {count}")
+    try:
+        scraper = NarodneNovineScraper()
+        count = scraper.check_for_updates()
+        logging.info(f"Scraper završen. Ukupno novih: {count}")
+    except Exception as e:
+        logging.error(f"Scraper pao s greškom: {e}", exc_info=True)
+        sys.exit(1)
 
 
 if __name__ == "__main__":
