@@ -18,7 +18,6 @@
       --rule: #d4d0c9;
       --serif: 'Playfair Display', Georgia, serif;
       --sans: 'DM Sans', sans-serif;
-      --cx: max(5%, calc((100% - 1140px) / 2));
     }
 
     html { scroll-behavior: smooth; }
@@ -34,6 +33,14 @@
 
     a { color: inherit; text-decoration: none; }
 
+    /* ─── INNER CONTAINER ─── */
+    .inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding-left: 40px;
+      padding-right: 40px;
+    }
+
     /* ─── FADE IN ─── */
     .reveal {
       opacity: 0;
@@ -44,15 +51,19 @@
 
     /* ─── NAV ─── */
     nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 22px var(--cx);
       border-bottom: 1px solid var(--ink);
       position: sticky;
       top: 0;
       background: var(--white);
       z-index: 50;
+    }
+
+    nav .inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 22px;
+      padding-bottom: 22px;
     }
 
     .logo {
@@ -90,37 +101,24 @@
       transition: background .18s, color .18s;
     }
 
-    .btn-ghost {
-      background: transparent;
-      color: var(--ink);
-    }
+    .btn-ghost { background: transparent; color: var(--ink); }
     .btn-ghost:hover { background: var(--ink); color: var(--white); }
 
-    .btn-solid {
-      background: var(--ink);
-      color: var(--white);
-    }
+    .btn-solid { background: var(--ink); color: var(--white); }
     .btn-solid:hover { background: #2a2a2a; }
 
     /* ─── HERO ─── */
     .hero {
-      padding: 80px var(--cx) 72px;
       border-bottom: 1px solid var(--ink);
+    }
+
+    .hero .inner {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 64px;
       align-items: end;
-    }
-
-    .hero-left {}
-
-    .hero-eyebrow {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 2.5px;
-      text-transform: uppercase;
-      color: var(--mid);
-      margin-bottom: 20px;
+      padding-top: 80px;
+      padding-bottom: 72px;
     }
 
     .hero h1 {
@@ -132,10 +130,7 @@
       margin-bottom: 28px;
     }
 
-    .hero h1 em {
-      font-style: italic;
-      font-weight: 400;
-    }
+    .hero h1 em { font-style: italic; font-weight: 400; }
 
     .hero-desc {
       font-size: 16px;
@@ -145,17 +140,11 @@
       margin-bottom: 36px;
     }
 
-    .hero-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+    .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
     .btn-lg { padding: 14px 32px; font-size: 14px; }
 
-    .hero-right {
-      padding-bottom: 8px;
-    }
+    .hero-right { padding-bottom: 8px; }
 
     .hero-stat-block {
       border-top: 1px solid var(--ink);
@@ -171,11 +160,7 @@
       margin-bottom: 6px;
     }
 
-    .hero-stat-label {
-      font-size: 13px;
-      color: var(--mid);
-      letter-spacing: .3px;
-    }
+    .hero-stat-label { font-size: 13px; color: var(--mid); letter-spacing: .3px; }
 
     .hero-quote {
       font-family: var(--serif);
@@ -187,7 +172,7 @@
       padding-left: 20px;
     }
 
-    /* ─── TICKER ─── */
+    /* ─── TICKER (ostaje full-width) ─── */
     .ticker-wrap {
       overflow: hidden;
       background: var(--ink);
@@ -220,9 +205,13 @@
 
     /* ─── HOW ─── */
     .how {
-      padding: 96px var(--cx);
       background: var(--paper);
       border-bottom: 1px solid var(--ink);
+    }
+
+    .how .inner {
+      padding-top: 96px;
+      padding-bottom: 96px;
     }
 
     .section-label {
@@ -252,21 +241,12 @@
     }
 
     .step {
-      padding: 40px 40px 40px 0;
+      padding: 40px 48px 40px 0;
       border-right: 1px solid var(--ink);
-      padding-right: 48px;
     }
 
-    .step:last-child {
-      border-right: none;
-      padding-left: 48px;
-      padding-right: 0;
-    }
-
-    .step:nth-child(2) {
-      padding-left: 48px;
-      padding-right: 48px;
-    }
+    .step:last-child { border-right: none; padding-left: 48px; padding-right: 0; }
+    .step:nth-child(2) { padding-left: 48px; padding-right: 48px; }
 
     .step-index {
       font-family: var(--serif);
@@ -295,18 +275,9 @@
       margin-bottom: 12px;
     }
 
-    .step p {
-      font-size: 14px;
-      color: var(--mid);
-      line-height: 1.75;
-    }
+    .step p { font-size: 14px; color: var(--mid); line-height: 1.75; }
 
-    .kw-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 14px;
-    }
+    .kw-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
 
     .kw-pill {
       font-size: 12px;
@@ -317,9 +288,11 @@
     }
 
     /* ─── PRICING ─── */
-    .pricing {
-      padding: 96px var(--cx);
-      border-bottom: 1px solid var(--ink);
+    .pricing { border-bottom: 1px solid var(--ink); }
+
+    .pricing .inner {
+      padding-top: 96px;
+      padding-bottom: 96px;
     }
 
     .pricing-header {
@@ -359,11 +332,7 @@
     }
 
     .plan:last-child { border-right: none; }
-
-    .plan.featured {
-      background: var(--ink);
-      color: var(--white);
-    }
+    .plan.featured { background: var(--ink); color: var(--white); }
 
     .plan-name {
       font-size: 11px;
@@ -383,24 +352,11 @@
       margin-bottom: 4px;
     }
 
-    .plan-per {
-      font-size: 13px;
-      opacity: .5;
-      margin-bottom: 20px;
-    }
+    .plan-per { font-size: 13px; opacity: .5; margin-bottom: 20px; }
 
-    .plan-desc {
-      font-size: 13px;
-      opacity: .55;
-      margin-bottom: 28px;
-      line-height: 1.6;
-    }
+    .plan-desc { font-size: 13px; opacity: .55; margin-bottom: 28px; line-height: 1.6; }
 
-    .plan-features {
-      list-style: none;
-      margin-bottom: 32px;
-      flex: 1;
-    }
+    .plan-features { list-style: none; margin-bottom: 32px; flex: 1; }
 
     .plan-features li {
       font-size: 13px;
@@ -412,9 +368,7 @@
       gap: 10px;
     }
 
-    .plan.featured .plan-features li {
-      border-color: rgba(255,255,255,.12);
-    }
+    .plan.featured .plan-features li { border-color: rgba(255,255,255,.12); }
 
     .plan-features li::before {
       content: '';
@@ -426,51 +380,28 @@
       opacity: .4;
     }
 
-    .plan .btn {
-      width: 100%;
-      text-align: center;
-      display: block;
-    }
+    .plan .btn { width: 100%; text-align: center; display: block; }
 
-    .plan.featured .btn-ghost {
-      border-color: var(--white);
-      color: var(--white);
-    }
-
-    .plan.featured .btn-ghost:hover {
-      background: var(--white);
-      color: var(--ink);
-    }
+    .plan.featured .btn-ghost { border-color: var(--white); color: var(--white); }
+    .plan.featured .btn-ghost:hover { background: var(--white); color: var(--ink); }
 
     /* ─── FOOTER ─── */
-    footer {
-      background: var(--ink);
-      color: var(--white);
-      padding: 40px var(--cx);
+    footer { background: var(--ink); color: var(--white); }
+
+    footer .inner {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 16px;
+      padding-top: 40px;
+      padding-bottom: 40px;
     }
 
-    .footer-logo {
-      font-family: var(--serif);
-      font-size: 18px;
-      font-weight: 700;
-    }
+    .footer-logo { font-family: var(--serif); font-size: 18px; font-weight: 700; }
 
-    .footer-meta {
-      font-size: 12px;
-      color: rgba(255,255,255,.4);
-      letter-spacing: .3px;
-    }
-
-    .footer-meta a {
-      color: rgba(255,255,255,.4);
-      transition: color .15s;
-    }
-
+    .footer-meta { font-size: 12px; color: rgba(255,255,255,.4); letter-spacing: .3px; }
+    .footer-meta a { color: rgba(255,255,255,.4); transition: color .15s; }
     .footer-meta a:hover { color: rgba(255,255,255,.8); }
 
     /* ─── AUTH MODAL ─── */
@@ -483,6 +414,7 @@
       align-items: center;
       justify-content: center;
       backdrop-filter: blur(4px);
+      padding: 20px;
     }
 
     .overlay.active { display: flex; }
@@ -550,46 +482,24 @@
 
     .form-group input:focus { border-color: var(--ink); }
 
-    .form-submit {
-      width: 100%;
-      padding: 13px;
-      font-size: 14px;
-      margin-top: 4px;
-      border-radius: 0;
-    }
+    .form-submit { width: 100%; padding: 13px; font-size: 14px; margin-top: 4px; border-radius: 0; }
 
-    .form-switch {
-      text-align: center;
-      margin-top: 18px;
-      font-size: 13px;
-      color: var(--mid);
-    }
-
+    .form-switch { text-align: center; margin-top: 18px; font-size: 13px; color: var(--mid); }
     .form-switch a { text-decoration: underline; color: var(--ink); }
 
     .form-error {
-      font-size: 13px;
-      color: #b91c1c;
-      margin-bottom: 14px;
-      padding: 10px 14px;
-      background: #fef2f2;
-      border-left: 2px solid #b91c1c;
-      display: none;
+      font-size: 13px; color: #b91c1c; margin-bottom: 14px;
+      padding: 10px 14px; background: #fef2f2; border-left: 2px solid #b91c1c; display: none;
     }
 
     .form-success {
-      font-size: 13px;
-      color: #166534;
-      margin-bottom: 14px;
-      padding: 10px 14px;
-      background: #f0fdf4;
-      border-left: 2px solid #166534;
-      display: none;
+      font-size: 13px; color: #166534; margin-bottom: 14px;
+      padding: 10px 14px; background: #f0fdf4; border-left: 2px solid #166534; display: none;
     }
 
     /* ─── RESPONSIVE ─── */
     @media (max-width: 860px) {
-      .hero { grid-template-columns: 1fr; gap: 40px; padding-top: 56px; padding-bottom: 48px; }
+      .hero .inner { grid-template-columns: 1fr; gap: 40px; padding-top: 56px; padding-bottom: 48px; }
       .hero-right { display: none; }
       .steps { grid-template-columns: 1fr; }
       .step { border-right: none; border-bottom: 1px solid var(--ink); padding: 32px 0 !important; }
@@ -600,11 +510,11 @@
       .plan.featured { border-bottom: 1px solid rgba(255,255,255,.15); }
       .pricing-header { flex-direction: column; align-items: flex-start; gap: 12px; }
       .pricing-note { text-align: left; }
-      footer { flex-direction: column; align-items: flex-start; }
+      footer .inner { flex-direction: column; align-items: flex-start; }
     }
 
     @media (max-width: 520px) {
-      nav { padding: 16px var(--cx); }
+      .inner { padding-left: 20px; padding-right: 20px; }
       .nav-links > a:first-child { display: none; }
       .btn-lg { padding: 12px 22px; font-size: 13px; }
       .hero h1 { font-size: clamp(34px, 9vw, 42px); }
@@ -615,41 +525,45 @@
 
 <!-- NAV -->
 <nav>
-  <div class="logo">PratimZakon</div>
-  <div class="nav-links">
-    <a href="#pricing">Cijene</a>
-    <a href="#" class="btn btn-ghost" onclick="openModal('login')">Prijava</a>
-    <a href="#" class="btn btn-solid" onclick="openModal('register')">Registracija</a>
+  <div class="inner">
+    <div class="logo">PratimZakon</div>
+    <div class="nav-links">
+      <a href="#pricing">Cijene</a>
+      <a href="#" class="btn btn-ghost" onclick="openModal('login')">Prijava</a>
+      <a href="#" class="btn btn-solid" onclick="openModal('register')">Registracija</a>
+    </div>
   </div>
 </nav>
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-left reveal">
-    <h1>Zakon se<br>promijenio?<br><em>Saznajte na prvoj<br>jutarnjoj kavi.</em><br>Nema iznenađenja.</h1>
-    <p class="hero-desc">Definirajte ključne riječi i primajte email obavijest čim se pojavi relevantan propis, pravilnik ili uredba — svako jutro, na vrijeme.</p>
-    <div class="hero-actions">
-      <a href="#" class="btn btn-solid btn-lg" onclick="openModal('register')">Počnite besplatno</a>
-      <a href="#pricing" class="btn btn-ghost btn-lg">Pogledajte planove</a>
+  <div class="inner">
+    <div class="hero-left reveal">
+      <h1>Zakon se<br>promijenio?<br><em>Saznajte na prvoj<br>jutarnjoj kavi.</em><br>Nema iznenađenja.</h1>
+      <p class="hero-desc">Definirajte ključne riječi i primajte email obavijest čim se pojavi relevantan propis, pravilnik ili uredba — svako jutro, na vrijeme.</p>
+      <div class="hero-actions">
+        <a href="#" class="btn btn-solid btn-lg" onclick="openModal('register')">Počnite besplatno</a>
+        <a href="#pricing" class="btn btn-ghost btn-lg">Pogledajte planove</a>
+      </div>
     </div>
-  </div>
 
-  <div class="hero-right reveal" style="transition-delay:.15s">
-    <div class="hero-stat-block">
-      <div class="hero-stat-num">07:00</div>
-      <div class="hero-stat-label">Svaki radni dan.</div>
+    <div class="hero-right reveal" style="transition-delay:.15s">
+      <div class="hero-stat-block">
+        <div class="hero-stat-num">07:00</div>
+        <div class="hero-stat-label">Svaki radni dan.</div>
+      </div>
+      <div class="hero-stat-block">
+        <div class="hero-stat-num">∞</div>
+        <div class="hero-stat-label">Propisa godišnje koje ne trebate pratiti ručno</div>
+      </div>
+      <blockquote class="hero-quote">
+        "Rizik nije u zakonu koji se promijenio — nego u onom koji niste primijetili."
+      </blockquote>
     </div>
-    <div class="hero-stat-block">
-      <div class="hero-stat-num">∞</div>
-      <div class="hero-stat-label">Propisa godišnje koje ne trebate pratiti ručno</div>
-    </div>
-    <blockquote class="hero-quote">
-      "Rizik nije u zakonu koji se promijenio — nego u onom koji niste primijetili."
-    </blockquote>
   </div>
 </section>
 
-<!-- TICKER -->
+<!-- TICKER (full-width, bez .inner) -->
 <div class="ticker-wrap">
   <div class="ticker">
     <span>PratimZakon</span><span class="sep">·</span>
@@ -667,92 +581,98 @@
 
 <!-- HOW -->
 <section class="how">
-  <div class="section-label">Kako funkcionira</div>
-  <div class="steps">
+  <div class="inner">
+    <div class="section-label">Kako funkcionira</div>
+    <div class="steps">
 
-    <div class="step reveal">
-      <div class="step-index">01</div>
-      <h3>Registrirajte se</h3>
-      <p>Kreirajte besplatni račun u manje od minute. Nisu potrebne kreditne kartice.</p>
-    </div>
-
-    <div class="step reveal" style="transition-delay:.1s">
-      <div class="step-index">02</div>
-      <h3>Dodajte ključne riječi</h3>
-      <p>Unesite pojmove koji vas zanimaju.</p>
-      <div class="kw-pills">
-        <span class="kw-pill">PDV</span>
-        <span class="kw-pill">poljoprivreda</span>
-        <span class="kw-pill">priroda</span>
+      <div class="step reveal">
+        <div class="step-index">01</div>
+        <h3>Registrirajte se</h3>
+        <p>Kreirajte besplatni račun u manje od minute. Nisu potrebne kreditne kartice.</p>
       </div>
-    </div>
 
-    <div class="step reveal" style="transition-delay:.2s">
-      <div class="step-index">03</div>
-      <h3>Primajte obavijesti</h3>
-      <div class="step-sub">Fokusirano u novi poslovni dan</div>
-      <p>Svaki radni dan šaljemo vam email s novim pogocima.</p>
-    </div>
+      <div class="step reveal" style="transition-delay:.1s">
+        <div class="step-index">02</div>
+        <h3>Dodajte ključne riječi</h3>
+        <p>Unesite pojmove koji vas zanimaju.</p>
+        <div class="kw-pills">
+          <span class="kw-pill">PDV</span>
+          <span class="kw-pill">poljoprivreda</span>
+          <span class="kw-pill">priroda</span>
+        </div>
+      </div>
 
+      <div class="step reveal" style="transition-delay:.2s">
+        <div class="step-index">03</div>
+        <h3>Primajte obavijesti</h3>
+        <div class="step-sub">Fokusirano u novi poslovni dan</div>
+        <p>Svaki radni dan šaljemo vam email s novim pogocima.</p>
+      </div>
+
+    </div>
   </div>
 </section>
 
 <!-- PRICING -->
 <section class="pricing" id="pricing">
-  <div class="pricing-header reveal">
-    <div class="pricing-title">Odaberite<br>plan.</div>
-    <div class="pricing-note">Bez obaveza. Plaćanje na mjesečnoj bazi. Otkažite kad želite.</div>
-  </div>
-
-  <div class="plans reveal" style="transition-delay:.1s">
-
-    <div class="plan">
-      <div class="plan-name">Free</div>
-      <div class="plan-price">0</div>
-      <div class="plan-per">€ / mjesec</div>
-      <div class="plan-desc">Za početak, bez plaćanja.</div>
-      <ul class="plan-features">
-        <li>Do 3 ključne riječi</li>
-        <li>Email obavijest</li>
-      </ul>
-      <a href="#" class="btn btn-ghost" onclick="openModal('register')">Počnite besplatno</a>
+  <div class="inner">
+    <div class="pricing-header reveal">
+      <div class="pricing-title">Odaberite<br>plan.</div>
+      <div class="pricing-note">Bez obaveza. Plaćanje na mjesečnoj bazi. Otkažite kad želite.</div>
     </div>
 
-    <div class="plan featured">
-      <div class="plan-name">Basic</div>
-      <div class="plan-price">4,99</div>
-      <div class="plan-per">€ / mjesec</div>
-      <div class="plan-desc">Za profesionalce i tvrtke.</div>
-      <ul class="plan-features">
-        <li>Do 10 ključnih riječi</li>
-        <li>Email obavijest</li>
-      </ul>
-      <a href="#" class="btn btn-ghost" onclick="selectPlan('basic'); return false;">Odaberi Basic</a>
-    </div>
+    <div class="plans reveal" style="transition-delay:.1s">
 
-    <div class="plan">
-      <div class="plan-name">Plus</div>
-      <div class="plan-price">7,99</div>
-      <div class="plan-per">€ / mjesec</div>
-      <div class="plan-desc">Za agencije i veće timove.</div>
-      <ul class="plan-features">
-        <li>Do 20 ključnih riječi</li>
-        <li>Email obavijest</li>
-        <li>Pretraga arhive (od 2015.)</li>
-        <li>Statistike i analitika</li>
-      </ul>
-      <a href="#" class="btn btn-ghost" onclick="selectPlan('plus'); return false;">Odaberi Plus</a>
-    </div>
+      <div class="plan">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">0</div>
+        <div class="plan-per">€ / mjesec</div>
+        <div class="plan-desc">Za početak, bez plaćanja.</div>
+        <ul class="plan-features">
+          <li>Do 3 ključne riječi</li>
+          <li>Email obavijest</li>
+        </ul>
+        <a href="#" class="btn btn-ghost" onclick="openModal('register')">Počnite besplatno</a>
+      </div>
 
+      <div class="plan featured">
+        <div class="plan-name">Basic</div>
+        <div class="plan-price">4,99</div>
+        <div class="plan-per">€ / mjesec</div>
+        <div class="plan-desc">Za profesionalce i tvrtke.</div>
+        <ul class="plan-features">
+          <li>Do 10 ključnih riječi</li>
+          <li>Email obavijest</li>
+        </ul>
+        <a href="#" class="btn btn-ghost" onclick="selectPlan('basic'); return false;">Odaberi Basic</a>
+      </div>
+
+      <div class="plan">
+        <div class="plan-name">Plus</div>
+        <div class="plan-price">7,99</div>
+        <div class="plan-per">€ / mjesec</div>
+        <div class="plan-desc">Za agencije i veće timove.</div>
+        <ul class="plan-features">
+          <li>Do 20 ključnih riječi</li>
+          <li>Email obavijest</li>
+          <li>Pretraga arhive (od 2015.)</li>
+          <li>Statistike i analitika</li>
+        </ul>
+        <a href="#" class="btn btn-ghost" onclick="selectPlan('plus'); return false;">Odaberi Plus</a>
+      </div>
+
+    </div>
   </div>
 </section>
 
 <!-- FOOTER -->
 <footer>
-  <div class="footer-logo">PratimZakon</div>
-  <div class="footer-meta">
-    &copy; 2026 PratimZakon &nbsp;&middot;&nbsp;
-    <a href="mailto:info@pratimzakon.hr">info@pratimzakon.hr</a>
+  <div class="inner">
+    <div class="footer-logo">PratimZakon</div>
+    <div class="footer-meta">
+      &copy; 2026 PratimZakon &nbsp;&middot;&nbsp;
+      <a href="mailto:info@pratimzakon.hr">info@pratimzakon.hr</a>
+    </div>
   </div>
 </footer>
 
@@ -797,7 +717,6 @@
 <script>
   const API = "https://pratimzakon-api.onrender.com";
 
-  // Reveal on scroll
   const observer = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
   }, { threshold: .08 });
@@ -883,16 +802,12 @@
 
   async function selectPlan(plan) {
     const token = localStorage.getItem("token");
-    if (!token) {
-      openModal('register');
-      return;
-    }
+    if (!token) { openModal('register'); return; }
     const btn = document.querySelector(`[onclick="selectPlan('${plan}'); return false;"]`);
     if (btn) { btn.textContent = "Molimo pričekajte..."; btn.style.pointerEvents = "none"; }
     try {
       const res = await fetch(`${API}/stripe/checkout/${plan}`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${token}` }
+        method: "POST", headers: { Authorization: `Bearer ${token}` }
       });
       if (res.status === 401) { localStorage.removeItem("token"); openModal('register'); return; }
       const data = await res.json();
