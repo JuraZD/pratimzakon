@@ -300,19 +300,33 @@
     const okEl = document.getElementById("planSuccess");
     errEl.style.display = "none"; okEl.style.display = "none";
 
-    const res = await authFetch(`/auth/request-plan?plan=${plan}`, { method: "POST" });
-    if (!res) return;
+    const btnBasic = document.getElementById("btnBasic");
+    const btnPlus = document.getElementById("btnPlus");
+    btnBasic.disabled = true;
+    btnPlus.disabled = true;
 
     const planLabels = { basic: "Basic (€4,99/mj)", plus: "Plus (€7,99/mj)" };
-    if (res.ok) {
-      okEl.textContent = `Zahtjev za plan ${planLabels[plan]} primljen — aktivacija stiže mailom u roku 24h.`;
-      okEl.style.display = "block";
-      document.getElementById("btnBasic").disabled = true;
-      document.getElementById("btnPlus").disabled = true;
-    } else {
-      const data = await res.json();
-      errEl.textContent = data.detail || "Greška pri slanju zahtjeva.";
+
+    try {
+      const res = await authFetch(`/auth/request-plan?plan=${plan}`, { method: "POST" });
+      if (!res) { btnBasic.disabled = false; btnPlus.disabled = false; return; }
+
+      if (res.ok) {
+        okEl.textContent = `Zahtjev za plan ${planLabels[plan]} primljen — aktivacija stiže mailom u roku 24h.`;
+        okEl.style.display = "block";
+      } else {
+        let msg = "Greška pri slanju zahtjeva.";
+        try { const d = await res.json(); msg = d.detail || msg; } catch (_) {}
+        errEl.textContent = msg;
+        errEl.style.display = "block";
+        btnBasic.disabled = false;
+        btnPlus.disabled = false;
+      }
+    } catch (e) {
+      errEl.textContent = "Greška pri slanju zahtjeva.";
       errEl.style.display = "block";
+      btnBasic.disabled = false;
+      btnPlus.disabled = false;
     }
   }
 
