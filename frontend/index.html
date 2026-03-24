@@ -33,6 +33,14 @@
 
     a { color: inherit; text-decoration: none; }
 
+    /* ─── INNER CONTAINER ─── */
+    .inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding-left: 40px;
+      padding-right: 40px;
+    }
+
     /* ─── FADE IN ─── */
     .reveal {
       opacity: 0;
@@ -43,15 +51,19 @@
 
     /* ─── NAV ─── */
     nav {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 22px 6%;
       border-bottom: 1px solid var(--ink);
       position: sticky;
       top: 0;
       background: var(--white);
       z-index: 50;
+    }
+
+    nav .inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 22px;
+      padding-bottom: 22px;
     }
 
     .logo {
@@ -89,37 +101,24 @@
       transition: background .18s, color .18s;
     }
 
-    .btn-ghost {
-      background: transparent;
-      color: var(--ink);
-    }
+    .btn-ghost { background: transparent; color: var(--ink); }
     .btn-ghost:hover { background: var(--ink); color: var(--white); }
 
-    .btn-solid {
-      background: var(--ink);
-      color: var(--white);
-    }
+    .btn-solid { background: var(--ink); color: var(--white); }
     .btn-solid:hover { background: #2a2a2a; }
 
     /* ─── HERO ─── */
     .hero {
-      padding: 80px 6% 72px;
       border-bottom: 1px solid var(--ink);
+    }
+
+    .hero .inner {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 64px;
       align-items: end;
-    }
-
-    .hero-left {}
-
-    .hero-eyebrow {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 2.5px;
-      text-transform: uppercase;
-      color: var(--mid);
-      margin-bottom: 20px;
+      padding-top: 80px;
+      padding-bottom: 72px;
     }
 
     .hero h1 {
@@ -131,10 +130,7 @@
       margin-bottom: 28px;
     }
 
-    .hero h1 em {
-      font-style: italic;
-      font-weight: 400;
-    }
+    .hero h1 em { font-style: italic; font-weight: 400; }
 
     .hero-desc {
       font-size: 16px;
@@ -144,17 +140,11 @@
       margin-bottom: 36px;
     }
 
-    .hero-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+    .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
     .btn-lg { padding: 14px 32px; font-size: 14px; }
 
-    .hero-right {
-      padding-bottom: 8px;
-    }
+    .hero-right { padding-bottom: 8px; }
 
     .hero-stat-block {
       border-top: 1px solid var(--ink);
@@ -170,11 +160,7 @@
       margin-bottom: 6px;
     }
 
-    .hero-stat-label {
-      font-size: 13px;
-      color: var(--mid);
-      letter-spacing: .3px;
-    }
+    .hero-stat-label { font-size: 13px; color: var(--mid); letter-spacing: .3px; }
 
     .hero-quote {
       font-family: var(--serif);
@@ -186,7 +172,7 @@
       padding-left: 20px;
     }
 
-    /* ─── TICKER ─── */
+    /* ─── TICKER (ostaje full-width) ─── */
     .ticker-wrap {
       overflow: hidden;
       background: var(--ink);
@@ -219,9 +205,13 @@
 
     /* ─── HOW ─── */
     .how {
-      padding: 96px 6%;
       background: var(--paper);
       border-bottom: 1px solid var(--ink);
+    }
+
+    .how .inner {
+      padding-top: 96px;
+      padding-bottom: 96px;
     }
 
     .section-label {
@@ -251,21 +241,12 @@
     }
 
     .step {
-      padding: 40px 40px 40px 0;
+      padding: 40px 48px 40px 0;
       border-right: 1px solid var(--ink);
-      padding-right: 48px;
     }
 
-    .step:last-child {
-      border-right: none;
-      padding-left: 48px;
-      padding-right: 0;
-    }
-
-    .step:nth-child(2) {
-      padding-left: 48px;
-      padding-right: 48px;
-    }
+    .step:last-child { border-right: none; padding-left: 48px; padding-right: 0; }
+    .step:nth-child(2) { padding-left: 48px; padding-right: 48px; }
 
     .step-index {
       font-family: var(--serif);
@@ -294,18 +275,9 @@
       margin-bottom: 12px;
     }
 
-    .step p {
-      font-size: 14px;
-      color: var(--mid);
-      line-height: 1.75;
-    }
+    .step p { font-size: 14px; color: var(--mid); line-height: 1.75; }
 
-    .kw-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 14px;
-    }
+    .kw-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
 
     .kw-pill {
       font-size: 12px;
@@ -316,9 +288,11 @@
     }
 
     /* ─── PRICING ─── */
-    .pricing {
-      padding: 96px 6%;
-      border-bottom: 1px solid var(--ink);
+    .pricing { border-bottom: 1px solid var(--ink); }
+
+    .pricing .inner {
+      padding-top: 96px;
+      padding-bottom: 96px;
     }
 
     .pricing-header {
@@ -344,185 +318,90 @@
       line-height: 1.6;
     }
 
-    /* ─── PRICING TABLE ─── */
-    .pricing-table-wrap {
-      background: var(--ink);
-      color: var(--white);
-      overflow-x: auto;
-    }
-
-    .pricing-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-
-    .pricing-table thead tr {
-      border-bottom: 1px solid rgba(255,255,255,.15);
-    }
-
-    .pricing-table th {
-      padding: 20px 28px;
-      text-align: left;
-      font-weight: 600;
-      font-family: var(--sans);
-    }
-
-    .pricing-table th:first-child {
-      font-size: 11px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      opacity: .45;
-      font-weight: 600;
-    }
-
-    .pricing-table th.col-plan {
-      text-align: center;
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: -.2px;
-    }
-
-    .pricing-table th.col-plan span {
-      display: block;
-      font-size: 12px;
-      font-weight: 400;
-      opacity: .5;
-      letter-spacing: .3px;
-      margin-top: 3px;
-    }
-
-    .pricing-table th.col-expert {
-      background: rgba(255,255,255,.06);
-    }
-
-    .pricing-table tbody tr {
-      border-bottom: 1px solid rgba(255,255,255,.08);
-    }
-
-    .pricing-table tbody tr:last-child {
-      border-bottom: none;
-    }
-
-    .pricing-table tbody tr:hover {
-      background: rgba(255,255,255,.03);
-    }
-
-    .pricing-table td {
-      padding: 14px 28px;
-      vertical-align: middle;
-    }
-
-    .pricing-table td:first-child {
-      font-size: 13px;
-      opacity: .75;
-      font-weight: 400;
-    }
-
-    .pricing-table td.cell-val {
-      text-align: center;
-      font-size: 14px;
-      font-weight: 500;
-    }
-
-    .pricing-table td.col-expert {
-      background: rgba(255,255,255,.04);
-    }
-
-    .val-check {
-      color: #ffffff;
-      font-size: 16px;
-    }
-
-    .val-x {
-      color: rgba(255,255,255,.25);
-      font-size: 15px;
-    }
-
-    .val-text {
-      color: #ffffff;
-      font-weight: 600;
-      font-size: 13px;
-    }
-
-    /* ─── PRICING CTA ROW ─── */
-    .pricing-cta {
+    .plans {
       display: grid;
-      grid-template-columns: 1fr repeat(3, 1fr);
-      border-top: 1px solid rgba(255,255,255,.15);
-      background: var(--ink);
+      grid-template-columns: repeat(3, 1fr);
+      border: 1px solid var(--ink);
     }
 
-    .pricing-cta-empty { padding: 24px 28px; }
-
-    .pricing-cta-cell {
-      padding: 24px 28px;
-      text-align: center;
-      border-left: 1px solid rgba(255,255,255,.08);
+    .plan {
+      padding: 36px 32px;
+      border-right: 1px solid var(--ink);
+      display: flex;
+      flex-direction: column;
     }
 
-    .pricing-cta-cell.col-expert {
-      background: rgba(255,255,255,.04);
-    }
+    .plan:last-child { border-right: none; }
+    .plan.featured { background: var(--ink); color: var(--white); }
 
-    .pricing-cta-cell .btn {
-      display: inline-block;
-      font-size: 12px;
+    .plan-name {
+      font-size: 11px;
       font-weight: 600;
-      letter-spacing: .5px;
-      padding: 10px 20px;
-      border: 1px solid rgba(255,255,255,.4);
-      color: var(--white);
-      background: transparent;
-      cursor: pointer;
-      transition: background .18s, border-color .18s;
-      white-space: nowrap;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      opacity: .5;
+      margin-bottom: 20px;
     }
 
-    .pricing-cta-cell .btn:hover {
-      background: rgba(255,255,255,.1);
-      border-color: rgba(255,255,255,.7);
+    .plan-price {
+      font-family: var(--serif);
+      font-size: 48px;
+      font-weight: 700;
+      line-height: 1;
+      letter-spacing: -1px;
+      margin-bottom: 4px;
     }
 
-    .pricing-cta-cell .btn.btn-cta-primary {
-      background: var(--white);
-      color: var(--ink);
-      border-color: var(--white);
+    .plan-per { font-size: 13px; opacity: .5; margin-bottom: 20px; }
+
+    .plan-desc { font-size: 13px; opacity: .55; margin-bottom: 28px; line-height: 1.6; }
+
+    .plan-features { list-style: none; margin-bottom: 32px; flex: 1; }
+
+    .plan-features li {
+      font-size: 13px;
+      padding: 9px 0;
+      border-bottom: 1px solid;
+      border-color: var(--rule);
+      display: flex;
+      align-items: center;
+      gap: 10px;
     }
 
-    .pricing-cta-cell .btn.btn-cta-primary:hover {
-      background: rgba(255,255,255,.85);
+    .plan.featured .plan-features li { border-color: rgba(255,255,255,.12); }
+
+    .plan-features li::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+      flex-shrink: 0;
+      opacity: .4;
     }
+
+    .plan .btn { width: 100%; text-align: center; display: block; }
+
+    .plan.featured .btn-ghost { border-color: var(--white); color: var(--white); }
+    .plan.featured .btn-ghost:hover { background: var(--white); color: var(--ink); }
 
     /* ─── FOOTER ─── */
-    footer {
-      background: var(--ink);
-      color: var(--white);
-      padding: 40px 6%;
+    footer { background: var(--ink); color: var(--white); }
+
+    footer .inner {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 16px;
+      padding-top: 40px;
+      padding-bottom: 40px;
     }
 
-    .footer-logo {
-      font-family: var(--serif);
-      font-size: 18px;
-      font-weight: 700;
-    }
+    .footer-logo { font-family: var(--serif); font-size: 18px; font-weight: 700; }
 
-    .footer-meta {
-      font-size: 12px;
-      color: rgba(255,255,255,.4);
-      letter-spacing: .3px;
-    }
-
-    .footer-meta a {
-      color: rgba(255,255,255,.4);
-      transition: color .15s;
-    }
-
+    .footer-meta { font-size: 12px; color: rgba(255,255,255,.4); letter-spacing: .3px; }
+    .footer-meta a { color: rgba(255,255,255,.4); transition: color .15s; }
     .footer-meta a:hover { color: rgba(255,255,255,.8); }
 
     /* ─── AUTH MODAL ─── */
@@ -535,6 +414,7 @@
       align-items: center;
       justify-content: center;
       backdrop-filter: blur(4px);
+      padding: 20px;
     }
 
     .overlay.active { display: flex; }
@@ -602,57 +482,42 @@
 
     .form-group input:focus { border-color: var(--ink); }
 
-    .form-submit {
-      width: 100%;
-      padding: 13px;
-      font-size: 14px;
-      margin-top: 4px;
-      border-radius: 0;
-    }
+    .form-submit { width: 100%; padding: 13px; font-size: 14px; margin-top: 4px; border-radius: 0; }
 
-    .form-switch {
-      text-align: center;
-      margin-top: 18px;
-      font-size: 13px;
-      color: var(--mid);
-    }
-
+    .form-switch { text-align: center; margin-top: 18px; font-size: 13px; color: var(--mid); }
     .form-switch a { text-decoration: underline; color: var(--ink); }
 
     .form-error {
-      font-size: 13px;
-      color: #b91c1c;
-      margin-bottom: 14px;
-      padding: 10px 14px;
-      background: #fef2f2;
-      border-left: 2px solid #b91c1c;
-      display: none;
+      font-size: 13px; color: #b91c1c; margin-bottom: 14px;
+      padding: 10px 14px; background: #fef2f2; border-left: 2px solid #b91c1c; display: none;
     }
 
     .form-success {
-      font-size: 13px;
-      color: #166534;
-      margin-bottom: 14px;
-      padding: 10px 14px;
-      background: #f0fdf4;
-      border-left: 2px solid #166534;
-      display: none;
+      font-size: 13px; color: #166534; margin-bottom: 14px;
+      padding: 10px 14px; background: #f0fdf4; border-left: 2px solid #166534; display: none;
     }
 
     /* ─── RESPONSIVE ─── */
     @media (max-width: 860px) {
-      .hero { grid-template-columns: 1fr; gap: 40px; }
+      .hero .inner { grid-template-columns: 1fr; gap: 40px; padding-top: 56px; padding-bottom: 48px; }
       .hero-right { display: none; }
       .steps { grid-template-columns: 1fr; }
       .step { border-right: none; border-bottom: 1px solid var(--ink); padding: 32px 0 !important; }
       .step:last-child { border-bottom: none; }
+      .plans { grid-template-columns: 1fr; }
+      .plan { border-right: none; border-bottom: 1px solid var(--ink); }
+      .plan:last-child { border-bottom: none; }
+      .plan.featured { border-bottom: 1px solid rgba(255,255,255,.15); }
       .pricing-header { flex-direction: column; align-items: flex-start; gap: 12px; }
       .pricing-note { text-align: left; }
-      .pricing-table th, .pricing-table td { padding: 12px 16px; }
-      .pricing-cta { grid-template-columns: 1fr 1fr 1fr; }
-      .pricing-cta-empty { display: none; }
-      .pricing-cta-cell { border-left: none; border-top: 1px solid rgba(255,255,255,.08); }
-      footer { flex-direction: column; align-items: flex-start; }
+      footer .inner { flex-direction: column; align-items: flex-start; }
+    }
+
+    @media (max-width: 520px) {
+      .inner { padding-left: 20px; padding-right: 20px; }
+      .nav-links > a:first-child { display: none; }
+      .btn-lg { padding: 12px 22px; font-size: 13px; }
+      .hero h1 { font-size: clamp(34px, 9vw, 42px); }
     }
   </style>
 </head>
@@ -660,41 +525,45 @@
 
 <!-- NAV -->
 <nav>
-  <div class="logo">PratimZakon</div>
-  <div class="nav-links">
-    <a href="#pricing">Cijene</a>
-    <a href="#" class="btn btn-ghost" onclick="openModal('login')">Prijava</a>
-    <a href="#" class="btn btn-solid" onclick="openModal('register')">Registracija</a>
+  <div class="inner">
+    <div class="logo">PratimZakon</div>
+    <div class="nav-links">
+      <a href="#pricing">Cijene</a>
+      <a href="#" class="btn btn-ghost" onclick="openModal('login')">Prijava</a>
+      <a href="#" class="btn btn-solid" onclick="openModal('register')">Registracija</a>
+    </div>
   </div>
 </nav>
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-left reveal">
-    <h1>Zakon se<br>promijenio?<br><em>Saznajte na prvoj<br>jutarnjoj kavi.</em><br>Nema iznenađenja.</h1>
-    <p class="hero-desc">Definirajte ključne riječi i primajte email obavijest čim se pojavi relevantan propis, pravilnik ili uredba — svako jutro, na vrijeme.</p>
-    <div class="hero-actions">
-      <a href="#" class="btn btn-solid btn-lg" onclick="openModal('register')">Počnite besplatno</a>
-      <a href="#pricing" class="btn btn-ghost btn-lg">Pogledajte planove</a>
+  <div class="inner">
+    <div class="hero-left reveal">
+      <h1>Zakon se<br>promijenio?<br><em>Saznajte na prvoj<br>jutarnjoj kavi.</em><br>Nema iznenađenja.</h1>
+      <p class="hero-desc">Definirajte ključne riječi i primajte email obavijest čim se pojavi relevantan propis, pravilnik ili uredba — svako jutro, na vrijeme.</p>
+      <div class="hero-actions">
+        <a href="#" class="btn btn-solid btn-lg" onclick="openModal('register')">Počnite besplatno</a>
+        <a href="#pricing" class="btn btn-ghost btn-lg">Pogledajte planove</a>
+      </div>
     </div>
-  </div>
 
-  <div class="hero-right reveal" style="transition-delay:.15s">
-    <div class="hero-stat-block">
-      <div class="hero-stat-num">07:00</div>
-      <div class="hero-stat-label">Svaki radni dan.</div>
+    <div class="hero-right reveal" style="transition-delay:.15s">
+      <div class="hero-stat-block">
+        <div class="hero-stat-num">07:00</div>
+        <div class="hero-stat-label">Svaki radni dan.</div>
+      </div>
+      <div class="hero-stat-block">
+        <div class="hero-stat-num">∞</div>
+        <div class="hero-stat-label">Propisa godišnje koje ne trebate pratiti ručno</div>
+      </div>
+      <blockquote class="hero-quote">
+        "Rizik nije u zakonu koji se promijenio — nego u onom koji niste primijetili."
+      </blockquote>
     </div>
-    <div class="hero-stat-block">
-      <div class="hero-stat-num">∞</div>
-      <div class="hero-stat-label">Propisa godišnje koje ne trebate pratiti ručno</div>
-    </div>
-    <blockquote class="hero-quote">
-      "Rizik nije u zakonu koji se promijenio — nego u onom koji niste primijetili."
-    </blockquote>
   </div>
 </section>
 
-<!-- TICKER -->
+<!-- TICKER (full-width, bez .inner) -->
 <div class="ticker-wrap">
   <div class="ticker">
     <span>PratimZakon</span><span class="sep">·</span>
@@ -712,128 +581,98 @@
 
 <!-- HOW -->
 <section class="how">
-  <div class="section-label">Kako funkcionira</div>
-  <div class="steps">
+  <div class="inner">
+    <div class="section-label">Kako funkcionira</div>
+    <div class="steps">
 
-    <div class="step reveal">
-      <div class="step-index">01</div>
-      <h3>Registrirajte se</h3>
-      <p>Kreirajte besplatni račun u manje od minute. Nisu potrebne kreditne kartice.</p>
-    </div>
-
-    <div class="step reveal" style="transition-delay:.1s">
-      <div class="step-index">02</div>
-      <h3>Dodajte ključne riječi</h3>
-      <p>Unesite pojmove koji vas zanimaju.</p>
-      <div class="kw-pills">
-        <span class="kw-pill">PDV</span>
-        <span class="kw-pill">poljoprivreda</span>
-        <span class="kw-pill">priroda</span>
+      <div class="step reveal">
+        <div class="step-index">01</div>
+        <h3>Registrirajte se</h3>
+        <p>Kreirajte besplatni račun u manje od minute. Nisu potrebne kreditne kartice.</p>
       </div>
-    </div>
 
-    <div class="step reveal" style="transition-delay:.2s">
-      <div class="step-index">03</div>
-      <h3>Primajte obavijesti</h3>
-      <div class="step-sub">Fokusirano u novi poslovni dan</div>
-      <p>Svaki radni dan šaljemo vam email s novim pogocima.</p>
-    </div>
+      <div class="step reveal" style="transition-delay:.1s">
+        <div class="step-index">02</div>
+        <h3>Dodajte ključne riječi</h3>
+        <p>Unesite pojmove koji vas zanimaju.</p>
+        <div class="kw-pills">
+          <span class="kw-pill">PDV</span>
+          <span class="kw-pill">poljoprivreda</span>
+          <span class="kw-pill">priroda</span>
+        </div>
+      </div>
 
+      <div class="step reveal" style="transition-delay:.2s">
+        <div class="step-index">03</div>
+        <h3>Primajte obavijesti</h3>
+        <div class="step-sub">Fokusirano u novi poslovni dan</div>
+        <p>Svaki radni dan šaljemo vam email s novim pogocima.</p>
+      </div>
+
+    </div>
   </div>
 </section>
 
 <!-- PRICING -->
 <section class="pricing" id="pricing">
-  <div class="pricing-header reveal">
-    <div class="pricing-title">Odaberite<br>plan.</div>
-    <div class="pricing-note">Bez obaveza. Plaćanje na mjesečnoj bazi. Otkažite kad želite.</div>
-  </div>
+  <div class="inner">
+    <div class="pricing-header reveal">
+      <div class="pricing-title">Odaberite<br>plan.</div>
+      <div class="pricing-note">Bez obaveza. Plaćanje na mjesečnoj bazi. Otkažite kad želite.</div>
+    </div>
 
-  <div class="reveal" style="transition-delay:.1s">
-    <div class="pricing-table-wrap">
-      <table class="pricing-table">
-        <thead>
-          <tr>
-            <th>Značajka</th>
-            <th class="col-plan">Free<span>€0 / mj.</span></th>
-            <th class="col-plan">Pro<span>€4,99 / mj.</span></th>
-            <th class="col-plan col-expert">Expert<span>€7,99 / mj.</span></th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>Ključne riječi</td>
-            <td class="cell-val"><span class="val-text">3</span></td>
-            <td class="cell-val"><span class="val-text">15</span></td>
-            <td class="cell-val col-expert"><span class="val-text">neograničeno</span></td>
-          </tr>
-          <tr>
-            <td>PDF link u emailu</td>
-            <td class="cell-val"><span class="val-x">✕</span></td>
-            <td class="cell-val"><span class="val-check">✓</span></td>
-            <td class="cell-val col-expert"><span class="val-check">✓</span></td>
-          </tr>
-          <tr>
-            <td>Filter po tipu dokumenta</td>
-            <td class="cell-val"><span class="val-x">✕</span></td>
-            <td class="cell-val"><span class="val-check">✓</span></td>
-            <td class="cell-val col-expert"><span class="val-check">✓</span></td>
-          </tr>
-          <tr>
-            <td>MU (međ. ugovori)</td>
-            <td class="cell-val"><span class="val-x">✕</span></td>
-            <td class="cell-val"><span class="val-check">✓</span></td>
-            <td class="cell-val col-expert"><span class="val-check">✓</span></td>
-          </tr>
-          <tr>
-            <td>Filter po instituciji</td>
-            <td class="cell-val"><span class="val-x">✕</span></td>
-            <td class="cell-val"><span class="val-x">✕</span></td>
-            <td class="cell-val col-expert"><span class="val-check">✓</span></td>
-          </tr>
-          <tr>
-            <td>Filter po pravnom području</td>
-            <td class="cell-val"><span class="val-x">✕</span></td>
-            <td class="cell-val"><span class="val-x">✕</span></td>
-            <td class="cell-val col-expert"><span class="val-check">✓</span></td>
-          </tr>
-          <tr>
-            <td>Povijesna pretraga</td>
-            <td class="cell-val"><span class="val-x">✕</span></td>
-            <td class="cell-val"><span class="val-x">✕</span></td>
-            <td class="cell-val col-expert"><span class="val-check">✓</span></td>
-          </tr>
-          <tr>
-            <td>Dashboard / statistike</td>
-            <td class="cell-val"><span class="val-x">✕</span></td>
-            <td class="cell-val"><span class="val-check">✓</span></td>
-            <td class="cell-val col-expert"><span class="val-check">✓</span></td>
-          </tr>
-        </tbody>
-      </table>
+    <div class="plans reveal" style="transition-delay:.1s">
 
-      <div class="pricing-cta">
-        <div class="pricing-cta-empty"></div>
-        <div class="pricing-cta-cell">
-          <a href="#" class="btn" onclick="openModal('register', 'free')">Počnite besplatno</a>
-        </div>
-        <div class="pricing-cta-cell">
-          <a href="#" class="btn btn-cta-primary" onclick="openModal('register', 'pro')">Odaberi Pro</a>
-        </div>
-        <div class="pricing-cta-cell col-expert">
-          <a href="#" class="btn" onclick="openModal('register', 'expert')">Odaberi Expert</a>
-        </div>
+      <div class="plan">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">0</div>
+        <div class="plan-per">€ / mjesec</div>
+        <div class="plan-desc">Za početak, bez plaćanja.</div>
+        <ul class="plan-features">
+          <li>Do 3 ključne riječi</li>
+          <li>Email obavijest</li>
+        </ul>
+        <a href="#" class="btn btn-ghost" onclick="openModal('register')">Počnite besplatno</a>
       </div>
+
+      <div class="plan featured">
+        <div class="plan-name">Basic</div>
+        <div class="plan-price">4,99</div>
+        <div class="plan-per">€ / mjesec</div>
+        <div class="plan-desc">Za profesionalce i tvrtke.</div>
+        <ul class="plan-features">
+          <li>Do 10 ključnih riječi</li>
+          <li>Email obavijest</li>
+        </ul>
+        <a href="#" class="btn btn-ghost" onclick="selectPlan('basic'); return false;">Odaberi Basic</a>
+      </div>
+
+      <div class="plan">
+        <div class="plan-name">Plus</div>
+        <div class="plan-price">7,99</div>
+        <div class="plan-per">€ / mjesec</div>
+        <div class="plan-desc">Za agencije i veće timove.</div>
+        <ul class="plan-features">
+          <li>Do 20 ključnih riječi</li>
+          <li>Email obavijest</li>
+          <li>Pretraga arhive (od 2015.)</li>
+          <li>Statistike i analitika</li>
+        </ul>
+        <a href="#" class="btn btn-ghost" onclick="selectPlan('plus'); return false;">Odaberi Plus</a>
+      </div>
+
     </div>
   </div>
 </section>
 
 <!-- FOOTER -->
 <footer>
-  <div class="footer-logo">PratimZakon</div>
-  <div class="footer-meta">
-    &copy; 2026 PratimZakon &nbsp;&middot;&nbsp;
-    <a href="mailto:info@pratimzakon.hr">info@pratimzakon.hr</a>
+  <div class="inner">
+    <div class="footer-logo">PratimZakon</div>
+    <div class="footer-meta">
+      &copy; 2026 PratimZakon &nbsp;&middot;&nbsp;
+      <a href="mailto:info@pratimzakon.hr">info@pratimzakon.hr</a>
+    </div>
   </div>
 </footer>
 
@@ -844,7 +683,6 @@
 
     <div id="registerForm">
       <h2>Kreirajte račun</h2>
-      <div id="planBanner" style="display:none;margin-bottom:16px;padding:12px 16px;border-radius:8px;background:#f0f7ff;border:1px solid #b3d4f5;font-size:0.95rem;color:#1a4a7a;"></div>
       <div class="form-error" id="regError"></div>
       <div class="form-success" id="regSuccess"></div>
       <div class="form-group">
@@ -877,27 +715,20 @@
 </div>
 
 <script>
-  const API = "https://pratimzakon-api.onrender.com";
+  const API = "https://pratimzakon.onrender.com";
 
-  // Reveal on scroll
   const observer = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
   }, { threshold: .08 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-  const PLAN_LABELS = { pro: "Pro (€4,99/mj)", expert: "Expert (€7,99/mj)" };
-  let selectedPlan = null;
-
-  function openModal(type, plan) {
-    selectedPlan = plan || null;
+  function openModal(type) {
     document.getElementById("authOverlay").classList.add("active");
     type === "login" ? showLogin() : showRegister();
   }
   function closeModal(e) {
-    if (!e || e.target === document.getElementById("authOverlay")) {
+    if (!e || e.target === document.getElementById("authOverlay"))
       document.getElementById("authOverlay").classList.remove("active");
-      selectedPlan = null;
-    }
   }
   function showLogin() {
     document.getElementById("registerForm").style.display = "none";
@@ -906,13 +737,6 @@
   function showRegister() {
     document.getElementById("loginForm").style.display = "none";
     document.getElementById("registerForm").style.display = "block";
-    const banner = document.getElementById("planBanner");
-    if (selectedPlan && PLAN_LABELS[selectedPlan]) {
-      banner.innerHTML = `Odabrali ste plan <strong>${PLAN_LABELS[selectedPlan]}</strong>.<br>Nakon registracije kontaktirajte nas na <a href="mailto:info@pratimzakon.hr">info@pratimzakon.hr</a> ili pričekajte naš email za aktivaciju.`;
-      banner.style.display = "block";
-    } else {
-      banner.style.display = "none";
-    }
   }
 
   async function register() {
@@ -928,21 +752,14 @@
     }
     btn.disabled = true; btn.textContent = "Molimo pričekajte...";
     try {
-      const body = { email, password };
-      if (selectedPlan && selectedPlan !== "free") body.selected_plan = selectedPlan;
       const res = await fetch(`${API}/auth/register`, {
         method: "POST", headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(body)
+        body: JSON.stringify({ email, password })
       });
       const data = await res.json();
       if (res.ok) {
-        if (selectedPlan && PLAN_LABELS[selectedPlan]) {
-          okEl.innerHTML = `Registracija uspješna! Odabrali ste plan <strong>${PLAN_LABELS[selectedPlan]}</strong> — aktivacija stiže mailom. Možete nas kontaktirati na <a href="mailto:info@pratimzakon.hr">info@pratimzakon.hr</a>.`;
-        } else {
-          okEl.textContent = "Registracija uspješna! Provjerite email za potvrdu.";
-        }
+        okEl.textContent = "Registracija uspješna! Provjerite email za potvrdu.";
         okEl.style.display = "block";
-        document.getElementById("planBanner").style.display = "none";
       } else {
         errEl.textContent = data.detail || "Greška pri registraciji.";
         errEl.style.display = "block";
@@ -983,12 +800,26 @@
     }
   }
 
+  async function selectPlan(plan) {
+    const token = localStorage.getItem("token");
+    if (!token) { openModal('register'); return; }
+    const btn = document.querySelector(`[onclick="selectPlan('${plan}'); return false;"]`);
+    if (btn) { btn.textContent = "Molimo pričekajte..."; btn.style.pointerEvents = "none"; }
+    try {
+      const res = await fetch(`${API}/stripe/checkout/${plan}`, {
+        method: "POST", headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.status === 401) { localStorage.removeItem("token"); openModal('register'); return; }
+      const data = await res.json();
+      if (data.checkout_url) window.location.href = data.checkout_url;
+    } catch {
+      if (btn) { btn.textContent = plan === "basic" ? "Odaberi Basic" : "Odaberi Plus"; btn.style.pointerEvents = ""; }
+    }
+  }
+
   if (localStorage.getItem("token")) {
-    const navLinks = document.querySelector('.nav-links');
-    navLinks.innerHTML = `
-      <a href="dashboard.html" class="btn btn-ghost">Dashboard</a>
-      <a href="#" class="btn btn-solid" onclick="(function(){localStorage.removeItem('token');window.location.reload();})()">Odjava</a>
-    `;
+    const loginBtn = document.querySelector('[onclick="openModal(\'login\')"]');
+    if (loginBtn) { loginBtn.textContent = "Dashboard"; loginBtn.href = "dashboard.html"; loginBtn.removeAttribute("onclick"); }
   }
 </script>
 </body>

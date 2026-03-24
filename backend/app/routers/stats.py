@@ -40,10 +40,10 @@ def get_stats(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if getattr(current_user, "plan_type", "free") not in ("pro", "expert"):
+    if getattr(current_user, "plan_type", "free") != "plus":
         raise HTTPException(
             status_code=403,
-            detail="Statistike su dostupne korisnicima Pro i Expert paketa.",
+            detail="Statistike su dostupne samo korisnicima Plus paketa.",
         )
 
     total = db.query(func.count(Document.id)).scalar() or 0
