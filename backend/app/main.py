@@ -19,13 +19,17 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Pokreće se u threadu da ne blokira event loop — uvicorn odmah otvori port
+    # Pokrenemo migracije kao background task — yield odmah da Render detektira port
     import asyncio
-    try:
-        await asyncio.to_thread(lambda: Base.metadata.create_all(bind=engine))
-        await asyncio.to_thread(run_migrations)
-    except Exception as e:
-        logger.error(f"DB startup error (app still running): {e}")
+
+    async def _run_db_setup():
+        try:
+            await asyncio.to_thread(lambda: Base.metadata.create_all(bind=engine))
+            await asyncio.to_thread(run_migrations)
+        except Exception as e:
+            logger.error(f"DB startup error: {e}")
+
+    asyncio.create_task(_run_db_setup())
     yield
 
 
