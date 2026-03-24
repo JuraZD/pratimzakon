@@ -1,6 +1,7 @@
 import os
 import smtplib
 import secrets
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -52,34 +53,170 @@ Kontaktirajte korisnika za aktivaciju plana.
         pass
 
 
-def _send_verification_email(email: str, token: str):
-    link = f"{BASE_URL}/auth/verify-email?token={token}"
-    smtp_server = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-    smtp_port = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user = os.getenv("SMTP_USERNAME", "")
-    smtp_pass = os.getenv("SMTP_PASSWORD", "")
-    from_email = os.getenv("FROM_EMAIL", smtp_user)
-    from_name = os.getenv("FROM_NAME", "PratimZakon")
+def _smtp_cfg():
+    return {
+        "server": os.getenv("SMTP_SERVER", "smtp.gmail.com"),
+        "port": int(os.getenv("SMTP_PORT", "587")),
+        "user": os.getenv("SMTP_USERNAME", ""),
+        "password": os.getenv("SMTP_PASSWORD", ""),
+        "from_email": os.getenv("FROM_EMAIL", os.getenv("SMTP_USERNAME", "")),
+        "from_name": os.getenv("FROM_NAME", "PratimZakon"),
+    }
 
-    body = f"""Dobrodošli u PratimZakon!
 
-Potvrdite svoju email adresu klikom na link:
-{link}
-
-Ukoliko niste vi kreirali račun, ignorirajte ovaj email.
-"""
-    msg = MIMEText(body, "plain", "utf-8")
-    msg["Subject"] = "Potvrdite email – PratimZakon"
-    msg["From"] = f"{from_name} <{from_email}>"
-    msg["To"] = email
-
+def _send_multipart(to_email: str, subject: str, html: str, plain: str):
+    cfg = _smtp_cfg()
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"] = f"{cfg['from_name']} <{cfg['from_email']}>"
+    msg["To"] = to_email
+    msg.attach(MIMEText(plain, "plain", "utf-8"))
+    msg.attach(MIMEText(html, "html", "utf-8"))
     try:
-        with smtplib.SMTP(smtp_server, smtp_port) as s:
+        with smtplib.SMTP(cfg["server"], cfg["port"]) as s:
             s.starttls()
-            s.login(smtp_user, smtp_pass)
-            s.sendmail(from_email, [email], msg.as_string())
+            s.login(cfg["user"], cfg["password"])
+            s.sendmail(cfg["from_email"], [to_email], msg.as_string())
     except Exception:
-        pass  # Ne blokiraj registraciju ako email fail
+        pass
+
+
+def _send_verification_email(email: str, token: str):
+    dashboard_url = os.getenv("FRONTEND_URL", "https://jurazd.github.io/pratimzakon/dashboard.html")
+    unsubscribe_url = f"{BASE_URL}/auth/unsubscribe?token={token}"
+
+    plain = f"""Dobrodošli u PratimZakon!
+
+Hvala što ste se registrirali. Vaš besplatni račun je aktivan.
+
+Što dobivate:
+- Praćenje do 3 ključne riječi
+- Automatska obavijest svaki radni dan u 07:00
+- Pratimo nova objavljivanja u Narodnim novinama
+
+Otvorite dashboard: {dashboard_url}
+
+Ako ne želite primati obavijesti: {unsubscribe_url}
+
+S poštovanjem,
+Tim PratimZakon
+"""
+
+    html = f"""<!DOCTYPE html>
+<html lang="hr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="font-family:system-ui,-apple-system,sans-serif;background:#f3f4f6;margin:0;padding:32px 0;">
+  <div style="max-width:580px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.10);">
+
+    <div style="background:#2563eb;padding:28px 36px;">
+      <h1 style="color:#fff;margin:0;font-size:22px;font-weight:800;letter-spacing:-.3px;">PratimZakon</h1>
+      <p style="color:#bfdbfe;margin:6px 0 0;font-size:14px;">pratimo zakone umjesto vas</p>
+    </div>
+
+    <div style="padding:36px;">
+      <h2 style="margin:0 0 8px;font-size:20px;color:#111827;">Dobrodošli! 👋</h2>
+      <p style="color:#374151;font-size:15px;margin:0 0 24px;line-height:1.6;">
+        Hvala što ste se registrirali na <strong>PratimZakon</strong>.<br>
+        Vaš besplatni račun je aktivan — pratit ćemo Narodne novine
+        i javljati vam samo kada ima nešto relevantno za vaše ključne riječi.
+      </p>
+
+      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:20px;margin-bottom:28px;">
+        <p style="margin:0 0 12px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#1d4ed8;">Što dobivate uz besplatni plan</p>
+        <ul style="margin:0;padding:0 0 0 18px;color:#374151;font-size:14px;line-height:2;">
+          <li>Praćenje do <strong>3 ključne riječi</strong></li>
+          <li>Automatska obavijest svaki radni dan u <strong>07:00</strong></li>
+          <li>Javljamo se samo kada ima novih pronalazaka</li>
+        </ul>
+      </div>
+
+      <a href="{dashboard_url}"
+         style="display:inline-block;background:#2563eb;color:#fff;font-size:15px;font-weight:700;
+                padding:13px 28px;border-radius:7px;text-decoration:none;letter-spacing:-.1px;">
+        Otvori dashboard →
+      </a>
+
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0 20px;">
+      <p style="font-size:12px;color:#9ca3af;margin:0;line-height:1.6;">
+        Primili ste ovaj email jer ste se registrirali na PratimZakon.<br>
+        Ako ne želite primati obavijesti,
+        <a href="{unsubscribe_url}" style="color:#9ca3af;">odjavite se ovdje</a>.
+      </p>
+    </div>
+  </div>
+</body>
+</html>"""
+
+    _send_multipart(email, "Dobrodošli u PratimZakon!", html, plain)
+
+
+def _send_goodbye_email(email: str):
+    frontend_url = os.getenv("FRONTEND_URL", "https://jurazd.github.io/pratimzakon/index.html")
+
+    plain = f"""Odjava potvrđena – PratimZakon
+
+Poštovani {email},
+
+žao nam je što odlazite.
+
+Uspješno smo vas odjavili od svih email obavijesti. Više nećete primati
+obavijesti o novim objavama u Narodnim novinama.
+
+Vaš korisnički račun ostaje aktivan — možete se prijaviti i nastaviti
+pratiti zakone kada god poželite.
+
+Ako se ikada predomislite, jednostavno se prijavite na dashboard
+i obavijesti će opet krenuti:
+{frontend_url}
+
+S poštovanjem,
+Tim PratimZakon
+"""
+
+    html = f"""<!DOCTYPE html>
+<html lang="hr">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="font-family:system-ui,-apple-system,sans-serif;background:#f3f4f6;margin:0;padding:32px 0;">
+  <div style="max-width:580px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.10);">
+
+    <div style="background:#2563eb;padding:28px 36px;">
+      <h1 style="color:#fff;margin:0;font-size:22px;font-weight:800;letter-spacing:-.3px;">PratimZakon</h1>
+      <p style="color:#bfdbfe;margin:6px 0 0;font-size:14px;">pratimo zakone umjesto vas</p>
+    </div>
+
+    <div style="padding:36px;">
+      <h2 style="margin:0 0 8px;font-size:20px;color:#111827;">Žao nam je što odlazite</h2>
+      <p style="color:#374151;font-size:15px;margin:0 0 20px;line-height:1.6;">
+        Poštovani <strong>{email}</strong>,<br><br>
+        uspješno smo vas odjavili od svih email obavijesti.
+        Više nećete primati obavijesti o novim objavama u Narodnim novinama.
+      </p>
+
+      <div style="background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:18px;margin-bottom:28px;">
+        <p style="margin:0;font-size:14px;color:#713f12;line-height:1.6;">
+          💡 <strong>Vaš korisnički račun ostaje aktivan.</strong><br>
+          Možete se prijaviti i nastaviti pratiti zakone kada god poželite —
+          obavijesti ćete moći ponovo uključiti iz dashboarda.
+        </p>
+      </div>
+
+      <a href="{frontend_url}"
+         style="display:inline-block;background:#2563eb;color:#fff;font-size:15px;font-weight:700;
+                padding:13px 28px;border-radius:7px;text-decoration:none;">
+        Povratak na PratimZakon
+      </a>
+
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0 20px;">
+      <p style="font-size:12px;color:#9ca3af;margin:0;line-height:1.6;">
+        Ako ste se odjavili greškom, prijavite se na dashboard i ključne
+        riječi će nastaviti s praćenjem.
+      </p>
+    </div>
+  </div>
+</body>
+</html>"""
+
+    _send_multipart(email, "Odjava potvrđena – PratimZakon", html, plain)
 
 
 @router.post("/register", response_model=UserOut, status_code=status.HTTP_201_CREATED)
@@ -163,4 +300,5 @@ def unsubscribe(token: str, db: Session = Depends(get_db)):
     user.subscription_status = "inactive"
     db.add(Log(event_type="unsubscribe", user_id=user.id))
     db.commit()
+    _send_goodbye_email(user.email)
     return {"message": "Uspješno odjavljeni od email obavijesti."}

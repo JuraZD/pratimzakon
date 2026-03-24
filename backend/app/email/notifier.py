@@ -83,15 +83,25 @@ def _build_email(user, matches: List[Dict], show_pdf: bool = False) -> tuple[str
     """
     unsubscribe_url = f"{BASE_URL}/auth/unsubscribe?token={user.unsubscribe_token}"
 
-    plan_labels = {"pro": "Pro paket", "expert": "Expert paket"}
+    plan_labels = {
+        "free": "Besplatni plan",
+        "basic": "Basic plan",
+        "plus": "Plus plan",
+        "pro": "Pro plan",
+        "expert": "Expert plan",
+    }
+    plan_name = plan_labels.get(getattr(user, "plan_type", "free"), "Besplatni plan")
     if user.subscription_status == "active" and user.subscription_end:
-        plan_name = plan_labels.get(getattr(user, "plan_type", ""), "Aktivna pretplata")
         status_text = f"{plan_name} · aktivna do {user.subscription_end.strftime('%d.%m.%Y.')}"
     else:
-        status_text = "Besplatni paket"
+        status_text = plan_name
+
+    user_display = user.email
 
     # Plain text
     lines = [
+        f"Poštovani {user_display},",
+        "",
         "Novi pronalasci u Narodnim novinama",
         "=" * 40,
         "",
@@ -110,7 +120,7 @@ def _build_email(user, matches: List[Dict], show_pdf: bool = False) -> tuple[str
             lines.append(f"PDF: {m['document_pdf_url']}")
         lines.append("")
     lines += [
-        f"Status: {status_text}",
+        f"Pretplata: {status_text}",
         "",
         f"Odjava od obavijesti: {unsubscribe_url}",
         "",
@@ -164,20 +174,25 @@ def _build_email(user, matches: List[Dict], show_pdf: bool = False) -> tuple[str
 <html lang="hr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="font-family:system-ui,-apple-system,sans-serif;background:#f3f4f6;margin:0;padding:32px 0;">
-  <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.1);">
-    <div style="background:#2563eb;padding:24px 32px;">
-      <h1 style="color:#fff;margin:0;font-size:20px;font-weight:700;">PratimZakon</h1>
-      <p style="color:#bfdbfe;margin:4px 0 0;font-size:14px;">Novi pronalasci u Narodnim novinama</p>
+  <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.10);">
+    <div style="background:#2563eb;padding:24px 36px;">
+      <h1 style="color:#fff;margin:0;font-size:22px;font-weight:800;letter-spacing:-.3px;">PratimZakon</h1>
+      <p style="color:#bfdbfe;margin:6px 0 0;font-size:14px;">Novi pronalasci u Narodnim novinama</p>
     </div>
-    <div style="padding:32px;">
-      <p style="color:#374151;margin:0 0 24px;">
-        Pronašli smo <strong>{len(matches)} {'dokument' if len(matches) == 1 else 'dokumenata'}</strong>
+    <div style="padding:32px 36px;">
+      <p style="color:#374151;margin:0 0 6px;font-size:14px;">Poštovani <strong>{user_display}</strong>,</p>
+      <p style="color:#374151;margin:0 0 24px;font-size:15px;line-height:1.6;">
+        Pronašli smo <strong>{len(matches)} {'novi dokument' if len(matches) == 1 else 'nova dokumenta' if len(matches) < 5 else 'novih dokumenata'}</strong>
         koji odgovaraju vašim ključnim riječima:
       </p>
       {cards_html}
-      <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
-      <p style="font-size:13px;color:#6b7280;margin:0 0 4px;">Status: {status_text}</p>
-      <p style="font-size:12px;color:#9ca3af;margin:0;">
+      <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0 16px;">
+      <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:12px 16px;margin-bottom:16px;">
+        <p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;margin:0 0 4px;">Vaša pretplata</p>
+        <p style="font-size:14px;color:#111827;font-weight:600;margin:0;">{status_text}</p>
+      </div>
+      <p style="font-size:12px;color:#9ca3af;margin:0;line-height:1.6;">
+        Primili ste ovaj email jer pratite Narodne novine putem PratimZakon.<br>
         <a href="{unsubscribe_url}" style="color:#9ca3af;">Odjava od email obavijesti</a>
       </p>
     </div>
