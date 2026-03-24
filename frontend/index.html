@@ -18,6 +18,7 @@
       --rule: #d4d0c9;
       --serif: 'Playfair Display', Georgia, serif;
       --sans: 'DM Sans', sans-serif;
+      --cx: max(5%, calc((100% - 1140px) / 2));
     }
 
     html { scroll-behavior: smooth; }
@@ -46,7 +47,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 22px 6%;
+      padding: 22px var(--cx);
       border-bottom: 1px solid var(--ink);
       position: sticky;
       top: 0;
@@ -103,7 +104,7 @@
 
     /* ─── HERO ─── */
     .hero {
-      padding: 80px 6% 72px;
+      padding: 80px var(--cx) 72px;
       border-bottom: 1px solid var(--ink);
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -219,7 +220,7 @@
 
     /* ─── HOW ─── */
     .how {
-      padding: 96px 6%;
+      padding: 96px var(--cx);
       background: var(--paper);
       border-bottom: 1px solid var(--ink);
     }
@@ -317,7 +318,7 @@
 
     /* ─── PRICING ─── */
     .pricing {
-      padding: 96px 6%;
+      padding: 96px var(--cx);
       border-bottom: 1px solid var(--ink);
     }
 
@@ -445,7 +446,7 @@
     footer {
       background: var(--ink);
       color: var(--white);
-      padding: 40px 6%;
+      padding: 40px var(--cx);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -588,7 +589,7 @@
 
     /* ─── RESPONSIVE ─── */
     @media (max-width: 860px) {
-      .hero { grid-template-columns: 1fr; gap: 40px; }
+      .hero { grid-template-columns: 1fr; gap: 40px; padding-top: 56px; padding-bottom: 48px; }
       .hero-right { display: none; }
       .steps { grid-template-columns: 1fr; }
       .step { border-right: none; border-bottom: 1px solid var(--ink); padding: 32px 0 !important; }
@@ -600,6 +601,13 @@
       .pricing-header { flex-direction: column; align-items: flex-start; gap: 12px; }
       .pricing-note { text-align: left; }
       footer { flex-direction: column; align-items: flex-start; }
+    }
+
+    @media (max-width: 520px) {
+      nav { padding: 16px var(--cx); }
+      .nav-links > a:first-child { display: none; }
+      .btn-lg { padding: 12px 22px; font-size: 13px; }
+      .hero h1 { font-size: clamp(34px, 9vw, 42px); }
     }
   </style>
 </head>
