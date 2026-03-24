@@ -50,7 +50,7 @@ def run_backfill(year_from: int = 2015, year_to: int = None):
                 consecutive_missing = 0
 
                 for issue in range(1, MAX_ISSUES_PER_YEAR + 1):
-                    entries = scraper._scrape_html_issue(year, issue, part)
+                    entries = scraper.scrape_issue(year, issue, part)
 
                     if not entries:
                         consecutive_missing += 1

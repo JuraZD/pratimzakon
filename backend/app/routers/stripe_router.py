@@ -62,6 +62,7 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
             user.subscription_status = "active"
             user.subscription_end = date.today() + timedelta(days=30)
             user.keyword_limit = PLAN_CONFIG[plan]["keyword_limit"]
+            user.plan_type = plan
             db.add(Log(event_type="subscription_activated", user_id=user.id, detail=plan))
             db.commit()
 
@@ -72,6 +73,7 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
             if user:
                 user.subscription_status = "expired"
                 user.keyword_limit = 3
+                user.plan_type = "free"
                 db.add(Log(event_type="subscription_cancelled", user_id=user.id))
                 db.commit()
 

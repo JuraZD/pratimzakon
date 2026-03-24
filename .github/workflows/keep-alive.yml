@@ -12,6 +12,6 @@ jobs:
       - name: Ping API to prevent sleep
         run: |
           echo "Pingam API..."
-          curl -s --max-time 60 https://pratimzakon-api.onrender.com/health || true
-          curl -s --max-time 60 https://pratimzakon-api.onrender.com/ || true
+          curl -s --max-time 60 https://pratimzakon.onrender.com/health || true
+          curl -s --max-time 60 https://pratimzakon.onrender.com/ || true
           echo "Ping završen."
