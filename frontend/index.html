@@ -344,101 +344,154 @@
       line-height: 1.6;
     }
 
-    .plans {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      border: 1px solid var(--ink);
-    }
-
-    .plan {
-      padding: 36px 32px;
-      border-right: 1px solid var(--ink);
-      display: flex;
-      flex-direction: column;
-    }
-
-    .plan:last-child { border-right: none; }
-
-    .plan.featured {
+    /* ─── PRICING TABLE ─── */
+    .pricing-table-wrap {
       background: var(--ink);
       color: var(--white);
+      overflow-x: auto;
     }
 
-    .plan-name {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 2.5px;
-      text-transform: uppercase;
-      opacity: .5;
-      margin-bottom: 20px;
-    }
-
-    .plan-price {
-      font-family: var(--serif);
-      font-size: 48px;
-      font-weight: 700;
-      line-height: 1;
-      letter-spacing: -1px;
-      margin-bottom: 4px;
-    }
-
-    .plan-per {
-      font-size: 13px;
-      opacity: .5;
-      margin-bottom: 20px;
-    }
-
-    .plan-desc {
-      font-size: 13px;
-      opacity: .55;
-      margin-bottom: 28px;
-      line-height: 1.6;
-    }
-
-    .plan-features {
-      list-style: none;
-      margin-bottom: 32px;
-      flex: 1;
-    }
-
-    .plan-features li {
-      font-size: 13px;
-      padding: 9px 0;
-      border-bottom: 1px solid;
-      border-color: var(--rule);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .plan.featured .plan-features li {
-      border-color: rgba(255,255,255,.12);
-    }
-
-    .plan-features li::before {
-      content: '';
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: currentColor;
-      flex-shrink: 0;
-      opacity: .4;
-    }
-
-    .plan .btn {
+    .pricing-table {
       width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    .pricing-table thead tr {
+      border-bottom: 1px solid rgba(255,255,255,.15);
+    }
+
+    .pricing-table th {
+      padding: 20px 28px;
+      text-align: left;
+      font-weight: 600;
+      font-family: var(--sans);
+    }
+
+    .pricing-table th:first-child {
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: .45;
+      font-weight: 600;
+    }
+
+    .pricing-table th.col-plan {
       text-align: center;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -.2px;
+    }
+
+    .pricing-table th.col-plan span {
       display: block;
+      font-size: 12px;
+      font-weight: 400;
+      opacity: .5;
+      letter-spacing: .3px;
+      margin-top: 3px;
     }
 
-    .plan.featured .btn-ghost {
-      border-color: var(--white);
+    .pricing-table th.col-expert {
+      background: rgba(255,255,255,.06);
+    }
+
+    .pricing-table tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,.08);
+    }
+
+    .pricing-table tbody tr:last-child {
+      border-bottom: none;
+    }
+
+    .pricing-table tbody tr:hover {
+      background: rgba(255,255,255,.03);
+    }
+
+    .pricing-table td {
+      padding: 14px 28px;
+      vertical-align: middle;
+    }
+
+    .pricing-table td:first-child {
+      font-size: 13px;
+      opacity: .75;
+      font-weight: 400;
+    }
+
+    .pricing-table td.cell-val {
+      text-align: center;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .pricing-table td.col-expert {
+      background: rgba(255,255,255,.04);
+    }
+
+    .val-check {
+      color: #ffffff;
+      font-size: 16px;
+    }
+
+    .val-x {
+      color: rgba(255,255,255,.25);
+      font-size: 15px;
+    }
+
+    .val-text {
+      color: #ffffff;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    /* ─── PRICING CTA ROW ─── */
+    .pricing-cta {
+      display: grid;
+      grid-template-columns: 1fr repeat(3, 1fr);
+      border-top: 1px solid rgba(255,255,255,.15);
+      background: var(--ink);
+    }
+
+    .pricing-cta-empty { padding: 24px 28px; }
+
+    .pricing-cta-cell {
+      padding: 24px 28px;
+      text-align: center;
+      border-left: 1px solid rgba(255,255,255,.08);
+    }
+
+    .pricing-cta-cell.col-expert {
+      background: rgba(255,255,255,.04);
+    }
+
+    .pricing-cta-cell .btn {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .5px;
+      padding: 10px 20px;
+      border: 1px solid rgba(255,255,255,.4);
       color: var(--white);
+      background: transparent;
+      cursor: pointer;
+      transition: background .18s, border-color .18s;
+      white-space: nowrap;
     }
 
-    .plan.featured .btn-ghost:hover {
+    .pricing-cta-cell .btn:hover {
+      background: rgba(255,255,255,.1);
+      border-color: rgba(255,255,255,.7);
+    }
+
+    .pricing-cta-cell .btn.btn-cta-primary {
       background: var(--white);
       color: var(--ink);
+      border-color: var(--white);
+    }
+
+    .pricing-cta-cell .btn.btn-cta-primary:hover {
+      background: rgba(255,255,255,.85);
     }
 
     /* ─── FOOTER ─── */
@@ -593,12 +646,12 @@
       .steps { grid-template-columns: 1fr; }
       .step { border-right: none; border-bottom: 1px solid var(--ink); padding: 32px 0 !important; }
       .step:last-child { border-bottom: none; }
-      .plans { grid-template-columns: 1fr; }
-      .plan { border-right: none; border-bottom: 1px solid var(--ink); }
-      .plan:last-child { border-bottom: none; }
-      .plan.featured { border-bottom: 1px solid rgba(255,255,255,.15); }
       .pricing-header { flex-direction: column; align-items: flex-start; gap: 12px; }
       .pricing-note { text-align: left; }
+      .pricing-table th, .pricing-table td { padding: 12px 16px; }
+      .pricing-cta { grid-template-columns: 1fr 1fr 1fr; }
+      .pricing-cta-empty { display: none; }
+      .pricing-cta-cell { border-left: none; border-top: 1px solid rgba(255,255,255,.08); }
       footer { flex-direction: column; align-items: flex-start; }
     }
   </style>
@@ -696,44 +749,82 @@
     <div class="pricing-note">Bez obaveza. Plaćanje na mjesečnoj bazi. Otkažite kad želite.</div>
   </div>
 
-  <div class="plans reveal" style="transition-delay:.1s">
+  <div class="reveal" style="transition-delay:.1s">
+    <div class="pricing-table-wrap">
+      <table class="pricing-table">
+        <thead>
+          <tr>
+            <th>Značajka</th>
+            <th class="col-plan">Free<span>€0 / mj.</span></th>
+            <th class="col-plan">Pro<span>€4,99 / mj.</span></th>
+            <th class="col-plan col-expert">Expert<span>€7,99 / mj.</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Ključne riječi</td>
+            <td class="cell-val"><span class="val-text">3</span></td>
+            <td class="cell-val"><span class="val-text">15</span></td>
+            <td class="cell-val col-expert"><span class="val-text">neograničeno</span></td>
+          </tr>
+          <tr>
+            <td>PDF link u emailu</td>
+            <td class="cell-val"><span class="val-x">✕</span></td>
+            <td class="cell-val"><span class="val-check">✓</span></td>
+            <td class="cell-val col-expert"><span class="val-check">✓</span></td>
+          </tr>
+          <tr>
+            <td>Filter po tipu dokumenta</td>
+            <td class="cell-val"><span class="val-x">✕</span></td>
+            <td class="cell-val"><span class="val-check">✓</span></td>
+            <td class="cell-val col-expert"><span class="val-check">✓</span></td>
+          </tr>
+          <tr>
+            <td>MU (međ. ugovori)</td>
+            <td class="cell-val"><span class="val-x">✕</span></td>
+            <td class="cell-val"><span class="val-check">✓</span></td>
+            <td class="cell-val col-expert"><span class="val-check">✓</span></td>
+          </tr>
+          <tr>
+            <td>Filter po instituciji</td>
+            <td class="cell-val"><span class="val-x">✕</span></td>
+            <td class="cell-val"><span class="val-x">✕</span></td>
+            <td class="cell-val col-expert"><span class="val-check">✓</span></td>
+          </tr>
+          <tr>
+            <td>Filter po pravnom području</td>
+            <td class="cell-val"><span class="val-x">✕</span></td>
+            <td class="cell-val"><span class="val-x">✕</span></td>
+            <td class="cell-val col-expert"><span class="val-check">✓</span></td>
+          </tr>
+          <tr>
+            <td>Povijesna pretraga</td>
+            <td class="cell-val"><span class="val-x">✕</span></td>
+            <td class="cell-val"><span class="val-x">✕</span></td>
+            <td class="cell-val col-expert"><span class="val-check">✓</span></td>
+          </tr>
+          <tr>
+            <td>Dashboard / statistike</td>
+            <td class="cell-val"><span class="val-x">✕</span></td>
+            <td class="cell-val"><span class="val-x">✕</span></td>
+            <td class="cell-val col-expert"><span class="val-check">✓</span></td>
+          </tr>
+        </tbody>
+      </table>
 
-    <div class="plan">
-      <div class="plan-name">Free</div>
-      <div class="plan-price">0</div>
-      <div class="plan-per">€ / mjesec</div>
-      <div class="plan-desc">Za početak, bez plaćanja.</div>
-      <ul class="plan-features">
-        <li>Do 3 ključne riječi</li>
-        <li>Email obavijest</li>
-      </ul>
-      <a href="#" class="btn btn-ghost" onclick="openModal('register')">Počnite besplatno</a>
+      <div class="pricing-cta">
+        <div class="pricing-cta-empty"></div>
+        <div class="pricing-cta-cell">
+          <a href="#" class="btn" onclick="openModal('register')">Počnite besplatno</a>
+        </div>
+        <div class="pricing-cta-cell">
+          <a href="#" class="btn btn-cta-primary" onclick="openModal('register')">Odaberi Pro</a>
+        </div>
+        <div class="pricing-cta-cell col-expert">
+          <a href="#" class="btn" onclick="openModal('register')">Odaberi Expert</a>
+        </div>
+      </div>
     </div>
-
-    <div class="plan featured">
-      <div class="plan-name">Basic</div>
-      <div class="plan-price">4,99</div>
-      <div class="plan-per">€ / mjesec</div>
-      <div class="plan-desc">Za profesionalce i tvrtke.</div>
-      <ul class="plan-features">
-        <li>Do 10 ključnih riječi</li>
-        <li>Email obavijest</li>
-      </ul>
-      <a href="dashboard.html" class="btn btn-ghost">Odaberi Basic</a>
-    </div>
-
-    <div class="plan">
-      <div class="plan-name">Plus</div>
-      <div class="plan-price">7,99</div>
-      <div class="plan-per">€ / mjesec</div>
-      <div class="plan-desc">Za agencije i veće timove.</div>
-      <ul class="plan-features">
-        <li>Do 20 ključnih riječi</li>
-        <li>Email obavijest</li>
-      </ul>
-      <a href="dashboard.html" class="btn btn-ghost">Odaberi Plus</a>
-    </div>
-
   </div>
 </section>
 
