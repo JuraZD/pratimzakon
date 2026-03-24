@@ -11,6 +11,16 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
+      --blue: #2563eb;
+      --blue-dark: #1d4ed8;
+      --gray-50: #f9fafb;
+      --gray-100: #f3f4f6;
+      --gray-200: #e5e7eb;
+      --gray-600: #4b5563;
+      --gray-900: #111827;
+      --red: #dc2626;
+      --purple: #7c3aed;
+      --purple-light: #ede9fe;
       --ink: #0d0d0d;
       --paper: #f8f7f4;
       --white: #ffffff;
@@ -403,6 +413,10 @@
     <div class="card-title">Vaš račun</div>
     <div class="status-bar">
       <div class="status-item">
+        <div class="status-label">Plan</div>
+        <div class="status-value"><span class="badge" id="planBadge">–</span></div>
+      </div>
+      <div class="status-item">
         <div class="status-label">Status pretplate</div>
         <div class="status-value"><span class="badge" id="statusBadge">–</span></div>
       </div>
@@ -414,6 +428,18 @@
         <div class="status-label">Ključne riječi</div>
         <div class="status-value" id="kwCount">–</div>
       </div>
+    </div>
+
+    <!-- MU TOGGLE (vidljiv samo Pro/Expert) -->
+    <div class="mu-row" id="muRow" style="display:none">
+      <div class="mu-label">
+        <strong>Međunarodni ugovori (MU)</strong>
+        <span>Primajte obavijesti i za MU izdanja Narodnih novina</span>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="muToggle" onchange="updateMu(this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
     </div>
   </div>
 
@@ -448,7 +474,7 @@
         <button class="btn btn-solid" onclick="checkout('basic')">Odaberi Basic</button>
       </div>
       <div class="upgrade-plan">
-        <h3>Plus</h3>
+        <h3>Expert</h3>
         <div class="price">7,99 <span>€/mj</span></div>
         <p>Do 20 ključnih riječi · pretraga arhive · statistike</p>
         <button class="btn" onclick="checkout('plus')">Odaberi Plus</button>
@@ -536,15 +562,38 @@
     userData = await res.json();
 
     document.getElementById("userEmail").textContent = userData.email;
-    document.getElementById("subEnd").textContent = userData.subscription_end || "–";
     document.getElementById("mainContent").style.display = "block";
 
-    const badge = document.getElementById("statusBadge");
-    badge.textContent = { free: "Besplatno", active: "Aktivno", expired: "Isteklo" }[userData.subscription_status] || userData.subscription_status;
-    badge.className = `badge badge-${userData.subscription_status}`;
+    // Plan badge
+    const planNames = { free: "Free", pro: "Pro", expert: "Expert" };
+    const planBadge = document.getElementById("planBadge");
+    planBadge.textContent = planNames[userData.plan] || userData.plan;
+    planBadge.className = `badge badge-plan-${userData.plan || "free"}`;
 
-    if (userData.subscription_status === "active") {
-      document.getElementById("upgradeCard").style.display = "none";
+    // Status badge
+    const statusBadge = document.getElementById("statusBadge");
+    statusBadge.textContent = { free: "Besplatno", active: "Aktivno", expired: "Isteklo" }[userData.subscription_status] || userData.subscription_status;
+    statusBadge.className = `badge badge-${userData.subscription_status}`;
+
+    // Datum isteka
+    document.getElementById("subEnd").textContent = userData.subscription_end
+      ? new Date(userData.subscription_end).toLocaleDateString("hr-HR") : "–";
+
+    // MU toggle
+    const isPaid = userData.plan === "pro" || userData.plan === "expert";
+    if (isPaid) {
+      document.getElementById("muRow").style.display = "flex";
+      document.getElementById("muToggle").checked = userData.include_mu;
+    }
+
+    // Type select – vidljiv samo za Pro/Expert
+    if (isPaid) {
+      document.getElementById("kwTypeSelect").classList.add("visible");
+    }
+
+    // Upgrade card
+    if (userData.subscription_status !== "active") {
+      document.getElementById("upgradeCard").style.display = "block";
     }
     if (userData.plan_type === "plus") {
       document.getElementById("statsLink").style.display = "inline-block";
@@ -565,41 +614,55 @@
     const list = document.getElementById("kwList");
     const limit = userData?.keyword_limit || 3;
     const count = keywords.length;
+    const limitDisplay = limit >= 9999 ? "∞" : limit;
 
     document.getElementById("kwCount").textContent = count;
-    document.getElementById("limitText").textContent = `${count} / ${limit} ključnih riječi`;
-    document.getElementById("limitFill").style.width = `${Math.min(100, (count / limit) * 100)}%`;
+    document.getElementById("limitText").textContent = `${count} / ${limitDisplay} ključnih riječi`;
+    document.getElementById("limitFill").style.width = limit >= 9999 ? `${Math.min(100, (count / 50) * 100)}%` : `${Math.min(100, (count / limit) * 100)}%`;
 
     if (keywords.length === 0) {
       list.innerHTML = '<li class="kw-empty">Još niste dodali ključne riječi.</li>';
       return;
     }
-    list.innerHTML = keywords.map(kw => `
+    list.innerHTML = keywords.map(kw => {
+      const typeTag = kw.document_types
+        ? `<span class="kw-type-tag">${escHtml(kw.document_types.replace(/,/g, " · "))}</span>`
+        : "";
+      return `
       <li class="kw-item">
-        <span class="kw-tag">${escHtml(kw.keyword)}</span>
+        <div class="kw-left">
+          <span class="kw-tag">${escHtml(kw.keyword)}</span>${typeTag}
+        </div>
         <button class="btn-danger" onclick="deleteKeyword(${kw.id})">Ukloni</button>
-      </li>`).join("");
+      </li>`;
+    }).join("");
   }
 
   async function addKeyword() {
     const input = document.getElementById("kwInput");
+    const typeSelect = document.getElementById("kwTypeSelect");
     const keyword = input.value.trim();
+    const document_types = typeSelect.value || null;
     const errEl = document.getElementById("kwError");
     const okEl = document.getElementById("kwSuccess");
     errEl.style.display = "none"; okEl.style.display = "none";
 
     if (!keyword) return;
 
+    const body = { keyword };
+    if (document_types) body.document_types = document_types;
+
     const res = await authFetch("/keywords/", {
       method: "POST",
       headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({ keyword }),
+      body: JSON.stringify(body),
     });
     if (!res) return;
     const data = await res.json();
 
     if (res.ok) {
       input.value = "";
+      typeSelect.value = "";
       keywords.push(data);
       renderKeywords();
       okEl.textContent = `"${data.keyword}" dodano.`;
@@ -617,6 +680,18 @@
     if (res.status === 204) {
       keywords = keywords.filter(k => k.id !== id);
       renderKeywords();
+    }
+  }
+
+  async function updateMu(value) {
+    const res = await authFetch("/auth/settings", {
+      method: "PATCH",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({ include_mu: value }),
+    });
+    if (!res || !res.ok) {
+      // Vrati toggle na prethodno stanje
+      document.getElementById("muToggle").checked = !value;
     }
   }
 
@@ -760,7 +835,7 @@
 
     const params = new URLSearchParams(window.location.search);
     if (params.get("success")) {
-      document.getElementById("kwSuccess").textContent = "Pretplata aktivirana! Osvježite stranicu.";
+      document.getElementById("kwSuccess").textContent = "Pretplata aktivirana! Osvježite stranicu za nove funkcije.";
       document.getElementById("kwSuccess").style.display = "block";
     }
   }

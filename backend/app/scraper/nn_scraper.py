@@ -105,6 +105,122 @@ class NarodneNovineScraper:
             "Accept-Language": "hr,en;q=0.9",
         })
 
+        # Inicijaliziramo NN API klijent
+        from app.scraper.nn_api import NarodneNovineAPI
+        self.nn_api = NarodneNovineAPI()
+
+    # ------------------------------------------------------------------
+    # Dohvaćanje zadnjeg broja – API (primarno) + fallback na HTML
+    # ------------------------------------------------------------------
+
+    def get_latest_nn_broj(self, db_session=None) -> Tuple[int, int]:
+        """Dohvaća zadnji objavljeni NN broj putem API-ja, s fallbackom."""
+        godina = datetime.now().year
+
+        # Pokušaj putem API-ja
+        zadnji = self.nn_api.get_latest_edition(godina)
+        if zadnji:
+            logging.info(f"[API] Zadnji NN broj za {godina}: {zadnji}")
+            return godina, zadnji
+
+        # Fallback: HTML scraping (stara logika)
+        logging.warning("[API] Fallback na HTML scraping za detekciju zadnjeg broja")
+        return self._get_latest_nn_broj_html(db_session)
+
+    def _get_latest_nn_broj_html(self, db_session=None) -> Tuple[int, int]:
+        """Stara HTML metoda za detekciju zadnjeg broja (fallback)."""
+        from app.models import Document
+
+        godina = datetime.now().year
+        last_known = 0
+
+        if db_session:
+            result = (
+                db_session.query(Document)
+                .filter(Document.issue_number.isnot(None))
+                .order_by(Document.issue_number.desc())
+                .first()
+            )
+            if result and result.published_date and result.published_date.year == godina:
+                last_known = result.issue_number
+
+        logging.info(f"Zadnji poznati NN broj u bazi za {godina}: {last_known}")
+
+        start_broj = max(1, last_known)
+        end_check = start_broj + (10 if last_known == 0 else 20)
+        latest_found = start_broj
+        consecutive_missing = 0
+
+        for broj in range(start_broj, end_check):
+            test_url = (
+                f"{self.search_url}?sortiraj=4&kategorija=1&godina={godina}"
+                f"&broj={broj}&rpp=10&qtype=1&pretraga=da"
+            )
+            try:
+                response = self.session.get(test_url, timeout=10)
+                response.raise_for_status()
+                soup = BeautifulSoup(response.text, "html.parser")
+                all_tr = soup.find_all("tr")
+                results = [tr for tr in all_tr if re.search(rf"\b{broj}/{godina}\b", tr.get_text())]
+
+                if results:
+                    logging.info(f"✓ NN {broj}/{godina} postoji ({len(results)} dokumenata)")
+                    latest_found = broj
+                    consecutive_missing = 0
+                else:
+                    consecutive_missing += 1
+                    if consecutive_missing >= 3:
+                        break
+
+                time.sleep(0.5)
+            except requests.exceptions.RequestException as e:
+                logging.warning(f"Greška pri provjeri NN {broj}/{godina}: {e}")
+                consecutive_missing += 1
+                if consecutive_missing >= 3:
+                    break
+
+        logging.info(f"Najnoviji NN broj (HTML): {latest_found}/{godina}")
+        return godina, latest_found
+
+    # ------------------------------------------------------------------
+    # Dohvaćanje dokumenata – API (primarno) + fallback na HTML
+    # ------------------------------------------------------------------
+
+    def scrape_nn_broj(self, godina: int, broj: int) -> List[Dict]:
+        """Dohvaća SL dokumente za određeni NN broj. API → fallback na HTML."""
+        entries = self._fetch_via_api(godina, broj, "SL")
+        if entries:
+            return entries
+
+        logging.warning(f"[API] Fallback na HTML scraping za NN {broj}/{godina}")
+        return self._scrape_nn_broj_html(godina, broj)
+
+    def scrape_mu_broj(self, godina: int, broj: int) -> List[Dict]:
+        """Dohvaća MU (međunarodni ugovori) dokumente za određeni broj."""
+        return self._fetch_via_api(godina, broj, "MU")
+
+    def _fetch_via_api(self, godina: int, broj: int, part: str = "SL") -> List[Dict]:
+        """Dohvaća sve propise za jedno izdanje putem NN API-ja."""
+        act_nums = self.nn_api.get_acts(godina, broj, part)
+        if not act_nums:
+            logging.warning(f"[API] Nema propisa za NN {broj}/{godina} {part} (ili izdanje ne postoji)")
+            return []
+
+        logging.info(f"[API] NN {broj}/{godina} {part}: {len(act_nums)} propisa")
+        results = []
+        for act_num in act_nums:
+            meta = self.nn_api.get_act_metadata(godina, broj, act_num, part)
+            if meta:
+                meta["part"] = part
+                results.append(meta)
+            else:
+                logging.debug(f"[API] Nema metapodataka za akt {act_num}")
+
+        logging.info(f"[API] NN {broj}/{godina} {part}: dohvaćeno {len(results)}/{len(act_nums)} propisa")
+        return results
+
+    def _scrape_nn_broj_html(self, godina: int, broj: int) -> List[Dict]:
+        """Stara HTML metoda za dohvaćanje dokumenata (fallback)."""
     # ------------------------------------------------------------------
     # JSON-LD API (primarni način)
     # ------------------------------------------------------------------
@@ -393,6 +509,7 @@ class NarodneNovineScraper:
                 url=entry["url"],
                 pdf_url=entry.get("pdf_url"),
                 type=entry.get("type", ""),
+                part=entry.get("part", "SL"),
                 institution=entry.get("institution"),
                 legal_area=entry.get("legal_area"),
                 date_document=entry.get("date_document"),

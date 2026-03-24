@@ -28,6 +28,8 @@ class UserOut(BaseModel):
     subscription_status: str
     subscription_end: Optional[date]
     keyword_limit: int
+    plan: str
+    include_mu: bool
     plan_type: str
     created_at: datetime
 
@@ -51,6 +53,10 @@ class KeywordOut(BaseModel):
     part_filter: Optional[str] = None
 
     model_config = {"from_attributes": True}
+
+
+class UserSettings(BaseModel):
+    include_mu: bool
 
 
 # --- Admin ---

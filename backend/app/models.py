@@ -18,6 +18,8 @@ class User(Base):
     subscription_status = Column(String, default="free")  # free | active | expired
     subscription_end = Column(Date, nullable=True)
     keyword_limit = Column(Integer, default=3)
+    plan = Column(String, default="free")  # free | pro | expert
+    include_mu = Column(Boolean, default=False)  # uključi međunarodne ugovore (MU)
     plan_type = Column(String, default="free")  # free | pro | expert
     unsubscribe_token = Column(String, unique=True, default=lambda: secrets.token_urlsafe(32))
     created_at = Column(DateTime, default=datetime.utcnow)

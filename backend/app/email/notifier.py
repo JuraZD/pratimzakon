@@ -82,6 +82,7 @@ def _build_email(user, matches: List[Dict], show_pdf: bool = False) -> tuple[str
     show_pdf: True za Pro/Expert korisnike
     """
     unsubscribe_url = f"{BASE_URL}/auth/unsubscribe?token={user.unsubscribe_token}"
+    is_paid = getattr(user, "plan", "free") in ("pro", "expert")
 
     plan_labels = {
         "free": "Besplatni plan",
@@ -158,7 +159,7 @@ def _build_email(user, matches: List[Dict], show_pdf: bool = False) -> tuple[str
         cards_html += f"""
         <div style="background:#f8f9fa;border-left:4px solid #2563eb;padding:16px;margin-bottom:16px;border-radius:4px;">
             <p style="margin:0 0 4px;font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;">
-                Ključna riječ: <strong>{m['keyword']}</strong>
+                Ključna riječ: <strong>{m['keyword']}</strong>{part_badge}
             </p>
             {meta_html}
             <p style="margin:0 0 8px;font-size:15px;font-weight:600;color:#111827;">

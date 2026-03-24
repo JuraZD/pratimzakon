@@ -55,6 +55,11 @@ Thumbs.db
 .ipynb_checkpoints/
 *.ipynb_checkpoints
 
+# Env varijable (nikad u git!)
+.env
+.env.*
+!.env.example
+
 # Ostalo
 scraper_log.txt
 izvjestaj.txt
