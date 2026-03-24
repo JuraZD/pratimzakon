@@ -36,7 +36,8 @@ def _html_url_to_eli_url(html_url: str) -> str | None:
         return None
     section, year, issue, act_id = m.group(1), m.group(2), m.group(3), m.group(5)
     eli_section = "sluzbeni-list" if section == "sluzbeni" else "medunarodni-ugovori"
-    return f"https://narodne-novine.nn.hr/eli/{eli_section}/{year}/{issue}/{act_id}/"
+    # ELI API ne prihvaća zero-padded brojeve (npr. "01" → "1")
+    return f"https://narodne-novine.nn.hr/eli/{eli_section}/{year}/{int(issue)}/{int(act_id)}/"
 def _fetch_eli_jsonld(url: str, session) -> dict | None:
     """Dohvaća JSON-LD za pojedini akt. Vraća parsed dict ili None."""
     import requests
