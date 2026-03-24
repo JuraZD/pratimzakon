@@ -362,14 +362,7 @@
 
   async function init() {
     if (!getToken()) { window.location.href = "index.html"; return; }
-    const res = await authFetch("/auth/me");
-    if (!res) return;
-    const user = await res.json();
-    if (user.plan_type !== "plus") {
-      document.getElementById("expertGate").style.display = "block";
-    } else {
-      document.getElementById("searchArea").style.display = "block";
-    }
+    document.getElementById("searchArea").style.display = "block";
   }
 
   async function doSearch(page) {
