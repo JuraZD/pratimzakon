@@ -502,12 +502,14 @@ def _enrich_doc(html_url: str, session) -> dict | None:
                     or act.get("is_about")
                     or act.get(f"{ELI_NS}is_about", [])
                 )
+                logging.debug(f"  is_about raw={is_about!r}")
                 if isinstance(is_about, list):
                     legal_area = ", ".join(
                         _extract_label(x) for x in is_about if _extract_label(x)
                     ) or None
                 else:
                     legal_area = _extract_label(is_about) or None
+                logging.debug(f"  legal_area={legal_area!r}")
     # Fallback: institution_label iz RDFa <meta> tagova
     if not institution:
         institution = rdfa.get("institution_label") or None
