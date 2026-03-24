@@ -28,7 +28,7 @@ def _send_plan_interest_email(user_email: str, plan: str):
     from_name = os.getenv("FROM_NAME", "PratimZakon")
     admin_email = os.getenv("ADMIN_EMAIL", from_email)
 
-    plan_labels = {"pro": "Pro (€4,99/mj)", "expert": "Expert (€7,99/mj)"}
+    plan_labels = {"pro": "Pro (€4,99/mj)", "expert": "Expert (€7,99/mj)", "basic": "Basic (€4,99/mj)", "plus": "Plus (€7,99/mj)"}
     label = plan_labels.get(plan, plan)
 
     body = f"""Novi korisnik odabrao plaćeni plan pri registraciji.
@@ -143,6 +143,16 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
 @router.get("/me", response_model=UserOut)
 def me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.post("/request-plan")
+def request_plan(plan: str, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    if plan not in ("basic", "plus"):
+        raise HTTPException(status_code=400, detail="Neispravan plan")
+    db.add(Log(event_type="plan_request", user_id=current_user.id, detail=f"{current_user.email} [plan={plan}]"))
+    db.commit()
+    _send_plan_interest_email(current_user.email, plan)
+    return {"message": "Zahtjev primljen"}
 
 
 @router.get("/unsubscribe")

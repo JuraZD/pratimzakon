@@ -133,24 +133,26 @@
     </div>
   </div>
 
-  <!-- UPGRADE (skriveno ako je already paid) -->
+  <!-- PLAN KARTICA (upgrade ili promjena) -->
   <div class="card upgrade-card" id="upgradeCard">
-    <div class="card-title">Nadogradite plan</div>
-    <p style="font-size:14px;color:var(--gray-600);margin-bottom:4px;">Pratite više ključnih pojmova uz plaćeni plan.</p>
+    <div class="card-title" id="upgradeTitle">Nadogradite plan</div>
+    <p style="font-size:14px;color:var(--gray-600);margin-bottom:4px;" id="upgradeSubtitle">Pratite više ključnih pojmova uz plaćeni plan.</p>
     <div class="upgrade-plans">
-      <div class="upgrade-plan">
+      <div class="upgrade-plan" id="planBasic">
         <h3>Basic</h3>
         <div class="price">4,99 <span>€/mj</span></div>
-        <p>Do 10 ključnih riječi</p>
-        <button class="btn btn-primary" style="width:100%" onclick="checkout('basic')">Odaberi Basic</button>
+        <p>Do 10 ključnih riječi · email obavijesti</p>
+        <button class="btn btn-primary" id="btnBasic" style="width:100%" onclick="requestPlan('basic')">Odaberi Basic</button>
       </div>
-      <div class="upgrade-plan">
+      <div class="upgrade-plan" id="planPlus">
         <h3>Plus</h3>
         <div class="price">7,99 <span>€/mj</span></div>
-        <p>Do 20 ključnih riječi</p>
-        <button class="btn btn-outline" style="width:100%" onclick="checkout('plus')">Odaberi Plus</button>
+        <p>Do 20 ključnih riječi · pretraga arhive · statistike</p>
+        <button class="btn btn-outline" id="btnPlus" style="width:100%" onclick="requestPlan('plus')">Odaberi Plus</button>
       </div>
     </div>
+    <div class="msg msg-error" id="planError" style="display:none"></div>
+    <div class="msg msg-success" id="planSuccess" style="display:none"></div>
   </div>
 
 </main>
@@ -190,9 +192,8 @@
     badge.textContent = { free: "Besplatno", active: "Aktivno", expired: "Isteklo" }[userData.subscription_status] || userData.subscription_status;
     badge.className = `badge badge-${userData.subscription_status}`;
 
-    if (userData.subscription_status === "active") {
-      document.getElementById("upgradeCard").style.display = "none";
-    }
+    updateUpgradeCard();
+
     if (userData.plan_type === "expert") {
       document.getElementById("searchLink").style.display = "inline-block";
     }
@@ -267,11 +268,52 @@
     }
   }
 
-  async function checkout(plan) {
-    const res = await authFetch(`/stripe/checkout/${plan}`, { method: "POST" });
+  function updateUpgradeCard() {
+    const status = userData?.subscription_status;
+    const planType = userData?.plan_type;
+
+    if (status === "active") {
+      document.getElementById("upgradeTitle").textContent = "Promjenite plan";
+      document.getElementById("upgradeSubtitle").textContent = "Trenutno ste na plaćenom planu. Odaberite drugi plan — kontaktirat ćemo vas za promjenu.";
+
+      // Označi trenutni plan
+      const currentPlan = (planType === "pro" || planType === "basic") ? "basic" : "plus";
+      const currentCard = document.getElementById(currentPlan === "basic" ? "planBasic" : "planPlus");
+      currentCard.style.border = "2px solid var(--blue)";
+      currentCard.style.position = "relative";
+      const badge = document.createElement("div");
+      badge.textContent = "Vaš plan";
+      badge.style.cssText = "position:absolute;top:-10px;left:50%;transform:translateX(-50%);background:var(--blue);color:#fff;font-size:11px;font-weight:700;padding:2px 10px;border-radius:999px;white-space:nowrap;";
+      currentCard.style.position = "relative";
+      currentCard.appendChild(badge);
+
+      const btn = document.getElementById(currentPlan === "basic" ? "btnBasic" : "btnPlus");
+      btn.disabled = true;
+      btn.textContent = "Trenutni plan";
+      btn.style.opacity = "0.5";
+      btn.style.cursor = "default";
+    }
+  }
+
+  async function requestPlan(plan) {
+    const errEl = document.getElementById("planError");
+    const okEl = document.getElementById("planSuccess");
+    errEl.style.display = "none"; okEl.style.display = "none";
+
+    const res = await authFetch(`/auth/request-plan?plan=${plan}`, { method: "POST" });
     if (!res) return;
-    const data = await res.json();
-    if (data.checkout_url) window.location.href = data.checkout_url;
+
+    const planLabels = { basic: "Basic (€4,99/mj)", plus: "Plus (€7,99/mj)" };
+    if (res.ok) {
+      okEl.textContent = `Zahtjev za plan ${planLabels[plan]} primljen — aktivacija stiže mailom u roku 24h.`;
+      okEl.style.display = "block";
+      document.getElementById("btnBasic").disabled = true;
+      document.getElementById("btnPlus").disabled = true;
+    } else {
+      const data = await res.json();
+      errEl.textContent = data.detail || "Greška pri slanju zahtjeva.";
+      errEl.style.display = "block";
+    }
   }
 
   function escHtml(str) {
