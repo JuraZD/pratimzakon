@@ -178,9 +178,6 @@ def _parse_rdfa(html_text: str) -> dict:
     parser = _Parser()
     parser.feed(html_text)
 
-    logging.debug(f"  RDFa about-entities={list(parser.types.keys())}")
-    logging.debug(f"  RDFa props keys (first 10)={list(parser.props.keys())[:10]}")
-
     # Pronađi LegalResource (glavni dokument)
     legal_resource = None
     for about, typeof in parser.types.items():
@@ -219,25 +216,12 @@ def _parse_rdfa(html_text: str) -> dict:
             lv = parser.props.get((inst_url, lp), "")
             if lv:
                 result["institution_label"] = lv
-                logging.debug(f"  RDFa institution_label nađen via {lp!r}: {lv!r}")
                 break
-        else:
-            logging.debug(f"  RDFa institution_label nije u <meta> tagovima")
 
     # type_document → zadnji segment URL-a (npr. ODLUKA, ZAKON, UREDBA...)
     type_url = parser.props.get((legal_resource, f"{ELI_NS}type_document"), "")
     if type_url:
         result["type_document"] = type_url.rstrip("/").split("/")[-1]
-
-    # eli:publisher na /hrv LegalExpression entitetu (alternativni path za instituciju)
-    hrv_entity = legal_resource + "/hrv"
-    publisher_url = parser.props.get((hrv_entity, f"{ELI_NS}publisher"), "")
-    if publisher_url:
-        result["publisher_url"] = publisher_url
-        logging.debug(f"  RDFa publisher_url={publisher_url!r}")
-
-    # Logiraj sve props za dijagnostiku
-    logging.debug(f"  RDFa all props={[(k,v) for k,v in parser.props.items() if 'institution' in str(v).lower() or 'publisher' in str(k[1]).lower()]}")
 
     # PDF URL — traži meta tag s format = application/pdf
     for (about, prop), value in parser.props.items():
@@ -371,16 +355,13 @@ def _fetch_institution_name(inst_url: str, session) -> str | None:
     except Exception as e:
         logging.debug(f"Institucija JSON-LD neuspješan za {inst_url}: {e}")
 
-    # HTML fallback (pokušaj i kod 404 - stranica može imati sadržaj)
+    # HTML fallback
     try:
         resp = session.get(inst_url, timeout=ELI_TIMEOUT,
                            headers={"Accept": "text/html,application/xhtml+xml"})
-        logging.debug(f"  _fetch_institution_name HTML status={resp.status_code} len={len(resp.content)} ct={resp.headers.get('content-type','')!r}")
         if resp.status_code not in (200, 404):
             _institution_cache[inst_url] = None
             return None
-        # Logiraj dio HTML-a za dijagnostiku
-        logging.debug(f"  institution HTML (300ch): {resp.text[:300]!r}")
         # Pokušaj JSON-LD embedded u HTML-u
         embedded = _extract_jsonld_from_html(resp.text)
         if embedded:
@@ -423,13 +404,8 @@ def _fetch_jsonld_act(eli_url: str, session) -> dict | None:
         )
         if resp.ok:
             ct = resp.headers.get("content-type", "")
-            logging.debug(f"  JSON-LD resp ct={ct!r} len={len(resp.content)} url={resp.url}")
             if "json" in ct:
-                data = resp.json()
-                logging.debug(f"  JSON-LD raw (500 ch): {resp.text[:500]!r}")
-                return data
-            else:
-                logging.debug(f"  JSON-LD preskočen (ct nije json): {resp.text[:200]!r}")
+                return resp.json()
     except Exception as e:
         logging.debug(f"JSON-LD act dohvat neuspješan za {eli_url}: {e}")
     return None
@@ -460,22 +436,9 @@ def _enrich_doc(html_url: str, session) -> dict | None:
 
     # Pokušaj dohvatiti institution i legal_area iz JSON-LD (ELI act URL iz RDFa)
     legal_resource_url = rdfa.get("_legal_resource", "")
-    logging.debug(f"  rdfa keys={list(rdfa.keys())} legal_resource={legal_resource_url!r}")
-
-    # Provjeri postoji li JSON-LD embedan direktno u HTML-u članka
-    html_embedded_jsonld = _extract_jsonld_from_html(html_text)
-    if html_embedded_jsonld:
-        logging.debug(f"  HTML embedded JSON-LD nađen")
 
     if legal_resource_url:
         jsonld = _fetch_jsonld_act(legal_resource_url, session)
-        # Ako ELI endpoint vraća samo @id (prazno), pokušaj HTML embedded
-        if not jsonld or (isinstance(jsonld, dict) and list(jsonld.keys()) == ["@id"]):
-            if html_embedded_jsonld:
-                logging.debug(f"  Koristim HTML embedded JSON-LD umjesto ELI endpoint odgovora")
-                jsonld = html_embedded_jsonld
-        if not jsonld:
-            logging.debug(f"  JSON-LD nije vraćen za {legal_resource_url}")
         if jsonld:
             # Izgradi index svih stavki po @id (za cross-reference institucija itd.)
             jsonld_index: dict = {}
@@ -511,8 +474,6 @@ def _enrich_doc(html_url: str, session) -> dict | None:
                 else:
                     act = jsonld
 
-            logging.debug(f"  JSON-LD act @id={act.get('@id', 'N/A')!r} keys={list(act.keys())[:8]}")
-
             if isinstance(act, dict):
                 # Probaj prefixed i full-URI ključeve za passed_by
                 passed_by_raw = (
@@ -520,8 +481,6 @@ def _enrich_doc(html_url: str, session) -> dict | None:
                     or act.get("passed_by")
                     or act.get(f"{ELI_NS}passed_by")
                 )
-                logging.debug(f"  JSON-LD passed_by_raw={passed_by_raw!r}")
-
                 # Iz passed_by izvuci label ili @id referendu za cross-lookup
                 institution = _extract_label(passed_by_raw) or None
                 if not institution and passed_by_raw:
@@ -537,7 +496,6 @@ def _enrich_doc(html_url: str, session) -> dict | None:
                         inst_item = jsonld_index.get(ref_id.rstrip("/"))
                         if inst_item:
                             institution = _extract_label(inst_item) or None
-                            logging.debug(f"  jsonld_index institution lookup → {institution!r}")
 
                 is_about = (
                     act.get("eli:is_about")
@@ -550,36 +508,19 @@ def _enrich_doc(html_url: str, session) -> dict | None:
                     ) or None
                 else:
                     legal_area = _extract_label(is_about) or None
-    else:
-        logging.debug(f"  Nema _legal_resource u rdfa za {html_url}")
-
-    # Fallback 0: institution_label direktno iz RDFa <meta> tagova
+    # Fallback: institution_label iz RDFa <meta> tagova
     if not institution:
         institution = rdfa.get("institution_label") or None
-        if institution:
-            logging.debug(f"  rdfa institution_label → {institution!r}")
 
-    # Fallback 1: Pretraži jsonld_index po institution_url iz RDFa
-    if not institution:
-        inst_url = rdfa.get("institution_url", "")
-        logging.debug(f"  institution_url fallback={inst_url!r}")
-        if inst_url and "jsonld_index" in dir():
-            inst_item = jsonld_index.get(inst_url.rstrip("/"))
-            if inst_item:
-                institution = _extract_label(inst_item) or None
-                logging.debug(f"  jsonld_index rdfa inst lookup → {institution!r}")
-
-    # Fallback 2: HTML stranica institucije (ELI vocabulary)
+    # Fallback: XML vocabulary cache (via _fetch_institution_name koji koristi _institution_cache)
     if not institution:
         inst_url = rdfa.get("institution_url", "")
         if inst_url:
             institution = _fetch_institution_name(inst_url, session)
-            logging.debug(f"  _fetch_institution_name → {institution!r}")
 
-    # Fallback 3: <h2> tag u HTML-u članka (ako ništa drugo ne radi)
+    # Fallback: <h2> tag u HTML-u članka
     if not institution:
         institution = _extract_institution_from_html(html_text)
-        logging.debug(f"  h2 fallback → {institution!r}")
 
     return {
         "institution": institution,
