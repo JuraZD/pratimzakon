@@ -986,6 +986,15 @@
     document.getElementById("authOverlay").classList.add("active");
     type === "login" ? showLogin() : showRegister();
   }
+
+  function selectPlan(plan) {
+    openModal("register");
+    window._selectedPlan = plan;
+    const labels = { basic: "Basic (€4,99/mj)", plus: "Plus (€7,99/mj)" };
+    const okEl = document.getElementById("regSuccess");
+    okEl.textContent = `Odabrali ste ${labels[plan]} plan — registrirajte se za nastavak.`;
+    okEl.style.display = "block";
+  }
   function closeModal(e) {
     if (!e || e.target === document.getElementById("authOverlay"))
       document.getElementById("authOverlay").classList.remove("active");
@@ -1011,7 +1020,7 @@
       errEl.style.display = "block"; return;
     }
     btn.disabled = true; btn.textContent = "Spajanje na server...";
-    const body = JSON.stringify({ email, password });
+    const body = JSON.stringify({ email, password, selected_plan: window._selectedPlan || null });
     const opts = { method: "POST", headers: {"Content-Type": "application/json"}, body };
     try {
       let res;
