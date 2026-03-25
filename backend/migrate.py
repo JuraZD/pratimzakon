@@ -66,6 +66,15 @@ MIGRATIONS = [
         "sync: plan expert→plus",
         "UPDATE users SET plan = 'plus', plan_type = 'plus' WHERE plan = 'expert'"
     ),
+    # Ispravi keyword_limit prema planu (za slučaj da webhook nije postavio limit)
+    (
+        "sync: keyword_limit za basic",
+        "UPDATE users SET keyword_limit = 10 WHERE plan = 'basic' AND keyword_limit < 10"
+    ),
+    (
+        "sync: keyword_limit za plus",
+        "UPDATE users SET keyword_limit = 20 WHERE plan = 'plus' AND keyword_limit < 20"
+    ),
 ]
 
 
