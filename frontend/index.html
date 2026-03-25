@@ -675,6 +675,10 @@
 </head>
 <body>
 
+<div id="deletedBanner" style="display:none;background:#111111;color:#ffffff;text-align:center;padding:14px 16px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.5px;">
+  Vaš račun je uspješno obrisan. Žao nam je što odlazite.
+</div>
+
 <!-- NAV -->
 <nav>
   <div class="inner">
@@ -912,7 +916,8 @@
   const API = "https://pratimzakon.onrender.com";
 
   if (new URLSearchParams(window.location.search).get("deleted") === "1") {
-    setTimeout(() => openModal("login"), 100);
+    const banner = document.getElementById("deletedBanner");
+    if (banner) { banner.style.display = "block"; setTimeout(() => banner.style.display = "none", 6000); }
   }
 
   async function fetchWithRetry(url, options, maxAttempts = 4) {
