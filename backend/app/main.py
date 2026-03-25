@@ -1,6 +1,7 @@
 import logging
 import os
 from contextlib import asynccontextmanager
+from urllib.parse import urlparse
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from slowapi import Limiter, _rate_limit_exceeded_handler
@@ -41,9 +42,13 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost")
 
-# Podržava više origina odvojenih zarezom u FRONTEND_URL env varijabli
-# Npr: FRONTEND_URL=https://jurazd.github.io,https://pratimzakon.hr
-_extra_origins = [o.strip() for o in FRONTEND_URL.split(",") if o.strip()]
+# CORS origin = scheme+host bez putanje
+# FRONTEND_URL može biti https://jurazd.github.io/pratimzakon — strip-amo putanju
+def _to_origin(url: str) -> str:
+    p = urlparse(url.strip())
+    return f"{p.scheme}://{p.netloc}" if p.netloc else url.strip()
+
+_extra_origins = [_to_origin(o) for o in FRONTEND_URL.split(",") if o.strip()]
 ALLOWED_ORIGINS = _extra_origins + [
     "http://localhost:3000",
     "http://localhost:5500",
