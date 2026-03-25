@@ -419,6 +419,10 @@
         <div class="status-label">Aktivno do</div>
         <div class="status-value" id="subEnd">–</div>
       </div>
+      <div class="status-item" id="daysLeftItem" style="display:none">
+        <div class="status-label">Preostalo</div>
+        <div class="status-value" id="daysLeft">–</div>
+      </div>
       <div class="status-item">
         <div class="status-label">Ključne riječi</div>
         <div class="status-value" id="kwCount">–</div>
@@ -570,9 +574,22 @@
     statusBadge.textContent = { free: "Besplatno", active: "Aktivno", expired: "Isteklo" }[userData.subscription_status] || userData.subscription_status;
     statusBadge.className = `badge badge-${userData.subscription_status}`;
 
-    // Datum isteka
-    document.getElementById("subEnd").textContent = userData.subscription_end
-      ? new Date(userData.subscription_end).toLocaleDateString("hr-HR") : "–";
+    // Datum isteka + preostalo dana
+    const isPaidPlan = userData.subscription_status === "active" && userData.subscription_end;
+    if (isPaidPlan) {
+      const endDate = new Date(userData.subscription_end);
+      document.getElementById("subEnd").textContent = endDate.toLocaleDateString("hr-HR");
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      endDate.setHours(0, 0, 0, 0);
+      const daysRemaining = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
+      if (daysRemaining >= 0) {
+        document.getElementById("daysLeft").textContent = daysRemaining === 0 ? "danas ističe" : `još ${daysRemaining} ${daysRemaining === 1 ? "dan" : daysRemaining < 5 ? "dana" : "dana"}`;
+        document.getElementById("daysLeftItem").style.display = "block";
+      }
+    } else {
+      document.getElementById("subEnd").textContent = "bez ograničenja";
+    }
 
     // MU toggle
     const isPaid = userData.plan === "pro" || userData.plan === "expert";
