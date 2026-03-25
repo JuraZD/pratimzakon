@@ -2,6 +2,7 @@ import os
 import smtplib
 import secrets
 import logging
+import stripe
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -449,24 +450,27 @@ def request_plan(plan: str, current_user: User = Depends(get_current_user), db: 
 def cancel_subscription(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if current_user.subscription_status != "active":
         raise HTTPException(status_code=400, detail="Nemate aktivnu pretplatu")
-    db.add(Log(event_type="cancel_request", user_id=current_user.id, detail=current_user.email))
+
+    # Otkaži pretplatu u Stripeu (ako imamo subscription_id)
+    stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
+    sub_id = getattr(current_user, "stripe_subscription_id", None)
+    if sub_id:
+        try:
+            stripe.Subscription.cancel(sub_id)
+        except Exception as e:
+            logging.warning(f"Stripe cancel failed for {current_user.email}: {e}")
+
+    # Odmah spusti na besplatni plan u bazi
+    current_user.plan = "free"
+    current_user.plan_type = "free"
+    current_user.keyword_limit = 3
+    current_user.subscription_status = "inactive"
+    current_user.stripe_subscription_id = None
+    db.add(Log(event_type="subscription_cancelled", user_id=current_user.id, detail=current_user.email))
     db.commit()
-    cfg = _smtp_cfg()
-    # Obavijesti admina
-    msg_body = f"Korisnik {current_user.email} poslao zahtjev za otkazivanje pretplate (plan: {current_user.plan_type})."
-    msg = MIMEText(msg_body, "plain", "utf-8")
-    msg["Subject"] = f"PratimZakon: Zahtjev za otkazivanje – {current_user.email}"
-    msg["From"] = f"{cfg['from_name']} <{cfg['from_email']}>"
-    msg["To"] = ADMIN_EMAIL
-    try:
-        with smtplib.SMTP(cfg["server"], cfg["port"]) as s:
-            s.starttls()
-            s.login(cfg["user"], cfg["password"])
-            s.sendmail(cfg["from_email"], [ADMIN_EMAIL], msg.as_string())
-    except Exception:
-        pass
+
     _send_cancel_confirmation_email(current_user.email)
-    return {"message": "Zahtjev za otkazivanje primljen"}
+    return {"message": "Pretplata otkazana"}
 
 
 @router.get("/unsubscribe")
