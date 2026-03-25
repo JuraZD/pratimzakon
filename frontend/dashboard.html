@@ -696,7 +696,7 @@
     document.getElementById("mainContent").style.display = "block";
 
     // Plan badge
-    const planNames = { free: "Free", pro: "Pro", expert: "Expert" };
+    const planNames = { free: "Free", basic: "Basic", plus: "Plus", pro: "Basic", expert: "Plus" };
     const planBadge = document.getElementById("planBadge");
     planBadge.textContent = planNames[userData.plan] || userData.plan;
     planBadge.className = `badge badge-plan-${userData.plan || "free"}`;
@@ -724,7 +724,7 @@
     }
 
     // MU toggle
-    const isPaid = userData.plan === "pro" || userData.plan === "expert";
+    const isPaid = ["pro","expert","basic","plus"].includes(userData.plan);
     if (isPaid) {
       document.getElementById("muRow").style.display = "flex";
       document.getElementById("muToggle").checked = userData.include_mu;
@@ -736,7 +736,7 @@
     }
 
 
-    if (userData.plan_type === "plus") {
+    if (["plus","expert"].includes(userData.plan_type)) {
       document.getElementById("statsLink").style.display = "inline-block";
       document.getElementById("statsQuickBtn").style.display = "inline-block";
     }
@@ -935,17 +935,18 @@
 
     const confirmBtn = document.getElementById("mPlanConfirmBtn");
     confirmBtn.disabled = true;
-    confirmBtn.textContent = "Šaljem…";
+    confirmBtn.textContent = "Preusmjeravam na plaćanje…";
 
-    const planLabels = { basic: "Basic (€4,99/mj)", plus: "Plus (€7,99/mj)" };
     try {
-      const res = await authFetch(`/auth/request-plan?plan=${plan}`, { method: "POST" });
+      const res = await authFetch(`/stripe/checkout/${plan}`, { method: "POST" });
       if (!res) { confirmBtn.disabled = false; confirmBtn.textContent = "Potvrdi zahtjev"; return; }
 
       if (res.ok) {
-        document.getElementById("mPlanConfirmRow").style.display = "none";
-        okEl.textContent = `Zahtjev za ${planLabels[plan]} primljen — aktivacija stiže mailom u roku 24h.`;
-        okEl.style.display = "block";
+        const data = await res.json();
+        if (data.checkout_url) {
+          window.location.href = data.checkout_url;
+          return;
+        }
         _pendingPlan = null;
       } else {
         let msg = "Greška pri slanju zahtjeva.";

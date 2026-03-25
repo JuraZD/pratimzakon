@@ -57,6 +57,15 @@ MIGRATIONS = [
         "sync: plan za aktivne korisnike s >15 kw",
         "UPDATE users SET plan = 'expert' WHERE subscription_status = 'active' AND keyword_limit > 15 AND plan = 'free'"
     ),
+    # Uskladi stare nazive planova (pro→basic, expert→plus)
+    (
+        "sync: plan pro→basic",
+        "UPDATE users SET plan = 'basic', plan_type = 'basic' WHERE plan = 'pro'"
+    ),
+    (
+        "sync: plan expert→plus",
+        "UPDATE users SET plan = 'plus', plan_type = 'plus' WHERE plan = 'expert'"
+    ),
 ]
 
 
@@ -79,7 +88,7 @@ def ensure_admin():
             subscription_status="active",
             subscription_end=None,
             keyword_limit=9999,
-            plan="expert",
+            plan="plus",
             plan_type="plus",
             include_mu=True,
             unsubscribe_token=secrets.token_urlsafe(32),

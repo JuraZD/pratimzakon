@@ -40,7 +40,7 @@ def get_stats(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if getattr(current_user, "plan_type", "free") != "plus":
+    if getattr(current_user, "plan_type", "free") not in ("plus", "expert"):
         raise HTTPException(
             status_code=403,
             detail="Statistike su dostupne samo korisnicima Plus paketa.",
