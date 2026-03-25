@@ -22,6 +22,7 @@ class User(Base):
     include_mu = Column(Boolean, default=False)  # uključi međunarodne ugovore (MU)
     plan_type = Column(String, default="free")  # free | pro | expert
     unsubscribe_token = Column(String, unique=True, default=lambda: secrets.token_urlsafe(32))
+    stripe_subscription_id = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     keywords = relationship("Keyword", back_populates="user", cascade="all, delete-orphan")

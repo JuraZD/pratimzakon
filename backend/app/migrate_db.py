@@ -19,6 +19,8 @@ MIGRATIONS = [
     "ALTER TABLE keywords ADD COLUMN IF NOT EXISTS institution_filter VARCHAR",
     "ALTER TABLE keywords ADD COLUMN IF NOT EXISTS part_filter VARCHAR",
 
+    "ALTER TABLE users ADD COLUMN IF NOT EXISTS stripe_subscription_id VARCHAR",
+
     # --- documents ---
     "ALTER TABLE documents ADD COLUMN IF NOT EXISTS pdf_url TEXT",
     "ALTER TABLE documents ADD COLUMN IF NOT EXISTS institution VARCHAR",

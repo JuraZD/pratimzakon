@@ -64,6 +64,7 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
             user.keyword_limit = PLAN_CONFIG[plan]["keyword_limit"]
             user.plan = plan
             user.plan_type = plan
+            user.stripe_subscription_id = session.get("subscription")
             db.add(Log(event_type="subscription_activated", user_id=user.id, detail=plan))
             db.commit()
 
