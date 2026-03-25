@@ -19,7 +19,7 @@ services:
       - key: SECRET_KEY
         generateValue: true
       - key: FRONTEND_URL
-        value: https://pratimzakon.onrender.com
+        value: https://jurazd.github.io
       - key: BASE_URL
         value: https://pratimzakon-api.onrender.com
       - key: STRIPE_SECRET_KEY
