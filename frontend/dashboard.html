@@ -732,7 +732,6 @@
 
     // Type select – vidljiv samo za Pro/Expert
     if (isPaid) {
-      document.getElementById("kwTypeSelect").classList.add("visible");
     }
 
 
@@ -782,9 +781,7 @@
 
   async function addKeyword() {
     const input = document.getElementById("kwInput");
-    const typeSelect = document.getElementById("kwTypeSelect");
     const keyword = input.value.trim();
-    const document_types = typeSelect.value || null;
     const errEl = document.getElementById("kwError");
     const okEl = document.getElementById("kwSuccess");
     errEl.style.display = "none"; okEl.style.display = "none";
@@ -804,7 +801,6 @@
 
     if (res.ok) {
       input.value = "";
-      typeSelect.value = "";
       keywords.push(data);
       renderKeywords();
       okEl.textContent = `"${data.keyword}" dodano.`;
