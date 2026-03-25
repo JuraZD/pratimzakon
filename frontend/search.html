@@ -289,7 +289,7 @@
 
 <main>
   <h1>Pretraga arhive</h1>
-  <p class="subtitle">Pretražite sve objave Narodnih novina od 2015. do danas</p>
+  <p class="subtitle" id="searchSubtitle">Pretražite objave Narodnih novina od 01. siječnja 2026. do danas</p>
 
   <!-- Gate za ne-Plus korisnike -->
   <div class="gate" id="expertGate" style="display:none">
@@ -357,6 +357,13 @@
 <script>
   const API = "https://pratimzakon.onrender.com";
   let currentPage = 1;
+
+  (function() {
+    const today = new Date();
+    const formatted = today.toLocaleDateString("hr-HR", { day: "2-digit", month: "long", year: "numeric" });
+    document.getElementById("searchSubtitle").textContent =
+      `Pretražite objave Narodnih novina od 01. siječnja 2026. do ${formatted}`;
+  })();
 
   function getToken() { return localStorage.getItem("token"); }
   function logout() { localStorage.removeItem("token"); window.location.href = "index.html"; }
