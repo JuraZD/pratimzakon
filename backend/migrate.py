@@ -60,6 +60,35 @@ MIGRATIONS = [
 ]
 
 
+def ensure_admin():
+    from app.auth import hash_password
+    from sqlalchemy.orm import Session
+    from app.models import User
+    import secrets
+
+    with Session(engine) as db:
+        existing = db.query(User).filter(User.email == "admin@admin.com").first()
+        if existing:
+            logging.info("Admin korisnik već postoji — preskačem.")
+            return
+
+        admin = User(
+            email="admin@admin.com",
+            password_hash=hash_password("12345"),
+            email_verified=True,
+            subscription_status="active",
+            subscription_end=None,
+            keyword_limit=9999,
+            plan="expert",
+            plan_type="plus",
+            include_mu=True,
+            unsubscribe_token=secrets.token_urlsafe(32),
+        )
+        db.add(admin)
+        db.commit()
+        logging.info("Admin korisnik kreiran: admin@admin.com")
+
+
 def run():
     with engine.connect() as conn:
         for name, sql in MIGRATIONS:
@@ -72,6 +101,7 @@ def run():
                 conn.rollback()
 
     logging.info("Migracija završena.")
+    ensure_admin()
 
 
 if __name__ == "__main__":
