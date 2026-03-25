@@ -6,35 +6,27 @@
   <title>Dashboard – PratimZakon</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --blue: #2563eb;
-      --blue-dark: #1d4ed8;
-      --gray-50: #f9fafb;
-      --gray-100: #f3f4f6;
-      --gray-200: #e5e7eb;
-      --gray-600: #4b5563;
-      --gray-900: #111827;
-      --red: #dc2626;
-      --purple: #7c3aed;
-      --purple-light: #ede9fe;
-      --ink: #0d0d0d;
-      --paper: #f8f7f4;
+      --ink: #111111;
+      --bone: #F5F4F1;
       --white: #ffffff;
       --mid: #6b6b6b;
-      --rule: #d4d0c9;
-      --serif: 'Playfair Display', Georgia, serif;
-      --sans: 'DM Sans', sans-serif;
+      --rule: rgba(0,0,0,0.12);
+      --red: #C41212;
+      --serif: 'Fraunces', Georgia, serif;
+      --mono: 'DM Mono', monospace;
+      --sans: 'Plus Jakarta Sans', sans-serif;
       --cx: max(5%, calc((100% - 1140px) / 2));
     }
 
     body {
       font-family: var(--sans);
       color: var(--ink);
-      background: var(--paper);
+      background: var(--bone);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
@@ -47,7 +39,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 18px var(--cx);
-      border-bottom: 1px solid var(--ink);
+      border-bottom: 1px solid var(--rule);
       background: var(--white);
       position: sticky;
       top: 0;
@@ -56,9 +48,9 @@
 
     .logo {
       font-family: var(--serif);
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -.3px;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -.5px;
     }
 
     .nav-right {
@@ -68,7 +60,8 @@
     }
 
     #userEmail {
-      font-size: 12px;
+      font-family: var(--mono);
+      font-size: 11px;
       color: var(--mid);
       margin-right: 8px;
     }
@@ -128,10 +121,10 @@
 
     .card-title {
       font-family: var(--serif);
-      font-size: 18px;
-      font-weight: 700;
+      font-size: 22px;
+      font-weight: 400;
       margin-bottom: 20px;
-      letter-spacing: -.2px;
+      letter-spacing: -.3px;
     }
 
     /* STATUS BAR */
@@ -149,29 +142,30 @@
     .status-item:last-child { border-right: none; }
 
     .status-label {
+      font-family: var(--mono);
       font-size: 10px;
       color: var(--mid);
       text-transform: uppercase;
-      letter-spacing: 1.5px;
-      font-weight: 600;
+      letter-spacing: 1.2px;
+      font-weight: 400;
       margin-bottom: 8px;
     }
 
     .status-value {
-      font-family: var(--serif);
-      font-size: 22px;
-      font-weight: 700;
+      font-family: var(--mono);
+      font-size: 20px;
+      font-weight: 500;
       line-height: 1;
     }
 
     .badge {
       display: inline-block;
-      padding: 3px 12px;
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: .5px;
+      padding: 3px 10px;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: .3px;
       border: 1px solid;
-      font-family: var(--sans);
     }
 
     .badge-free { border-color: var(--rule); color: var(--mid); }
@@ -227,10 +221,10 @@
     .limit-bar { margin-top: 16px; }
 
     .limit-text {
-      font-size: 12px;
+      font-family: var(--mono);
+      font-size: 11px;
       color: var(--mid);
       margin-bottom: 6px;
-      letter-spacing: .2px;
     }
 
     .limit-track {
@@ -248,7 +242,7 @@
     /* UPGRADE CARD */
     .upgrade-card {
       border-color: var(--rule);
-      background: var(--paper);
+      background: var(--bone);
     }
 
     .upgrade-plans {
@@ -268,8 +262,8 @@
 
     .upgrade-plan h3 {
       font-family: var(--serif);
-      font-size: 16px;
-      font-weight: 700;
+      font-size: 18px;
+      font-weight: 400;
       margin-bottom: 4px;
     }
 
@@ -281,18 +275,18 @@
     }
 
     .upgrade-plan .price {
-      font-family: var(--serif);
-      font-size: 28px;
-      font-weight: 700;
+      font-family: var(--mono);
+      font-size: 26px;
+      font-weight: 500;
       margin-bottom: 12px;
-      letter-spacing: -1px;
+      letter-spacing: -.5px;
     }
 
     .upgrade-plan .price span {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 400;
       color: var(--mid);
-      font-family: var(--sans);
+      font-family: var(--mono);
     }
 
     .upgrade-plan .btn { width: 100%; text-align: center; display: block; }
@@ -326,7 +320,7 @@
 
     .modal-header h2 {
       font-family: var(--serif);
-      font-size: 20px; font-weight: 700;
+      font-size: 22px; font-weight: 400;
     }
 
     .modal-close {
@@ -340,8 +334,9 @@
     .modal-body { padding: 24px; }
 
     .modal-section-title {
-      font-size: 10px; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 1.5px;
+      font-family: var(--mono);
+      font-size: 10px; font-weight: 400;
+      text-transform: uppercase; letter-spacing: 1.2px;
       color: var(--mid); margin-bottom: 14px;
     }
 

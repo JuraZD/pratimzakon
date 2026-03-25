@@ -6,26 +6,28 @@
   <title>Statistike – PratimZakon</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --ink: #0d0d0d;
-      --paper: #f8f7f4;
+      --ink: #111111;
+      --bone: #F5F4F1;
       --white: #ffffff;
       --mid: #6b6b6b;
-      --rule: #d4d0c9;
-      --serif: 'Playfair Display', Georgia, serif;
-      --sans: 'DM Sans', sans-serif;
+      --rule: rgba(0,0,0,0.12);
+      --red: #C41212;
+      --serif: 'Fraunces', Georgia, serif;
+      --mono: 'DM Mono', monospace;
+      --sans: 'Plus Jakarta Sans', sans-serif;
       --cx: max(5%, calc((100% - 1140px) / 2));
     }
 
     body {
       font-family: var(--sans);
       color: var(--ink);
-      background: var(--paper);
+      background: var(--bone);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
@@ -38,7 +40,7 @@
       justify-content: space-between;
       align-items: center;
       padding: 18px var(--cx);
-      border-bottom: 1px solid var(--ink);
+      border-bottom: 1px solid var(--rule);
       background: var(--white);
       position: sticky;
       top: 0;
@@ -47,9 +49,9 @@
 
     .logo {
       font-family: var(--serif);
-      font-size: 18px;
-      font-weight: 700;
-      letter-spacing: -.3px;
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -.5px;
     }
 
     .nav-right { display: flex; gap: 8px; align-items: center; }
@@ -78,14 +80,15 @@
 
     h1 {
       font-family: var(--serif);
-      font-size: 32px;
-      font-weight: 700;
+      font-size: 36px;
+      font-weight: 400;
       margin-bottom: 6px;
       letter-spacing: -.5px;
     }
 
     .subtitle {
-      font-size: 14px;
+      font-family: var(--mono);
+      font-size: 12px;
       color: var(--mid);
       margin-bottom: 32px;
     }
@@ -102,27 +105,28 @@
     }
 
     .total-label {
+      font-family: var(--mono);
       font-size: 10px;
       opacity: .6;
       margin-bottom: 8px;
       text-transform: uppercase;
-      letter-spacing: 1.5px;
-      font-weight: 600;
+      letter-spacing: 1.2px;
+      font-weight: 400;
     }
 
     .total-number {
-      font-family: var(--serif);
+      font-family: var(--mono);
       font-size: 52px;
-      font-weight: 700;
+      font-weight: 500;
       line-height: 1;
       letter-spacing: -1.5px;
     }
 
     .total-sub {
-      font-size: 12px;
+      font-family: var(--mono);
+      font-size: 11px;
       opacity: .5;
       margin-top: 6px;
-      letter-spacing: .3px;
     }
 
     /* GRID */
@@ -141,8 +145,8 @@
 
     .chart-title {
       font-family: var(--serif);
-      font-size: 15px;
-      font-weight: 700;
+      font-size: 16px;
+      font-weight: 400;
       margin-bottom: 20px;
       letter-spacing: -.2px;
     }
@@ -161,8 +165,8 @@
 
     .gate h2 {
       font-family: var(--serif);
-      font-size: 22px;
-      font-weight: 700;
+      font-size: 24px;
+      font-weight: 400;
       margin-bottom: 8px;
       letter-spacing: -.3px;
     }

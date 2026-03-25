@@ -132,69 +132,71 @@ def _build_email(user, matches: List[Dict], show_pdf: bool = False) -> tuple[str
     # HTML kartice
     cards_html = ""
     for m in matches:
-        meta_parts = []
+        badges_html = ""
         if m.get("doc_type"):
-            meta_parts.append(
-                f'<span style="background:#dbeafe;color:#1d4ed8;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;letter-spacing:.4px;">'
-                f'{m["doc_type"]}</span>'
+            badges_html += (
+                f'<span style="font-family:\'Courier New\',monospace;display:inline-block;'
+                f'border:1px solid #111111;padding:1px 8px;font-size:10px;letter-spacing:.5px;'
+                f'color:#111111;margin-right:6px;">{m["doc_type"]}</span>'
             )
+        meta_parts = []
         if m.get("institution"):
-            meta_parts.append(
-                f'<span style="color:#6b7280;font-size:12px;">{m["institution"]}</span>'
-            )
+            meta_parts.append(m["institution"])
         meta_html = (
-            f'<p style="margin:0 0 8px;display:flex;gap:8px;align-items:center;flex-wrap:wrap;">'
-            f'{"&nbsp;·&nbsp;".join(meta_parts)}</p>'
+            f'<p style="font-family:\'Courier New\',monospace;margin:4px 0 8px;'
+            f'font-size:11px;color:#6b6b6b;">{" · ".join(meta_parts)}</p>'
             if meta_parts else ""
         )
 
         pdf_html = ""
         if show_pdf and m.get("document_pdf_url"):
             pdf_html = (
-                f'<a href="{m["document_pdf_url"]}" style="display:inline-block;margin-top:8px;'
-                f'padding:5px 12px;background:#ef4444;color:#fff;font-size:12px;font-weight:600;'
-                f'border-radius:4px;text-decoration:none;">↓ PDF</a>'
+                f'<a href="{m["document_pdf_url"]}" style="display:inline-block;margin-left:12px;'
+                f'border:1px solid #111111;padding:3px 10px;font-size:11px;color:#111111;'
+                f'text-decoration:none;">↓ PDF</a>'
             )
 
         cards_html += f"""
-        <div style="background:#f8f9fa;border-left:4px solid #2563eb;padding:16px;margin-bottom:16px;border-radius:4px;">
-            <p style="margin:0 0 4px;font-size:12px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;">
-                Ključna riječ: <strong>{m['keyword']}</strong>{part_badge}
+        <div style="border:1px solid rgba(0,0,0,0.12);border-left:3px solid #111111;padding:16px 20px;margin-bottom:12px;background:#ffffff;">
+            <p style="font-family:'Courier New',monospace;margin:0 0 6px;font-size:10px;color:#6b6b6b;text-transform:uppercase;letter-spacing:1px;">
+                {m['keyword']}
             </p>
+            {badges_html}
             {meta_html}
-            <p style="margin:0 0 8px;font-size:15px;font-weight:600;color:#111827;">
+            <p style="margin:6px 0 10px;font-size:14px;font-weight:600;color:#111111;font-family:Georgia,serif;line-height:1.4;">
                 {m['document_title']}
             </p>
-            <a href="{m['document_url']}" style="color:#2563eb;font-size:14px;text-decoration:none;">
+            <a href="{m['document_url']}" style="font-family:'Courier New',monospace;color:#111111;font-size:12px;text-decoration:none;border-bottom:1px solid #111111;">
                 Otvori dokument →
-            </a>
-            {pdf_html}
+            </a>{pdf_html}
         </div>"""
+
+    n = len(matches)
+    doc_word = "novi dokument" if n == 1 else ("nova dokumenta" if n < 5 else "novih dokumenata")
 
     html = f"""<!DOCTYPE html>
 <html lang="hr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="font-family:system-ui,-apple-system,sans-serif;background:#f3f4f6;margin:0;padding:32px 0;">
-  <div style="max-width:600px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.10);">
-    <div style="background:#2563eb;padding:24px 36px;">
-      <h1 style="color:#fff;margin:0;font-size:22px;font-weight:800;letter-spacing:-.3px;">PratimZakon</h1>
-      <p style="color:#bfdbfe;margin:6px 0 0;font-size:14px;">Novi pronalasci u Narodnim novinama</p>
+<body style="font-family:system-ui,-apple-system,sans-serif;background:#F5F4F1;margin:0;padding:32px 16px;">
+  <div style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid rgba(0,0,0,0.12);">
+    <div style="background:#111111;padding:24px 32px;">
+      <h1 style="color:#ffffff;margin:0;font-size:20px;font-weight:600;letter-spacing:-.3px;font-family:Georgia,serif;">PratimZakon</h1>
+      <p style="font-family:'Courier New',monospace;color:rgba(255,255,255,0.5);margin:6px 0 0;font-size:11px;letter-spacing:.5px;text-transform:uppercase;">Novi pronalasci u Narodnim novinama</p>
     </div>
-    <div style="padding:32px 36px;">
-      <p style="color:#374151;margin:0 0 6px;font-size:14px;">Poštovani <strong>{user_display}</strong>,</p>
-      <p style="color:#374151;margin:0 0 24px;font-size:15px;line-height:1.6;">
-        Pronašli smo <strong>{len(matches)} {'novi dokument' if len(matches) == 1 else 'nova dokumenta' if len(matches) < 5 else 'novih dokumenata'}</strong>
-        koji odgovaraju vašim ključnim riječima:
+    <div style="padding:32px;">
+      <p style="font-family:'Courier New',monospace;color:#6b6b6b;margin:0 0 4px;font-size:11px;">{user_display}</p>
+      <p style="font-family:Georgia,serif;color:#111111;margin:0 0 24px;font-size:18px;font-weight:400;line-height:1.4;">
+        Pronašli smo <strong>{n} {doc_word}</strong> koji odgovaraju vašim ključnim riječima.
       </p>
       {cards_html}
-      <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0 16px;">
-      <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:6px;padding:12px 16px;margin-bottom:16px;">
-        <p style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#6b7280;margin:0 0 4px;">Vaša pretplata</p>
-        <p style="font-size:14px;color:#111827;font-weight:600;margin:0;">{status_text}</p>
+      <hr style="border:none;border-top:1px solid rgba(0,0,0,0.12);margin:24px 0 20px;">
+      <div style="border:1px solid rgba(0,0,0,0.12);padding:12px 16px;margin-bottom:20px;background:#F5F4F1;">
+        <p style="font-family:'Courier New',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#6b6b6b;margin:0 0 4px;">Vaša pretplata</p>
+        <p style="font-family:'Courier New',monospace;font-size:13px;color:#111111;margin:0;">{status_text}</p>
       </div>
-      <p style="font-size:12px;color:#9ca3af;margin:0;line-height:1.6;">
+      <p style="font-family:'Courier New',monospace;font-size:11px;color:#9ca3af;margin:0;line-height:1.8;">
         Primili ste ovaj email jer pratite Narodne novine putem PratimZakon.<br>
-        <a href="{unsubscribe_url}" style="color:#9ca3af;">Odjava od email obavijesti</a>
+        <a href="{unsubscribe_url}" style="color:#9ca3af;text-decoration:none;border-bottom:1px solid #9ca3af;">Odjava od email obavijesti</a>
       </p>
     </div>
   </div>

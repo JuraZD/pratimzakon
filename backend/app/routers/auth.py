@@ -108,42 +108,34 @@ Tim PratimZakon
     html = f"""<!DOCTYPE html>
 <html lang="hr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="font-family:system-ui,-apple-system,sans-serif;background:#f3f4f6;margin:0;padding:32px 0;">
-  <div style="max-width:580px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.10);">
-
-    <div style="background:#2563eb;padding:28px 36px;">
-      <h1 style="color:#fff;margin:0;font-size:22px;font-weight:800;letter-spacing:-.3px;">PratimZakon</h1>
-      <p style="color:#bfdbfe;margin:6px 0 0;font-size:14px;">pratimo zakone umjesto vas</p>
+<body style="font-family:system-ui,-apple-system,sans-serif;background:#F5F4F1;margin:0;padding:32px 16px;">
+  <div style="max-width:580px;margin:0 auto;background:#ffffff;border:1px solid rgba(0,0,0,0.12);">
+    <div style="background:#111111;padding:24px 32px;">
+      <h1 style="color:#ffffff;margin:0;font-size:20px;font-weight:600;letter-spacing:-.3px;font-family:Georgia,serif;">PratimZakon</h1>
+      <p style="font-family:'Courier New',monospace;color:rgba(255,255,255,0.5);margin:6px 0 0;font-size:11px;letter-spacing:.5px;text-transform:uppercase;">pratimo zakone umjesto vas</p>
     </div>
-
-    <div style="padding:36px;">
-      <h2 style="margin:0 0 8px;font-size:20px;color:#111827;">Dobrodošli! 👋</h2>
-      <p style="color:#374151;font-size:15px;margin:0 0 24px;line-height:1.6;">
-        Hvala što ste se registrirali na <strong>PratimZakon</strong>.<br>
-        Vaš besplatni račun je aktivan — pratit ćemo Narodne novine
-        i javljati vam samo kada ima nešto relevantno za vaše ključne riječi.
+    <div style="padding:32px;">
+      <h2 style="font-family:Georgia,serif;margin:0 0 12px;font-size:22px;font-weight:400;color:#111111;">Dobrodošli u PratimZakon</h2>
+      <p style="color:#111111;font-size:14px;margin:0 0 24px;line-height:1.7;">
+        Hvala što ste se registrirali. Vaš besplatni račun je aktivan —
+        pratit ćemo Narodne novine i javljati vam samo kada ima nešto
+        relevantno za vaše ključne riječi.
       </p>
-
-      <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:20px;margin-bottom:28px;">
-        <p style="margin:0 0 12px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:#1d4ed8;">Što dobivate uz besplatni plan</p>
-        <ul style="margin:0;padding:0 0 0 18px;color:#374151;font-size:14px;line-height:2;">
+      <div style="background:#F5F4F1;border:1px solid rgba(0,0,0,0.12);padding:20px;margin-bottom:28px;">
+        <p style="font-family:'Courier New',monospace;margin:0 0 12px;font-size:10px;font-weight:400;text-transform:uppercase;letter-spacing:1px;color:#6b6b6b;">Što dobivate uz besplatni plan</p>
+        <ul style="margin:0;padding:0 0 0 18px;color:#111111;font-size:14px;line-height:2.2;">
           <li>Praćenje do <strong>3 ključne riječi</strong></li>
           <li>Automatska obavijest svaki radni dan u <strong>07:00</strong></li>
           <li>Javljamo se samo kada ima novih pronalazaka</li>
         </ul>
       </div>
-
-      <a href="{dashboard_url}"
-         style="display:inline-block;background:#2563eb;color:#fff;font-size:15px;font-weight:700;
-                padding:13px 28px;border-radius:7px;text-decoration:none;letter-spacing:-.1px;">
+      <a href="{dashboard_url}" style="display:inline-block;background:#111111;color:#ffffff;font-size:13px;font-weight:600;padding:12px 24px;text-decoration:none;letter-spacing:.3px;">
         Otvori dashboard →
       </a>
-
-      <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0 20px;">
-      <p style="font-size:12px;color:#9ca3af;margin:0;line-height:1.6;">
+      <hr style="border:none;border-top:1px solid rgba(0,0,0,0.12);margin:32px 0 20px;">
+      <p style="font-family:'Courier New',monospace;font-size:11px;color:#9ca3af;margin:0;line-height:1.8;">
         Primili ste ovaj email jer ste se registrirali na PratimZakon.<br>
-        Ako ne želite primati obavijesti,
-        <a href="{unsubscribe_url}" style="color:#9ca3af;">odjavite se ovdje</a>.
+        <a href="{unsubscribe_url}" style="color:#9ca3af;text-decoration:none;border-bottom:1px solid #9ca3af;">Odjava od email obavijesti</a>
       </p>
     </div>
   </div>
@@ -179,40 +171,33 @@ Tim PratimZakon
     html = f"""<!DOCTYPE html>
 <html lang="hr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="font-family:system-ui,-apple-system,sans-serif;background:#f3f4f6;margin:0;padding:32px 0;">
-  <div style="max-width:580px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.10);">
-
-    <div style="background:#2563eb;padding:28px 36px;">
-      <h1 style="color:#fff;margin:0;font-size:22px;font-weight:800;letter-spacing:-.3px;">PratimZakon</h1>
-      <p style="color:#bfdbfe;margin:6px 0 0;font-size:14px;">pratimo zakone umjesto vas</p>
+<body style="font-family:system-ui,-apple-system,sans-serif;background:#F5F4F1;margin:0;padding:32px 16px;">
+  <div style="max-width:580px;margin:0 auto;background:#ffffff;border:1px solid rgba(0,0,0,0.12);">
+    <div style="background:#111111;padding:24px 32px;">
+      <h1 style="color:#ffffff;margin:0;font-size:20px;font-weight:600;letter-spacing:-.3px;font-family:Georgia,serif;">PratimZakon</h1>
+      <p style="font-family:'Courier New',monospace;color:rgba(255,255,255,0.5);margin:6px 0 0;font-size:11px;letter-spacing:.5px;text-transform:uppercase;">pratimo zakone umjesto vas</p>
     </div>
-
-    <div style="padding:36px;">
-      <h2 style="margin:0 0 8px;font-size:20px;color:#111827;">Žao nam je što odlazite</h2>
-      <p style="color:#374151;font-size:15px;margin:0 0 20px;line-height:1.6;">
+    <div style="padding:32px;">
+      <h2 style="font-family:Georgia,serif;font-weight:400;margin:0 0 8px;font-size:22px;color:#111111;">Žao nam je što odlazite</h2>
+      <p style="color:#333333;font-size:15px;margin:0 0 24px;line-height:1.6;">
         Poštovani <strong>{email}</strong>,<br><br>
         uspješno smo vas odjavili od svih email obavijesti.
         Više nećete primati obavijesti o novim objavama u Narodnim novinama.
       </p>
-
-      <div style="background:#fef9c3;border:1px solid #fde047;border-radius:8px;padding:18px;margin-bottom:28px;">
-        <p style="margin:0;font-size:14px;color:#713f12;line-height:1.6;">
-          💡 <strong>Vaš korisnički račun ostaje aktivan.</strong><br>
-          Možete se prijaviti i nastaviti pratiti zakone kada god poželite —
-          obavijesti ćete moći ponovo uključiti iz dashboarda.
+      <div style="background:#F5F4F1;border:1px solid rgba(0,0,0,0.12);padding:20px;margin-bottom:28px;">
+        <p style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:#666666;margin:0 0 8px;">napomena</p>
+        <p style="margin:0;font-size:14px;color:#333333;line-height:1.6;">
+          Vaš korisnički račun ostaje aktivan. Možete se prijaviti i nastaviti
+          pratiti zakone kada god poželite — obavijesti ćete moći ponovo
+          uključiti iz dashboarda.
         </p>
       </div>
-
-      <a href="{frontend_url}"
-         style="display:inline-block;background:#2563eb;color:#fff;font-size:15px;font-weight:700;
-                padding:13px 28px;border-radius:7px;text-decoration:none;">
-        Povratak na PratimZakon
+      <a href="{frontend_url}" style="display:inline-block;background:#111111;color:#ffffff;font-size:13px;font-weight:600;padding:12px 24px;text-decoration:none;letter-spacing:.3px;">
+        Povratak na PratimZakon →
       </a>
-
-      <hr style="border:none;border-top:1px solid #e5e7eb;margin:32px 0 20px;">
-      <p style="font-size:12px;color:#9ca3af;margin:0;line-height:1.6;">
-        Ako ste se odjavili greškom, prijavite se na dashboard i ključne
-        riječi će nastaviti s praćenjem.
+      <hr style="border:none;border-top:1px solid rgba(0,0,0,0.12);margin:32px 0 20px;">
+      <p style="font-family:'Courier New',monospace;font-size:11px;color:#999999;margin:0;line-height:1.6;">
+        Ako ste se odjavili greškom, prijavite se na dashboard i obavijesti će nastaviti s praćenjem.
       </p>
     </div>
   </div>
@@ -346,33 +331,31 @@ Tim PratimZakon
     html = f"""<!DOCTYPE html>
 <html lang="hr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="font-family:system-ui,-apple-system,sans-serif;background:#f3f4f6;margin:0;padding:32px 0;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.10);">
-    <div style="background:{p['color']};padding:28px 36px;">
-      <h1 style="color:#fff;margin:0;font-size:22px;font-weight:800;letter-spacing:-.3px;">PratimZakon</h1>
-      <p style="color:rgba(255,255,255,.7);margin:6px 0 0;font-size:14px;">pratimo zakone umjesto vas</p>
+<body style="font-family:system-ui,-apple-system,sans-serif;background:#F5F4F1;margin:0;padding:32px 16px;">
+  <div style="max-width:580px;margin:0 auto;background:#ffffff;border:1px solid rgba(0,0,0,0.12);">
+    <div style="background:#111111;padding:24px 32px;">
+      <h1 style="color:#ffffff;margin:0;font-size:20px;font-weight:600;letter-spacing:-.3px;font-family:Georgia,serif;">PratimZakon</h1>
+      <p style="font-family:'Courier New',monospace;color:rgba(255,255,255,0.5);margin:6px 0 0;font-size:11px;letter-spacing:.5px;text-transform:uppercase;">pratimo zakone umjesto vas</p>
     </div>
-    <div style="padding:36px;">
-      <h2 style="margin:0 0 6px;font-size:20px;color:#111827;">Zahtjev primljen!</h2>
-      <p style="color:#374151;font-size:15px;margin:0 0 24px;line-height:1.6;">
+    <div style="padding:32px;">
+      <h2 style="font-family:Georgia,serif;font-weight:400;margin:0 0 8px;font-size:22px;color:#111111;">Zahtjev primljen</h2>
+      <p style="color:#333333;font-size:15px;margin:0 0 24px;line-height:1.6;">
         Zaprimili smo vaš zahtjev za <strong>{p['name']} plan</strong> ({p['price']}).<br>
         Kontaktirat ćemo vas s uputama za aktivaciju u roku <strong>24 sata</strong>.
       </p>
-      <div style="background:#f8f9ff;border:1px solid #e0e7ff;border-left:4px solid {p['color']};border-radius:8px;padding:20px;margin-bottom:28px;">
-        <p style="margin:0 0 12px;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:{p['color']};">
+      <div style="background:#F5F4F1;border:1px solid rgba(0,0,0,0.12);border-left:3px solid #111111;padding:20px;margin-bottom:28px;">
+        <p style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:#666666;margin:0 0 12px;">
           {p['name']} plan · {p['price']}
         </p>
         <ul style="margin:0;padding:0 0 0 18px;">
           {features_html}
         </ul>
       </div>
-      <a href="{dashboard_url}"
-         style="display:inline-block;background:{p['color']};color:#fff;font-size:15px;font-weight:700;
-                padding:13px 28px;border-radius:7px;text-decoration:none;">
+      <a href="{dashboard_url}" style="display:inline-block;background:#111111;color:#ffffff;font-size:13px;font-weight:600;padding:12px 24px;text-decoration:none;letter-spacing:.3px;">
         Otvori dashboard →
       </a>
-      <hr style="border:none;border-top:1px solid #e5e7eb;margin:28px 0 18px;">
-      <p style="font-size:12px;color:#9ca3af;margin:0;line-height:1.6;">
+      <hr style="border:none;border-top:1px solid rgba(0,0,0,0.12);margin:28px 0 18px;">
+      <p style="font-family:'Courier New',monospace;font-size:11px;color:#999999;margin:0;line-height:1.6;">
         Primili ste ovaj email jer ste zatražili nadogradnju plana na PratimZakon.
       </p>
     </div>
@@ -410,41 +393,38 @@ Tim PratimZakon
     html = f"""<!DOCTYPE html>
 <html lang="hr">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="font-family:system-ui,-apple-system,sans-serif;background:#f3f4f6;margin:0;padding:32px 0;">
-  <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.10);">
-    <div style="background:#2563eb;padding:28px 36px;">
-      <h1 style="color:#fff;margin:0;font-size:22px;font-weight:800;letter-spacing:-.3px;">PratimZakon</h1>
-      <p style="color:#bfdbfe;margin:6px 0 0;font-size:14px;">pratimo zakone umjesto vas</p>
+<body style="font-family:system-ui,-apple-system,sans-serif;background:#F5F4F1;margin:0;padding:32px 16px;">
+  <div style="max-width:580px;margin:0 auto;background:#ffffff;border:1px solid rgba(0,0,0,0.12);">
+    <div style="background:#111111;padding:24px 32px;">
+      <h1 style="color:#ffffff;margin:0;font-size:20px;font-weight:600;letter-spacing:-.3px;font-family:Georgia,serif;">PratimZakon</h1>
+      <p style="font-family:'Courier New',monospace;color:rgba(255,255,255,0.5);margin:6px 0 0;font-size:11px;letter-spacing:.5px;text-transform:uppercase;">pratimo zakone umjesto vas</p>
     </div>
-    <div style="padding:36px;">
-      <h2 style="margin:0 0 6px;font-size:20px;color:#111827;">Zahtjev za otkazivanje primljen</h2>
-      <p style="color:#374151;font-size:15px;margin:0 0 20px;line-height:1.6;">
+    <div style="padding:32px;">
+      <h2 style="font-family:Georgia,serif;font-weight:400;margin:0 0 8px;font-size:22px;color:#111111;">Zahtjev za otkazivanje primljen</h2>
+      <p style="color:#333333;font-size:15px;margin:0 0 24px;line-height:1.6;">
         Poštovani <strong>{user_email}</strong>,<br><br>
         zaprimili smo vaš zahtjev za otkazivanje pretplate.
         Obrada traje do <strong>24 sata</strong> — kontaktirat ćemo vas s potvrdom.
       </p>
-      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:18px;margin-bottom:20px;">
-        <p style="margin:0;font-size:14px;color:#78350f;line-height:1.6;">
-          ⏳ Do kraja obračunskog perioda nastavljate koristiti sve pogodnosti
-          vašeg trenutnog plana bez ograničenja.
+      <div style="background:#F5F4F1;border:1px solid rgba(0,0,0,0.12);padding:20px;margin-bottom:16px;">
+        <p style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:#666666;margin:0 0 8px;">do kraja perioda</p>
+        <p style="margin:0;font-size:14px;color:#333333;line-height:1.6;">
+          Nastavljate koristiti sve pogodnosti vašeg trenutnog plana bez ograničenja.
         </p>
       </div>
-      <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:18px;margin-bottom:28px;">
-        <p style="margin:0 0 8px;font-size:13px;font-weight:700;color:#374151;">Nakon otkazivanja prelazite na besplatni plan:</p>
-        <ul style="margin:0;padding:0 0 0 18px;font-size:14px;color:#6b7280;line-height:2;">
+      <div style="background:#F5F4F1;border:1px solid rgba(0,0,0,0.12);border-left:3px solid #111111;padding:20px;margin-bottom:28px;">
+        <p style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:#666666;margin:0 0 8px;">nakon otkazivanja — besplatni plan</p>
+        <ul style="margin:0;padding:0 0 0 18px;font-size:14px;color:#333333;line-height:2;">
           <li>Do 3 ključne riječi</li>
           <li>Bez automatskih email obavijesti</li>
         </ul>
       </div>
-      <a href="{dashboard_url}"
-         style="display:inline-block;background:#2563eb;color:#fff;font-size:15px;font-weight:700;
-                padding:13px 28px;border-radius:7px;text-decoration:none;">
+      <a href="{dashboard_url}" style="display:inline-block;background:#111111;color:#ffffff;font-size:13px;font-weight:600;padding:12px 24px;text-decoration:none;letter-spacing:.3px;">
         Otvori dashboard →
       </a>
-      <hr style="border:none;border-top:1px solid #e5e7eb;margin:28px 0 18px;">
-      <p style="font-size:12px;color:#9ca3af;margin:0;line-height:1.6;">
-        Ako ste se predomislili, jednostavno odgovorite na ovaj email
-        i nastavit ćemo vašu pretplatu bez promjena.
+      <hr style="border:none;border-top:1px solid rgba(0,0,0,0.12);margin:28px 0 18px;">
+      <p style="font-family:'Courier New',monospace;font-size:11px;color:#999999;margin:0;line-height:1.6;">
+        Ako ste se predomislili, jednostavno odgovorite na ovaj email i nastavit ćemo vašu pretplatu bez promjena.
       </p>
     </div>
   </div>
