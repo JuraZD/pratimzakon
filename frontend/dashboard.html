@@ -461,25 +461,6 @@
     </div>
   </div>
 
-  <!-- UPGRADE -->
-  <div class="card upgrade-card" id="upgradeCard">
-    <div class="card-title">Nadogradite plan</div>
-    <p style="font-size:13px;color:var(--mid);margin-bottom:4px;">Pratite više ključnih pojmova uz plaćeni plan.</p>
-    <div class="upgrade-plans">
-      <div class="upgrade-plan featured">
-        <h3>Basic</h3>
-        <div class="price">4,99 <span>€/mj</span></div>
-        <p>Do 10 ključnih riječi · email obavijesti</p>
-        <button class="btn btn-solid" onclick="checkout('basic')">Odaberi Basic</button>
-      </div>
-      <div class="upgrade-plan">
-        <h3>Expert</h3>
-        <div class="price">7,99 <span>€/mj</span></div>
-        <p>Do 20 ključnih riječi · pretraga arhive · statistike</p>
-        <button class="btn" onclick="checkout('plus')">Odaberi Plus</button>
-      </div>
-    </div>
-  </div>
 
 </main>
 
@@ -603,10 +584,7 @@
       document.getElementById("kwTypeSelect").classList.add("visible");
     }
 
-    // Upgrade card
-    if (userData.subscription_status !== "active") {
-      document.getElementById("upgradeCard").style.display = "block";
-    }
+
     if (userData.plan_type === "plus") {
       document.getElementById("statsLink").style.display = "inline-block";
     }
