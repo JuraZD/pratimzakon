@@ -6,25 +6,27 @@
   <title>Pretraga arhive – PratimZakon</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --ink: #0d0d0d;
-      --paper: #f8f7f4;
+      --ink: #111111;
+      --bone: #F5F4F1;
       --white: #ffffff;
       --mid: #6b6b6b;
-      --rule: #d4d0c9;
-      --serif: 'Playfair Display', Georgia, serif;
-      --sans: 'DM Sans', sans-serif;
+      --rule: rgba(0,0,0,0.12);
+      --red: #C41212;
+      --serif: 'Fraunces', Georgia, serif;
+      --mono: 'DM Mono', monospace;
+      --sans: 'Plus Jakarta Sans', sans-serif;
       --cx: max(5%, calc((100% - 1140px) / 2));
     }
 
     body {
       font-family: var(--sans);
       color: var(--ink);
-      background: var(--paper);
+      background: var(--bone);
       min-height: 100vh;
       -webkit-font-smoothing: antialiased;
     }
@@ -131,8 +133,8 @@
     .filter-row { grid-column: 1 / -1; }
 
     .filter-actions { display: flex; gap: 10px; justify-content: flex-end; }
-    .search-hint { font-size: 12px; color: var(--gray-600); line-height: 1.55; margin-top: 4px; }
-    .search-hint em { font-style: normal; font-weight: 600; color: var(--gray-900); background: var(--gray-100); padding: 1px 5px; border-radius: 3px; }
+    .search-hint { font-size: 12px; color: var(--mid); line-height: 1.55; margin-top: 4px; }
+    .search-hint em { font-style: normal; font-weight: 600; color: var(--ink); background: var(--bone); padding: 1px 5px; }
 
     /* RESULTS */
     .results-meta {
