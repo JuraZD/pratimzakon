@@ -375,6 +375,43 @@
 
     .btn-cancel-back:hover { background: var(--ink); color: var(--white); }
 
+    .activity-row { margin-bottom: 0; }
+    .activity-label {
+      font-family: var(--mono); font-size: 11px; letter-spacing: .5px;
+      text-transform: uppercase; color: var(--mid); margin: 0 0 10px;
+    }
+    .activity-value {
+      font-size: 15px; font-weight: 600; color: var(--ink); margin: 0;
+    }
+    .activity-divider {
+      border: none; border-top: 1px solid var(--rule); margin: 20px 0;
+    }
+    .quick-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .quick-actions .btn { font-size: 12px; padding: 7px 14px; }
+    .quick-actions a.btn { text-decoration: none; }
+    .recent-doc-item {
+      padding: 10px 0; border-bottom: 1px solid var(--rule);
+    }
+    .recent-doc-item:last-child { border-bottom: none; }
+    .recent-doc-title {
+      font-size: 13px; color: var(--ink); font-weight: 500;
+      text-decoration: none; line-height: 1.4; display: block; margin-bottom: 4px;
+    }
+    .recent-doc-title:hover { text-decoration: underline; }
+    .recent-doc-meta {
+      font-family: var(--mono); font-size: 11px; color: var(--mid);
+    }
+    .kw-hit-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 0; border-bottom: 1px solid var(--rule);
+    }
+    .kw-hit-row:last-child { border-bottom: none; }
+    .kw-hit-name { font-size: 13px; color: var(--ink); }
+    .kw-hit-count {
+      font-family: var(--mono); font-size: 12px; color: var(--mid);
+      white-space: nowrap;
+    }
+
     @media (max-width: 540px) {
       .upgrade-plans { grid-template-columns: 1fr; }
       .status-bar { flex-direction: column; }
@@ -461,6 +498,40 @@
     </div>
   </div>
 
+  <!-- PREGLED AKTIVNOSTI -->
+  <div class="card">
+    <div class="card-title">Pregled</div>
+
+    <div class="activity-row">
+      <p class="activity-label">Sljedeća obavijest</p>
+      <p class="activity-value" id="nextNotif">–</p>
+    </div>
+
+    <hr class="activity-divider">
+
+    <div class="activity-row">
+      <p class="activity-label">Brze radnje</p>
+      <div class="quick-actions">
+        <button class="btn btn-solid" onclick="document.getElementById('kwInput').focus();document.getElementById('kwInput').scrollIntoView({behavior:'smooth'})">Dodaj ključnu riječ</button>
+        <a href="search.html" class="btn">Pretraži arhivu</a>
+        <a href="stats.html" class="btn" id="statsQuickBtn" style="display:none">Statistike</a>
+      </div>
+    </div>
+
+    <hr class="activity-divider">
+
+    <div class="activity-row">
+      <p class="activity-label">Zadnje pronađeno</p>
+      <div id="recentDocs"><span style="font-size:13px;color:var(--mid);">Učitavam…</span></div>
+    </div>
+
+    <hr class="activity-divider">
+
+    <div class="activity-row">
+      <p class="activity-label">Aktivnost ključnih riječi <span style="font-family:var(--mono);font-size:11px;color:var(--mid);">30 dana</span></p>
+      <div id="kwActivity"><span style="font-size:13px;color:var(--mid);">Učitavam…</span></div>
+    </div>
+  </div>
 
 </main>
 
@@ -587,6 +658,7 @@
 
     if (userData.plan_type === "plus") {
       document.getElementById("statsLink").style.display = "inline-block";
+      document.getElementById("statsQuickBtn").style.display = "inline-block";
     }
 
     document.getElementById("subscriptionBtn").style.display = "inline-block";
@@ -817,11 +889,74 @@
     return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
   }
 
+  function renderNextNotif() {
+    const now = new Date();
+    const day = now.getDay(); // 0=ned, 6=sub
+    const hour = now.getHours();
+    const minute = now.getMinutes();
+
+    let daysAhead = 0;
+    if (day === 6) daysAhead = 2;
+    else if (day === 0) daysAhead = 1;
+    else if (hour > 7 || (hour === 7 && minute > 0)) {
+      daysAhead = day === 5 ? 3 : 1;
+    }
+
+    const next = new Date(now);
+    next.setDate(now.getDate() + daysAhead);
+    next.setHours(7, 0, 0, 0);
+
+    const dayNames = ["nedjelja","ponedjeljak","utorak","srijeda","četvrtak","petak","subota"];
+    const dayName = dayNames[next.getDay()];
+    const dateStr = next.toLocaleDateString("hr-HR", { day: "numeric", month: "numeric" });
+
+    document.getElementById("nextNotif").textContent =
+      daysAhead === 0 ? `danas u 07:00` : `${dayName}, ${dateStr} u 07:00`;
+  }
+
+  async function loadActivity() {
+    const recentEl = document.getElementById("recentDocs");
+    const actEl = document.getElementById("kwActivity");
+
+    const res = await authFetch("/keywords/activity");
+    if (!res || !res.ok) {
+      recentEl.innerHTML = '<span style="font-size:13px;color:var(--mid);">Nema podataka.</span>';
+      actEl.innerHTML = '<span style="font-size:13px;color:var(--mid);">Nema podataka.</span>';
+      return;
+    }
+
+    const data = await res.json();
+
+    // Zadnje pronađeno
+    if (!data.recent_docs || data.recent_docs.length === 0) {
+      recentEl.innerHTML = '<span style="font-size:13px;color:var(--mid);">Još nema pronađenih dokumenata.</span>';
+    } else {
+      recentEl.innerHTML = data.recent_docs.map(d => `
+        <div class="recent-doc-item">
+          <a href="${escHtml(d.url)}" target="_blank" rel="noopener" class="recent-doc-title">${escHtml(d.title)}</a>
+          <span class="recent-doc-meta">${d.type ? escHtml(d.type) + ' · ' : ''}${d.published_date ? d.published_date : ''}</span>
+        </div>`).join("");
+    }
+
+    // Aktivnost ključnih riječi
+    if (!data.keyword_hits || data.keyword_hits.length === 0) {
+      actEl.innerHTML = '<span style="font-size:13px;color:var(--mid);">Dodajte ključne riječi za praćenje.</span>';
+    } else {
+      actEl.innerHTML = data.keyword_hits.map(k => `
+        <div class="kw-hit-row">
+          <span class="kw-hit-name">${escHtml(k.keyword)}</span>
+          <span class="kw-hit-count">${k.hits} ${k.hits === 1 ? 'pogodak' : k.hits < 5 ? 'pogotka' : 'pogodaka'}</span>
+        </div>`).join("");
+    }
+  }
+
   // Init
   if (!getToken()) {
     window.location.href = "index.html";
   } else {
+    renderNextNotif();
     loadUser().then(loadKeywords);
+    loadActivity();
 
     const params = new URLSearchParams(window.location.search);
     if (params.get("success")) {
