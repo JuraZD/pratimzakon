@@ -911,6 +911,10 @@
 <script>
   const API = "https://pratimzakon.onrender.com";
 
+  if (new URLSearchParams(window.location.search).get("deleted") === "1") {
+    setTimeout(() => openModal("login"), 100);
+  }
+
   async function fetchWithRetry(url, options, maxAttempts = 4) {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
