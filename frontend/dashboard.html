@@ -537,6 +537,48 @@
     </div>
   </div>
 
+  <!-- POSTAVKE RAČUNA -->
+  <div class="card">
+    <div class="card-title">Postavke računa</div>
+
+    <div class="activity-row">
+      <p class="activity-label">Email obavijesti</p>
+      <p style="font-size:13px;color:var(--mid);margin:0 0 12px;line-height:1.6;">Odjavljujete se od svih automatskih email obavijesti. Vaš račun ostaje aktivan.</p>
+      <div id="unsubEmailInitRow">
+        <button class="btn" onclick="showUnsubEmailConfirm()">Odjavi me od obavijesti</button>
+      </div>
+      <div id="unsubEmailConfirmRow" style="display:none">
+        <p style="font-size:12px;color:#555;font-weight:600;margin-bottom:12px;">Jeste li sigurni da se želite odjaviti od email obavijesti?</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn-cancel-confirm" onclick="confirmUnsubEmail()">Da, odjavi me</button>
+          <button class="btn-cancel-back" onclick="hideUnsubEmailConfirm()">Odustani</button>
+        </div>
+      </div>
+      <div class="msg msg-error" id="unsubEmailError" style="display:none"></div>
+      <div class="msg msg-success" id="unsubEmailSuccess" style="display:none"></div>
+    </div>
+
+    <hr class="activity-divider">
+
+    <div class="activity-row">
+      <p class="activity-label" style="color:#b91c1c;">Brisanje računa</p>
+      <div style="background:#fef2f2;border:1px solid #fca5a5;border-left:3px solid #b91c1c;padding:16px;margin-bottom:16px;">
+        <p style="font-size:13px;color:#7f1d1d;margin:0;line-height:1.6;">Trajno briše vaš račun, sve ključne riječi i podatke. Ova radnja se ne može poništiti.</p>
+      </div>
+      <div id="deleteAccountInitRow">
+        <button class="btn-danger" onclick="showDeleteAccountConfirm()">Trajno obriši račun</button>
+      </div>
+      <div id="deleteAccountConfirmRow" style="display:none">
+        <p style="font-size:12px;color:#7f1d1d;font-weight:600;margin-bottom:12px;">Jeste li apsolutno sigurni? Ova radnja je nepovratna.</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn-cancel-confirm" onclick="confirmDeleteAccount()">Da, trajno obriši</button>
+          <button class="btn-cancel-back" onclick="hideDeleteAccountConfirm()">Odustani</button>
+        </div>
+      </div>
+      <div class="msg msg-error" id="deleteAccountError" style="display:none"></div>
+    </div>
+  </div>
+
 </main>
 
 <!-- PRETPLATA MODAL -->
@@ -1065,6 +1107,73 @@
           <span class="kw-hit-name">${escHtml(k.keyword)}</span>
           <span class="kw-hit-count">${k.hits} ${k.hits === 1 ? 'pogodak' : k.hits < 5 ? 'pogotka' : 'pogodaka'}</span>
         </div>`).join("");
+    }
+  }
+
+  // --- ODJAVA OD OBAVIJESTI ---
+  function showUnsubEmailConfirm() {
+    document.getElementById("unsubEmailInitRow").style.display = "none";
+    document.getElementById("unsubEmailConfirmRow").style.display = "block";
+  }
+  function hideUnsubEmailConfirm() {
+    document.getElementById("unsubEmailConfirmRow").style.display = "none";
+    document.getElementById("unsubEmailInitRow").style.display = "block";
+  }
+  async function confirmUnsubEmail() {
+    const errEl = document.getElementById("unsubEmailError");
+    const okEl  = document.getElementById("unsubEmailSuccess");
+    errEl.style.display = "none";
+    const btn = document.querySelector("#unsubEmailConfirmRow .btn-cancel-confirm");
+    btn.disabled = true;
+    try {
+      const res = await authFetch("/auth/cancel-subscription", { method: "POST" });
+      if (!res) { btn.disabled = false; return; }
+      if (res.ok) {
+        document.getElementById("unsubEmailConfirmRow").style.display = "none";
+        okEl.textContent = "Odjavljeni ste od email obavijesti.";
+        okEl.style.display = "block";
+      } else {
+        let msg = "Greška.";
+        try { const d = await res.json(); msg = d.detail || msg; } catch (_) {}
+        errEl.textContent = msg; errEl.style.display = "block";
+        btn.disabled = false;
+      }
+    } catch (e) {
+      errEl.textContent = "Greška."; errEl.style.display = "block";
+      btn.disabled = false;
+    }
+  }
+
+  // --- BRISANJE RAČUNA ---
+  function showDeleteAccountConfirm() {
+    document.getElementById("deleteAccountInitRow").style.display = "none";
+    document.getElementById("deleteAccountConfirmRow").style.display = "block";
+  }
+  function hideDeleteAccountConfirm() {
+    document.getElementById("deleteAccountConfirmRow").style.display = "none";
+    document.getElementById("deleteAccountInitRow").style.display = "block";
+  }
+  async function confirmDeleteAccount() {
+    const errEl = document.getElementById("deleteAccountError");
+    errEl.style.display = "none";
+    const btn = document.querySelector("#deleteAccountConfirmRow .btn-cancel-confirm");
+    btn.disabled = true;
+    btn.textContent = "Brišem…";
+    try {
+      const res = await authFetch("/auth/account", { method: "DELETE" });
+      if (!res) { btn.disabled = false; btn.textContent = "Da, trajno obriši"; return; }
+      if (res.ok) {
+        localStorage.removeItem("token");
+        window.location.href = "index.html?deleted=1";
+      } else {
+        let msg = "Greška pri brisanju.";
+        try { const d = await res.json(); msg = d.detail || msg; } catch (_) {}
+        errEl.textContent = msg; errEl.style.display = "block";
+        btn.disabled = false; btn.textContent = "Da, trajno obriši";
+      }
+    } catch (e) {
+      errEl.textContent = "Greška pri brisanju."; errEl.style.display = "block";
+      btn.disabled = false; btn.textContent = "Da, trajno obriši";
     }
   }
 

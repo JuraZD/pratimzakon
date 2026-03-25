@@ -507,3 +507,17 @@ def resend_verification(data: dict, db: Session = Depends(get_db)):
 </body></html>"""
         _send_multipart(user.email, "PratimZakon — Potvrda email adrese", html, plain)
     return {"message": "Ako email postoji u sustavu, poslan je link za verifikaciju."}
+
+
+@router.delete("/account", status_code=status.HTTP_200_OK)
+def delete_account(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Trajno briše korisnički račun i sve povezane podatke."""
+    email = current_user.email
+    db.add(Log(event_type="account_deleted", user_id=None, detail=email))
+    db.commit()
+    db.delete(current_user)
+    db.commit()
+    return {"message": "Račun je trajno obrisan."}
