@@ -701,6 +701,10 @@
       <h2>Prijava</h2>
       <div class="form-error" id="loginError"></div>
       <div class="form-success" id="loginSuccess"></div>
+      <div id="verifyPrompt" style="display:none;margin-bottom:14px;padding:12px 14px;background:#fefce8;border-left:2px solid #ca8a04;font-size:13px;color:#92400e;line-height:1.6;">
+        Email adresa nije potvrđena.<br>
+        <a href="#" id="resendLink" onclick="resendVerification(); return false;" style="color:#92400e;font-weight:600;text-decoration:underline;">Pošalji verifikacijski link ponovo</a>
+      </div>
       <div class="form-group">
         <label>Email adresa</label>
         <input type="email" id="loginEmail" placeholder="vas@email.com">
@@ -785,6 +789,7 @@
     const errEl = document.getElementById("loginError");
     const btn = document.getElementById("loginBtn");
     errEl.style.display = "none";
+    document.getElementById("verifyPrompt").style.display = "none";
     btn.disabled = true; btn.textContent = "Prijava...";
     try {
       const res = await fetch(`${API}/auth/login`, {
@@ -795,6 +800,9 @@
       if (res.ok) {
         localStorage.setItem("token", data.access_token);
         window.location.href = "dashboard.html";
+      } else if (res.status === 403) {
+        document.getElementById("verifyPrompt").style.display = "block";
+        btn.disabled = false; btn.textContent = "Prijavi se";
       } else {
         errEl.textContent = data.detail || "Pogrešan email ili lozinka.";
         errEl.style.display = "block";
@@ -804,6 +812,31 @@
       errEl.textContent = "Server nije dostupan. Pokušajte ponovo.";
       errEl.style.display = "block";
       btn.disabled = false; btn.textContent = "Prijavi se";
+    }
+  }
+
+  async function resendVerification() {
+    const email = document.getElementById("loginEmail").value;
+    const link = document.getElementById("resendLink");
+    const okEl = document.getElementById("loginSuccess");
+    if (!email) {
+      document.getElementById("loginError").textContent = "Unesite email adresu.";
+      document.getElementById("loginError").style.display = "block";
+      return;
+    }
+    link.textContent = "Šalje se...";
+    try {
+      await fetch(`${API}/auth/resend-verification`, {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ email })
+      });
+      document.getElementById("verifyPrompt").style.display = "none";
+      okEl.textContent = "Link za verifikaciju poslan. Provjerite inbox.";
+      okEl.style.display = "block";
+    } catch (e) {
+      link.textContent = "Pošalji verifikacijski link ponovo";
+      document.getElementById("loginError").textContent = "Server nije dostupan. Pokušajte ponovo.";
+      document.getElementById("loginError").style.display = "block";
     }
   }
 

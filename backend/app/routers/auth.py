@@ -499,3 +499,31 @@ def unsubscribe(token: str, db: Session = Depends(get_db)):
     db.commit()
     _send_goodbye_email(user.email)
     return {"message": "Uspješno odjavljeni od email obavijesti."}
+
+
+@router.post("/resend-verification")
+def resend_verification(data: dict, db: Session = Depends(get_db)):
+    email = data.get("email", "").strip().lower()
+    if not email:
+        raise HTTPException(status_code=400, detail="Email je obavezan")
+    user = db.query(User).filter(User.email == email).first()
+    # Uvijek vraćamo OK — ne otkrivamo postoji li korisnik
+    if user and not user.email_verified:
+        verify_url = f"{BASE_URL}/auth/verify-email?token={user.unsubscribe_token}"
+        plain = f"Kliknite link za potvrdu email adrese:\n{verify_url}"
+        html = f"""<!DOCTYPE html><html lang="hr"><body style="font-family:system-ui,sans-serif;background:#f3f4f6;padding:32px 0;">
+  <div style="max-width:520px;margin:0 auto;background:#fff;border:1px solid #e5e7eb;padding:36px;">
+    <h2 style="margin:0 0 20px;font-size:18px;color:#111;">Potvrdite email adresu</h2>
+    <p style="color:#374151;font-size:15px;line-height:1.6;margin:0 0 28px;">
+      Kliknite gumb ispod kako biste potvrdili svoju email adresu i mogli se prijaviti u PratimZakon.
+    </p>
+    <a href="{verify_url}" style="display:inline-block;background:#111;color:#fff;font-size:14px;font-weight:600;padding:12px 28px;text-decoration:none;">
+      Potvrdi email adresu
+    </a>
+    <p style="color:#9ca3af;font-size:12px;margin:24px 0 0;">
+      Ako niste tražili ovu poruku, možete je ignorirati.
+    </p>
+  </div>
+</body></html>"""
+        _send_multipart(user.email, "PratimZakon — Potvrda email adrese", html, plain)
+    return {"message": "Ako email postoji u sustavu, poslan je link za verifikaciju."}
