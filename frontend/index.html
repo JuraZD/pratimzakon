@@ -6,18 +6,21 @@
   <title>PratimZakon – Pratite Narodne novine bez napora</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --ink: #0d0d0d;
+      --ink: #111111;
       --paper: #f8f7f4;
       --white: #ffffff;
+      --bone: #F5F4F1;
       --mid: #6b6b6b;
-      --rule: #d4d0c9;
-      --serif: 'Playfair Display', Georgia, serif;
-      --sans: 'DM Sans', sans-serif;
+      --rule: rgba(0,0,0,0.12);
+      --red: #C41212;
+      --serif: 'Fraunces', Georgia, serif;
+      --mono: 'DM Mono', monospace;
+      --sans: 'Plus Jakarta Sans', sans-serif;
     }
 
     html { scroll-behavior: smooth; }
@@ -49,12 +52,21 @@
     }
     .reveal.visible { opacity: 1; transform: none; }
 
+    .reveal-x {
+      opacity: 0;
+      transform: translateX(-20px);
+      transition: opacity .6s cubic-bezier(0.19, 1, 0.22, 1), transform .6s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+    .reveal-x.visible { opacity: 1; transform: none; }
+
     /* ─── NAV ─── */
     nav {
-      border-bottom: 1px solid var(--ink);
+      border-bottom: 1px solid var(--rule);
       position: sticky;
       top: 0;
-      background: var(--white);
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       z-index: 50;
     }
 
@@ -80,57 +92,89 @@
     }
 
     .nav-links > a:first-child {
-      font-size: 13px;
-      font-weight: 500;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 400;
       color: var(--mid);
       padding: 0 16px;
       letter-spacing: .3px;
+      opacity: 0.7;
+      transition: opacity .2s;
     }
 
-    .nav-links > a:first-child:hover { color: var(--ink); }
+    .nav-links > a:first-child:hover { opacity: 0.6; color: var(--ink); }
 
     .btn {
       display: inline-block;
-      font-family: var(--sans);
-      font-size: 13px;
-      font-weight: 600;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
       letter-spacing: .4px;
       padding: 10px 22px;
       cursor: pointer;
       border: 1px solid var(--ink);
-      transition: background .18s, color .18s;
+      transition: background .2s, color .2s, border-color .2s;
     }
 
     .btn-ghost { background: transparent; color: var(--ink); }
-    .btn-ghost:hover { background: var(--ink); color: var(--white); }
+    .btn-ghost:hover { background: var(--bone); }
 
     .btn-solid { background: var(--ink); color: var(--white); }
     .btn-solid:hover { background: #2a2a2a; }
 
     /* ─── HERO ─── */
     .hero {
-      border-bottom: 1px solid var(--ink);
+      border-bottom: 1px solid var(--rule);
     }
 
     .hero .inner {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 64px;
-      align-items: end;
+      grid-template-columns: 1fr auto;
+      gap: 0;
+      align-items: stretch;
       padding-top: 80px;
+      padding-bottom: 0;
+      min-height: 480px;
+    }
+
+    .hero-left {
       padding-bottom: 72px;
+      padding-right: 48px;
+    }
+
+    .hero-eyebrow {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 400;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--mid);
+      margin-bottom: 24px;
     }
 
     .hero h1 {
       font-family: var(--serif);
-      font-size: clamp(42px, 5.5vw, 72px);
       font-weight: 900;
-      line-height: 1.05;
-      letter-spacing: -1.5px;
-      margin-bottom: 28px;
+      line-height: 1.0;
+      letter-spacing: -2px;
+      margin-bottom: 32px;
     }
 
-    .hero h1 em { font-style: italic; font-weight: 400; }
+    .h1-display {
+      display: block;
+      font-size: clamp(5rem, 12vw, 14rem);
+      line-height: 0.95;
+    }
+
+    .hero h1 em {
+      display: block;
+      font-size: clamp(22px, 3vw, 40px);
+      font-style: italic;
+      font-weight: 300;
+      color: var(--mid);
+      letter-spacing: -0.5px;
+      margin-top: 12px;
+    }
 
     .hero-desc {
       font-size: 16px;
@@ -142,34 +186,33 @@
 
     .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 
-    .btn-lg { padding: 14px 32px; font-size: 14px; }
+    .btn-lg { padding: 14px 32px; font-size: 13px; }
 
-    .hero-right { padding-bottom: 8px; }
-
-    .hero-stat-block {
-      border-top: 1px solid var(--ink);
-      padding-top: 32px;
-      margin-bottom: 32px;
+    .btn-magnetic {
+      display: inline-block;
+      transition: transform .3s cubic-bezier(0.19, 1, 0.22, 1);
     }
 
-    .hero-stat-num {
-      font-family: var(--serif);
-      font-size: 52px;
-      font-weight: 700;
-      line-height: 1;
-      margin-bottom: 6px;
+    .hero-right {
+      border-left: 1px solid var(--rule);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 24px;
+      min-width: 64px;
     }
 
-    .hero-stat-label { font-size: 13px; color: var(--mid); letter-spacing: .3px; }
-
-    .hero-quote {
-      font-family: var(--serif);
-      font-size: 17px;
-      font-style: italic;
-      line-height: 1.6;
+    .hero-vertical-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 3px;
+      text-transform: uppercase;
       color: var(--mid);
-      border-left: 2px solid var(--ink);
-      padding-left: 20px;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      opacity: 0.4;
+      white-space: nowrap;
     }
 
     /* ─── TICKER (ostaje full-width) ─── */
@@ -178,7 +221,7 @@
       background: var(--ink);
       color: var(--white);
       padding: 12px 0;
-      border-bottom: 1px solid var(--ink);
+      border-bottom: 1px solid var(--rule);
     }
 
     .ticker {
@@ -188,12 +231,13 @@
     }
 
     .ticker span {
+      font-family: var(--mono);
       font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 2px;
+      font-weight: 400;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
-      padding: 0 40px;
-      opacity: .7;
+      padding: 0 36px;
+      opacity: .65;
     }
 
     .ticker span.sep { opacity: .25; }
@@ -206,7 +250,7 @@
     /* ─── HOW ─── */
     .how {
       background: var(--paper);
-      border-bottom: 1px solid var(--ink);
+      border-bottom: 1px solid var(--rule);
     }
 
     .how .inner {
@@ -215,8 +259,9 @@
     }
 
     .section-label {
+      font-family: var(--mono);
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 400;
       letter-spacing: 2.5px;
       text-transform: uppercase;
       color: var(--mid);
@@ -234,61 +279,58 @@
       background: var(--mid);
     }
 
-    .steps {
+    .steps-editorial {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .step-editorial {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0;
+      grid-template-columns: 80px 1fr;
+      border-bottom: 1px solid var(--rule);
+      padding: 52px 0;
     }
 
-    .step {
-      padding: 40px 48px 40px 0;
-      border-right: 1px solid var(--ink);
-    }
+    .step-editorial:last-child { border-bottom: none; }
 
-    .step:last-child { border-right: none; padding-left: 48px; padding-right: 0; }
-    .step:nth-child(2) { padding-left: 48px; padding-right: 48px; }
-
-    .step-index {
-      font-family: var(--serif);
-      font-size: 64px;
-      font-weight: 900;
-      line-height: 1;
-      color: var(--rule);
-      margin-bottom: 20px;
-      letter-spacing: -2px;
-    }
-
-    .step h3 {
-      font-family: var(--serif);
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      letter-spacing: -.3px;
-    }
-
-    .step-sub {
+    .step-num {
+      font-family: var(--mono);
       font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
+      font-weight: 400;
       color: var(--mid);
-      margin-bottom: 12px;
+      letter-spacing: 1px;
+      padding-top: 6px;
+      opacity: 0.4;
     }
 
-    .step p { font-size: 14px; color: var(--mid); line-height: 1.75; }
+    .step-content {
+      padding-left: 48px;
+      border-left: 1px solid var(--rule);
+    }
+
+    .step-content h3 {
+      font-family: var(--serif);
+      font-size: clamp(22px, 2.5vw, 30px);
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -.3px;
+      line-height: 1.2;
+    }
+
+    .step-content p { font-size: 15px; color: var(--mid); line-height: 1.75; }
 
     .kw-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
 
     .kw-pill {
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 400;
       padding: 4px 12px;
-      border: 1px solid var(--ink);
+      border: 1px solid rgba(0,0,0,0.15);
       letter-spacing: .3px;
     }
 
     /* ─── PRICING ─── */
-    .pricing { border-bottom: 1px solid var(--ink); }
+    .pricing { border-bottom: 1px solid var(--rule); }
 
     .pricing .inner {
       padding-top: 96px;
@@ -311,32 +353,50 @@
     }
 
     .pricing-note {
-      font-size: 13px;
+      font-family: var(--mono);
+      font-size: 12px;
       color: var(--mid);
       max-width: 200px;
       text-align: right;
-      line-height: 1.6;
+      line-height: 1.7;
     }
 
     .plans {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      border: 1px solid var(--ink);
+      border: 1px solid var(--rule);
     }
 
     .plan {
       padding: 36px 32px;
-      border-right: 1px solid var(--ink);
+      border-right: 1px solid var(--rule);
       display: flex;
       flex-direction: column;
+      position: relative;
+    }
+
+    .plan-badge {
+      position: absolute;
+      top: -13px;
+      right: 28px;
+      background: var(--ink);
+      color: var(--white);
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      transform: rotate(3deg);
     }
 
     .plan:last-child { border-right: none; }
     .plan.featured { background: var(--ink); color: var(--white); }
 
     .plan-name {
+      font-family: var(--mono);
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 400;
       letter-spacing: 2.5px;
       text-transform: uppercase;
       opacity: .5;
@@ -344,15 +404,15 @@
     }
 
     .plan-price {
-      font-family: var(--serif);
+      font-family: var(--mono);
       font-size: 48px;
-      font-weight: 700;
+      font-weight: 500;
       line-height: 1;
-      letter-spacing: -1px;
+      letter-spacing: -2px;
       margin-bottom: 4px;
     }
 
-    .plan-per { font-size: 13px; opacity: .5; margin-bottom: 20px; }
+    .plan-per { font-family: var(--mono); font-size: 12px; opacity: .5; margin-bottom: 20px; }
 
     .plan-desc { font-size: 13px; opacity: .55; margin-bottom: 28px; line-height: 1.6; }
 
@@ -371,13 +431,21 @@
     .plan.featured .plan-features li { border-color: rgba(255,255,255,.12); }
 
     .plan-features li::before {
-      content: '';
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: currentColor;
+      content: '→';
+      font-family: var(--mono);
+      font-size: 11px;
       flex-shrink: 0;
-      opacity: .4;
+      opacity: .35;
+    }
+
+    .plan-features li.missing {
+      opacity: 0.3;
+      text-decoration: line-through;
+    }
+
+    .plan-features li.missing::before {
+      content: '–';
+      text-decoration: none;
     }
 
     .plan .btn { width: 100%; text-align: center; display: block; }
@@ -388,21 +456,101 @@
     /* ─── FOOTER ─── */
     footer { background: var(--ink); color: var(--white); }
 
-    footer .inner {
+    .footer-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .footer-stat-col {
+      padding: 52px 0;
+      border-right: 1px solid rgba(255,255,255,0.08);
+      padding-right: 40px;
+    }
+
+    .footer-stat-col:last-child { border-right: none; padding-left: 40px; padding-right: 0; }
+    .footer-stat-col:nth-child(2) { padding-left: 40px; }
+
+    .footer-stat-num {
+      font-family: var(--serif);
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    .footer-stat-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .footer-bottom {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 16px;
-      padding-top: 40px;
-      padding-bottom: 40px;
+      padding-top: 28px;
+      padding-bottom: 28px;
     }
 
     .footer-logo { font-family: var(--serif); font-size: 18px; font-weight: 700; }
 
-    .footer-meta { font-size: 12px; color: rgba(255,255,255,.4); letter-spacing: .3px; }
+    .footer-meta { font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: .3px; }
     .footer-meta a { color: rgba(255,255,255,.4); transition: color .15s; }
     .footer-meta a:hover { color: rgba(255,255,255,.8); }
+
+    /* ─── COOKIE BANNER ─── */
+    .cookie-banner {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--ink);
+      color: var(--white);
+      padding: 18px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      z-index: 200;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      transform: translateY(100%);
+      transition: transform .4s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+
+    .cookie-banner.visible { transform: translateY(0); }
+
+    .cookie-text {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.6;
+    }
+
+    .cookie-btn {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 8px 20px;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: transparent;
+      color: var(--white);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color .2s, background .2s;
+    }
+
+    .cookie-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.6); }
+
+    @media (max-width: 520px) {
+      .cookie-banner { flex-direction: column; align-items: flex-start; padding: 20px; }
+    }
 
     /* ─── AUTH MODAL ─── */
     .overlay {
@@ -425,7 +573,7 @@
       width: 100%;
       max-width: 400px;
       position: relative;
-      border: 1px solid var(--ink);
+      border: 1px solid rgba(0,0,0,0.15);
       animation: modalIn .25s ease;
     }
 
@@ -460,8 +608,9 @@
 
     .form-group label {
       display: block;
-      font-size: 11px;
-      font-weight: 600;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 400;
       letter-spacing: 1.5px;
       text-transform: uppercase;
       margin-bottom: 7px;
@@ -499,18 +648,21 @@
 
     /* ─── RESPONSIVE ─── */
     @media (max-width: 860px) {
-      .hero .inner { grid-template-columns: 1fr; gap: 40px; padding-top: 56px; padding-bottom: 48px; }
+      .hero .inner { grid-template-columns: 1fr; gap: 0; padding-top: 56px; padding-bottom: 0; min-height: auto; }
+      .hero-left { padding-right: 0; padding-bottom: 48px; }
       .hero-right { display: none; }
-      .steps { grid-template-columns: 1fr; }
-      .step { border-right: none; border-bottom: 1px solid var(--ink); padding: 32px 0 !important; }
-      .step:last-child { border-bottom: none; }
+      .step-editorial { grid-template-columns: 48px 1fr; padding: 36px 0; }
+      .step-content { padding-left: 24px; }
       .plans { grid-template-columns: 1fr; }
-      .plan { border-right: none; border-bottom: 1px solid var(--ink); }
+      .plan { border-right: none; border-bottom: 1px solid var(--rule); }
       .plan:last-child { border-bottom: none; }
       .plan.featured { border-bottom: 1px solid rgba(255,255,255,.15); }
       .pricing-header { flex-direction: column; align-items: flex-start; gap: 12px; }
       .pricing-note { text-align: left; }
-      footer .inner { flex-direction: column; align-items: flex-start; }
+      .footer-stats { grid-template-columns: 1fr; }
+      .footer-stat-col { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 32px 0 !important; }
+      .footer-stat-col:last-child { border-bottom: none; }
+      .footer-bottom { flex-direction: column; align-items: flex-start; gap: 10px; }
     }
 
     @media (max-width: 520px) {
@@ -539,26 +691,22 @@
 <section class="hero">
   <div class="inner">
     <div class="hero-left reveal">
-      <h1>Zakon se<br>promijenio?<br><em>Saznajte na prvoj<br>jutarnjoj kavi.</em><br>Nema iznenađenja.</h1>
+      <div class="hero-eyebrow">Monitoring V2.0 — Narodne novine, svaki radni dan</div>
+      <h1>
+        <span class="h1-display">ZAKON</span>
+        <em>se promijenio?</em>
+      </h1>
       <p class="hero-desc">Definirajte ključne riječi i primajte email obavijest čim se pojavi relevantan propis, pravilnik ili uredba — svako jutro, na vrijeme.</p>
       <div class="hero-actions">
-        <a href="#" class="btn btn-solid btn-lg" onclick="openModal('register')">Počnite besplatno</a>
+        <div class="btn-magnetic">
+          <a href="#" id="heroCta" class="btn btn-solid btn-lg" onclick="openModal('register')">Primi Sutrašnji Izvještaj</a>
+        </div>
         <a href="#pricing" class="btn btn-ghost btn-lg">Pogledajte planove</a>
       </div>
     </div>
 
-    <div class="hero-right reveal" style="transition-delay:.15s">
-      <div class="hero-stat-block">
-        <div class="hero-stat-num">07:00</div>
-        <div class="hero-stat-label">Svaki radni dan.</div>
-      </div>
-      <div class="hero-stat-block">
-        <div class="hero-stat-num">∞</div>
-        <div class="hero-stat-label">Propisa godišnje koje ne trebate pratiti ručno</div>
-      </div>
-      <blockquote class="hero-quote">
-        "Rizik nije u zakonu koji se promijenio — nego u onom koji niste primijetili."
-      </blockquote>
+    <div class="hero-right">
+      <div class="hero-vertical-label">Monitoring V2.0 · PratimZakon · HR</div>
     </div>
   </div>
 </section>
@@ -567,15 +715,21 @@
 <div class="ticker-wrap">
   <div class="ticker">
     <span>PratimZakon</span><span class="sep">·</span>
-    <span>Email obavijesti</span><span class="sep">·</span>
-    <span>Ključne riječi</span><span class="sep">·</span>
-    <span>Svaki radni dan</span><span class="sep">·</span>
-    <span>Jutarnja kava</span><span class="sep">·</span>
+    <span>Zakon o radu</span><span class="sep">·</span>
+    <span>PDV izmjene</span><span class="sep">·</span>
+    <span>GDPR</span><span class="sep">·</span>
+    <span>Ovršni zakon</span><span class="sep">·</span>
+    <span>Zakon o trgovačkim društvima</span><span class="sep">·</span>
+    <span>Porez na dobit</span><span class="sep">·</span>
+    <span>Zakon o zaštiti potrošača</span><span class="sep">·</span>
     <span>PratimZakon</span><span class="sep">·</span>
-    <span>Email obavijesti</span><span class="sep">·</span>
-    <span>Ključne riječi</span><span class="sep">·</span>
-    <span>Svaki radni dan</span><span class="sep">·</span>
-    <span>Jutarnja kava</span><span class="sep">·</span>
+    <span>Zakon o radu</span><span class="sep">·</span>
+    <span>PDV izmjene</span><span class="sep">·</span>
+    <span>GDPR</span><span class="sep">·</span>
+    <span>Ovršni zakon</span><span class="sep">·</span>
+    <span>Zakon o trgovačkim društvima</span><span class="sep">·</span>
+    <span>Porez na dobit</span><span class="sep">·</span>
+    <span>Zakon o zaštiti potrošača</span><span class="sep">·</span>
   </div>
 </div>
 
@@ -583,30 +737,38 @@
 <section class="how">
   <div class="inner">
     <div class="section-label">Kako funkcionira</div>
-    <div class="steps">
+    <div class="steps-editorial">
 
-      <div class="step reveal">
-        <div class="step-index">01</div>
-        <h3>Registrirajte se</h3>
-        <p>Kreirajte besplatni račun u manje od minute. Nisu potrebne kreditne kartice.</p>
-      </div>
-
-      <div class="step reveal" style="transition-delay:.1s">
-        <div class="step-index">02</div>
-        <h3>Dodajte ključne riječi</h3>
-        <p>Unesite pojmove koji vas zanimaju.</p>
-        <div class="kw-pills">
-          <span class="kw-pill">PDV</span>
-          <span class="kw-pill">poljoprivreda</span>
-          <span class="kw-pill">priroda</span>
+      <div class="step-editorial reveal-x">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h3>Registrirajte se</h3>
+          <p>Kreirajte besplatni račun u manje od minute. Nije potrebna kreditna kartica.</p>
         </div>
       </div>
 
-      <div class="step reveal" style="transition-delay:.2s">
-        <div class="step-index">03</div>
-        <h3>Primajte obavijesti</h3>
-        <div class="step-sub">Fokusirano u novi poslovni dan</div>
-        <p>Svaki radni dan šaljemo vam email s novim pogocima.</p>
+      <div class="step-editorial reveal-x" style="transition-delay:.15s">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h3>Dodajte ključne riječi</h3>
+          <p>Unesite pojmove koji vas zanimaju — zakon, pravilnik, uredba, djelatnost.</p>
+          <div class="kw-pills">
+            <span class="kw-pill">PDV</span>
+            <span class="kw-pill">zakon o radu</span>
+            <span class="kw-pill">porez na dobit</span>
+            <span class="kw-pill">ovršni zakon</span>
+            <span class="kw-pill">GDPR</span>
+            <span class="kw-pill">poljoprivreda</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-editorial reveal-x" style="transition-delay:.3s">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <h3>Primajte obavijesti</h3>
+          <p>Svaki radni dan u 07:00 šaljemo email s novim pogocima — samo ono što je relevantno za vas.</p>
+        </div>
       </div>
 
     </div>
@@ -621,36 +783,42 @@
       <div class="pricing-note">Bez obaveza. Plaćanje na mjesečnoj bazi. Otkažite kad želite.</div>
     </div>
 
-    <div class="plans reveal" style="transition-delay:.1s">
+    <div class="plans">
 
-      <div class="plan">
+      <div class="plan reveal">
         <div class="plan-name">Free</div>
-        <div class="plan-price">0</div>
-        <div class="plan-per">€ / mjesec</div>
+        <div class="plan-price">€0</div>
+        <div class="plan-per">/ mj.</div>
         <div class="plan-desc">Za početak, bez plaćanja.</div>
         <ul class="plan-features">
           <li>Do 3 ključne riječi</li>
           <li>Email obavijest</li>
+          <li class="missing">Do 10 ključnih riječi</li>
+          <li class="missing">Pretraga arhive (od 2015.)</li>
+          <li class="missing">Statistike i analitika</li>
         </ul>
         <a href="#" class="btn btn-ghost" onclick="openModal('register')">Počnite besplatno</a>
       </div>
 
-      <div class="plan featured">
+      <div class="plan featured reveal" style="transition-delay:.12s">
+        <div class="plan-badge">Popularno</div>
         <div class="plan-name">Basic</div>
-        <div class="plan-price">4,99</div>
-        <div class="plan-per">€ / mjesec</div>
+        <div class="plan-price">€4,99</div>
+        <div class="plan-per">/ mj.</div>
         <div class="plan-desc">Za profesionalce i tvrtke.</div>
         <ul class="plan-features">
           <li>Do 10 ključnih riječi</li>
           <li>Email obavijest</li>
+          <li class="missing">Pretraga arhive (od 2015.)</li>
+          <li class="missing">Statistike i analitika</li>
         </ul>
         <a href="#" class="btn btn-ghost" onclick="selectPlan('basic'); return false;">Odaberi Basic</a>
       </div>
 
-      <div class="plan">
+      <div class="plan reveal" style="transition-delay:.24s">
         <div class="plan-name">Plus</div>
-        <div class="plan-price">7,99</div>
-        <div class="plan-per">€ / mjesec</div>
+        <div class="plan-price">€7,99</div>
+        <div class="plan-per">/ mj.</div>
         <div class="plan-desc">Za agencije i veće timove.</div>
         <ul class="plan-features">
           <li>Do 20 ključnih riječi</li>
@@ -667,7 +835,21 @@
 
 <!-- FOOTER -->
 <footer>
-  <div class="inner">
+  <div class="inner footer-stats">
+    <div class="footer-stat-col">
+      <div class="footer-stat-num" data-counter="99.9" data-suffix="%">0%</div>
+      <div class="footer-stat-label">Uptime</div>
+    </div>
+    <div class="footer-stat-col">
+      <div class="footer-stat-num" data-counter="100" data-suffix="%">0%</div>
+      <div class="footer-stat-label">Točnost praćenja</div>
+    </div>
+    <div class="footer-stat-col">
+      <div class="footer-stat-num">07:00</div>
+      <div class="footer-stat-label">Svaki radni dan</div>
+    </div>
+  </div>
+  <div class="inner footer-bottom">
     <div class="footer-logo">PratimZakon</div>
     <div class="footer-meta">
       &copy; 2026 PratimZakon &nbsp;&middot;&nbsp;
@@ -675,6 +857,12 @@
     </div>
   </div>
 </footer>
+
+<!-- COOKIE BANNER -->
+<div class="cookie-banner" id="cookieBanner">
+  <div class="cookie-text">Koristimo kolačiće za poboljšanje iskustva.</div>
+  <button class="cookie-btn" onclick="acceptCookies()">Prihvati</button>
+</div>
 
 <!-- AUTH MODAL -->
 <div class="overlay" id="authOverlay" onclick="closeModal(event)">
@@ -701,6 +889,10 @@
       <h2>Prijava</h2>
       <div class="form-error" id="loginError"></div>
       <div class="form-success" id="loginSuccess"></div>
+      <div id="verifyPrompt" style="display:none;margin-bottom:14px;padding:12px 14px;background:#fefce8;border-left:2px solid #ca8a04;font-size:13px;color:#92400e;line-height:1.6;">
+        Email adresa nije potvrđena.<br>
+        <a href="#" id="resendLink" onclick="resendVerification(); return false;" style="color:#92400e;font-weight:600;text-decoration:underline;">Pošalji verifikacijski link ponovo</a>
+      </div>
       <div class="form-group">
         <label>Email adresa</label>
         <input type="email" id="loginEmail" placeholder="vas@email.com">
@@ -718,10 +910,77 @@
 <script>
   const API = "https://pratimzakon.onrender.com";
 
+  async function fetchWithRetry(url, options, maxAttempts = 4) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const res = await fetch(url, { ...options, signal: AbortSignal.timeout(15000) });
+        return res;
+      } catch (e) {
+        if (attempt === maxAttempts) throw e;
+        await new Promise(r => setTimeout(r, attempt * 3000));
+      }
+    }
+  }
+
   const observer = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
   }, { threshold: .08 });
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  document.querySelectorAll('.reveal, .reveal-x').forEach(el => observer.observe(el));
+
+  // ─── MAGNETIC CTA ───
+  const heroCta = document.getElementById('heroCta');
+  if (heroCta) {
+    const wrap = heroCta.closest('.btn-magnetic');
+    wrap.addEventListener('mousemove', (e) => {
+      const rect = heroCta.getBoundingClientRect();
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const dx = (e.clientX - cx) * 0.25;
+      const dy = (e.clientY - cy) * 0.25;
+      heroCta.style.transform = `translate(${dx}px, ${dy}px)`;
+    });
+    wrap.addEventListener('mouseleave', () => {
+      heroCta.style.transform = '';
+    });
+  }
+
+  // ─── ANIMATED COUNTERS ───
+  function animateCounter(el) {
+    const target = parseFloat(el.dataset.counter);
+    const suffix = el.dataset.suffix || '';
+    const isDecimal = target % 1 !== 0;
+    const duration = 1600;
+    const start = performance.now();
+    function step(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const value = target * eased;
+      el.textContent = (isDecimal ? value.toFixed(1) : Math.floor(value)) + suffix;
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  const counterObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && e.target.dataset.counter) {
+        animateCounter(e.target);
+        counterObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: .6 });
+
+  document.querySelectorAll('[data-counter]').forEach(el => counterObserver.observe(el));
+
+  // ─── COOKIE BANNER ───
+  function acceptCookies() {
+    document.getElementById('cookieBanner').classList.remove('visible');
+    localStorage.setItem('cookiesAccepted', '1');
+  }
+
+  if (!localStorage.getItem('cookiesAccepted')) {
+    setTimeout(() => document.getElementById('cookieBanner').classList.add('visible'), 1400);
+  }
 
   function openModal(type) {
     document.getElementById("authOverlay").classList.add("active");
@@ -751,12 +1010,20 @@
       errEl.textContent = "Unesite valjanu email adresu i lozinku (min. 8 znakova).";
       errEl.style.display = "block"; return;
     }
-    btn.disabled = true; btn.textContent = "Registracija...";
+    btn.disabled = true; btn.textContent = "Spajanje na server...";
+    const body = JSON.stringify({ email, password });
+    const opts = { method: "POST", headers: {"Content-Type": "application/json"}, body };
     try {
-      const res = await fetch(`${API}/auth/register`, {
-        method: "POST", headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ email, password })
-      });
+      let res;
+      try {
+        res = await fetch(`${API}/auth/register`, { ...opts, signal: AbortSignal.timeout(12000) });
+      } catch {
+        btn.textContent = "Server se budi (30–50 sek)...";
+        errEl.textContent = "⏳ Server se pokreće, molimo pričekajte...";
+        errEl.style.display = "block";
+        res = await fetchWithRetry(`${API}/auth/register`, opts);
+        errEl.style.display = "none";
+      }
       const data = await res.json();
       if (res.ok) {
         okEl.textContent = "Registracija uspješna! Možete se prijaviti.";
@@ -772,7 +1039,7 @@
         errEl.style.display = "block";
       }
     } catch (e) {
-      errEl.textContent = "Server nije dostupan. Pokušajte ponovo.";
+      errEl.textContent = "Server nije dostupan. Provjerite internetsku vezu i pokušajte ponovo.";
       errEl.style.display = "block";
     } finally {
       btn.disabled = false; btn.textContent = "Registriraj se";
@@ -785,25 +1052,62 @@
     const errEl = document.getElementById("loginError");
     const btn = document.getElementById("loginBtn");
     errEl.style.display = "none";
-    btn.disabled = true; btn.textContent = "Prijava...";
+    document.getElementById("verifyPrompt").style.display = "none";
+    btn.disabled = true; btn.textContent = "Spajanje na server...";
+    const body = JSON.stringify({ email, password });
+    const opts = { method: "POST", headers: {"Content-Type": "application/json"}, body };
     try {
-      const res = await fetch(`${API}/auth/login`, {
-        method: "POST", headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ email, password })
-      });
+      let res;
+      try {
+        res = await fetch(`${API}/auth/login`, { ...opts, signal: AbortSignal.timeout(12000) });
+      } catch {
+        btn.textContent = "Server se budi (30–50 sek)...";
+        errEl.textContent = "⏳ Server se pokreće, molimo pričekajte...";
+        errEl.style.display = "block";
+        res = await fetchWithRetry(`${API}/auth/login`, opts);
+        errEl.style.display = "none";
+      }
       const data = await res.json();
       if (res.ok) {
         localStorage.setItem("token", data.access_token);
         window.location.href = "dashboard.html";
+      } else if (res.status === 403) {
+        document.getElementById("verifyPrompt").style.display = "block";
+        btn.disabled = false; btn.textContent = "Prijavi se";
       } else {
         errEl.textContent = data.detail || "Pogrešan email ili lozinka.";
         errEl.style.display = "block";
         btn.disabled = false; btn.textContent = "Prijavi se";
       }
     } catch (e) {
-      errEl.textContent = "Server nije dostupan. Pokušajte ponovo.";
+      errEl.textContent = "Server nije dostupan. Provjerite internetsku vezu i pokušajte ponovo.";
       errEl.style.display = "block";
       btn.disabled = false; btn.textContent = "Prijavi se";
+    }
+  }
+
+  async function resendVerification() {
+    const email = document.getElementById("loginEmail").value;
+    const link = document.getElementById("resendLink");
+    const okEl = document.getElementById("loginSuccess");
+    if (!email) {
+      document.getElementById("loginError").textContent = "Unesite email adresu.";
+      document.getElementById("loginError").style.display = "block";
+      return;
+    }
+    link.textContent = "Šalje se...";
+    try {
+      await fetch(`${API}/auth/resend-verification`, {
+        method: "POST", headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ email })
+      });
+      document.getElementById("verifyPrompt").style.display = "none";
+      okEl.textContent = "Link za verifikaciju poslan. Provjerite inbox.";
+      okEl.style.display = "block";
+    } catch (e) {
+      link.textContent = "Pošalji verifikacijski link ponovo";
+      document.getElementById("loginError").textContent = "Server nije dostupan. Pokušajte ponovo.";
+      document.getElementById("loginError").style.display = "block";
     }
   }
 
