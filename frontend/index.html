@@ -456,14 +456,45 @@
     /* ─── FOOTER ─── */
     footer { background: var(--ink); color: var(--white); }
 
-    footer .inner {
+    .footer-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .footer-stat-col {
+      padding: 52px 0;
+      border-right: 1px solid rgba(255,255,255,0.08);
+      padding-right: 40px;
+    }
+
+    .footer-stat-col:last-child { border-right: none; padding-left: 40px; padding-right: 0; }
+    .footer-stat-col:nth-child(2) { padding-left: 40px; }
+
+    .footer-stat-num {
+      font-family: var(--serif);
+      font-size: clamp(36px, 5vw, 56px);
+      font-weight: 700;
+      line-height: 1;
+      margin-bottom: 10px;
+    }
+
+    .footer-stat-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: rgba(255,255,255,0.4);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .footer-bottom {
       display: flex;
       justify-content: space-between;
       align-items: center;
       flex-wrap: wrap;
       gap: 16px;
-      padding-top: 40px;
-      padding-bottom: 40px;
+      padding-top: 28px;
+      padding-bottom: 28px;
     }
 
     .footer-logo { font-family: var(--serif); font-size: 18px; font-weight: 700; }
@@ -471,6 +502,55 @@
     .footer-meta { font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: .3px; }
     .footer-meta a { color: rgba(255,255,255,.4); transition: color .15s; }
     .footer-meta a:hover { color: rgba(255,255,255,.8); }
+
+    /* ─── COOKIE BANNER ─── */
+    .cookie-banner {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--ink);
+      color: var(--white);
+      padding: 18px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 24px;
+      z-index: 200;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      transform: translateY(100%);
+      transition: transform .4s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+
+    .cookie-banner.visible { transform: translateY(0); }
+
+    .cookie-text {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.6;
+    }
+
+    .cookie-btn {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 8px 20px;
+      border: 1px solid rgba(255,255,255,0.3);
+      background: transparent;
+      color: var(--white);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color .2s, background .2s;
+    }
+
+    .cookie-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.6); }
+
+    @media (max-width: 520px) {
+      .cookie-banner { flex-direction: column; align-items: flex-start; padding: 20px; }
+    }
 
     /* ─── AUTH MODAL ─── */
     .overlay {
@@ -579,7 +659,10 @@
       .plan.featured { border-bottom: 1px solid rgba(255,255,255,.15); }
       .pricing-header { flex-direction: column; align-items: flex-start; gap: 12px; }
       .pricing-note { text-align: left; }
-      footer .inner { flex-direction: column; align-items: flex-start; }
+      .footer-stats { grid-template-columns: 1fr; }
+      .footer-stat-col { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 32px 0 !important; }
+      .footer-stat-col:last-child { border-bottom: none; }
+      .footer-bottom { flex-direction: column; align-items: flex-start; gap: 10px; }
     }
 
     @media (max-width: 520px) {
@@ -700,9 +783,9 @@
       <div class="pricing-note">Bez obaveza. Plaćanje na mjesečnoj bazi. Otkažite kad želite.</div>
     </div>
 
-    <div class="plans reveal" style="transition-delay:.1s">
+    <div class="plans">
 
-      <div class="plan">
+      <div class="plan reveal">
         <div class="plan-name">Free</div>
         <div class="plan-price">€0</div>
         <div class="plan-per">/ mj.</div>
@@ -717,7 +800,7 @@
         <a href="#" class="btn btn-ghost" onclick="openModal('register')">Počnite besplatno</a>
       </div>
 
-      <div class="plan featured">
+      <div class="plan featured reveal" style="transition-delay:.12s">
         <div class="plan-badge">Popularno</div>
         <div class="plan-name">Basic</div>
         <div class="plan-price">€4,99</div>
@@ -732,7 +815,7 @@
         <a href="#" class="btn btn-ghost" onclick="selectPlan('basic'); return false;">Odaberi Basic</a>
       </div>
 
-      <div class="plan">
+      <div class="plan reveal" style="transition-delay:.24s">
         <div class="plan-name">Plus</div>
         <div class="plan-price">€7,99</div>
         <div class="plan-per">/ mj.</div>
@@ -752,7 +835,21 @@
 
 <!-- FOOTER -->
 <footer>
-  <div class="inner">
+  <div class="inner footer-stats">
+    <div class="footer-stat-col">
+      <div class="footer-stat-num" data-counter="99.9" data-suffix="%">0%</div>
+      <div class="footer-stat-label">Uptime</div>
+    </div>
+    <div class="footer-stat-col">
+      <div class="footer-stat-num" data-counter="100" data-suffix="%">0%</div>
+      <div class="footer-stat-label">Točnost praćenja</div>
+    </div>
+    <div class="footer-stat-col">
+      <div class="footer-stat-num">07:00</div>
+      <div class="footer-stat-label">Svaki radni dan</div>
+    </div>
+  </div>
+  <div class="inner footer-bottom">
     <div class="footer-logo">PratimZakon</div>
     <div class="footer-meta">
       &copy; 2026 PratimZakon &nbsp;&middot;&nbsp;
@@ -760,6 +857,12 @@
     </div>
   </div>
 </footer>
+
+<!-- COOKIE BANNER -->
+<div class="cookie-banner" id="cookieBanner">
+  <div class="cookie-text">Koristimo kolačiće za poboljšanje iskustva.</div>
+  <button class="cookie-btn" onclick="acceptCookies()">Prihvati</button>
+</div>
 
 <!-- AUTH MODAL -->
 <div class="overlay" id="authOverlay" onclick="closeModal(event)">
@@ -839,6 +942,44 @@
     wrap.addEventListener('mouseleave', () => {
       heroCta.style.transform = '';
     });
+  }
+
+  // ─── ANIMATED COUNTERS ───
+  function animateCounter(el) {
+    const target = parseFloat(el.dataset.counter);
+    const suffix = el.dataset.suffix || '';
+    const isDecimal = target % 1 !== 0;
+    const duration = 1600;
+    const start = performance.now();
+    function step(now) {
+      const progress = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const value = target * eased;
+      el.textContent = (isDecimal ? value.toFixed(1) : Math.floor(value)) + suffix;
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  const counterObserver = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting && e.target.dataset.counter) {
+        animateCounter(e.target);
+        counterObserver.unobserve(e.target);
+      }
+    });
+  }, { threshold: .6 });
+
+  document.querySelectorAll('[data-counter]').forEach(el => counterObserver.observe(el));
+
+  // ─── COOKIE BANNER ───
+  function acceptCookies() {
+    document.getElementById('cookieBanner').classList.remove('visible');
+    localStorage.setItem('cookiesAccepted', '1');
+  }
+
+  if (!localStorage.getItem('cookiesAccepted')) {
+    setTimeout(() => document.getElementById('cookieBanner').classList.add('visible'), 1400);
   }
 
   function openModal(type) {
