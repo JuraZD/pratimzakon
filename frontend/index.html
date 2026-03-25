@@ -722,6 +722,18 @@
 <script>
   const API = "https://pratimzakon.onrender.com";
 
+  async function fetchWithRetry(url, options, maxAttempts = 4) {
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        const res = await fetch(url, { ...options, signal: AbortSignal.timeout(15000) });
+        return res;
+      } catch (e) {
+        if (attempt === maxAttempts) throw e;
+        await new Promise(r => setTimeout(r, attempt * 3000));
+      }
+    }
+  }
+
   const observer = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
   }, { threshold: .08 });
@@ -755,12 +767,20 @@
       errEl.textContent = "Unesite valjanu email adresu i lozinku (min. 8 znakova).";
       errEl.style.display = "block"; return;
     }
-    btn.disabled = true; btn.textContent = "Registracija...";
+    btn.disabled = true; btn.textContent = "Spajanje na server...";
+    const body = JSON.stringify({ email, password });
+    const opts = { method: "POST", headers: {"Content-Type": "application/json"}, body };
     try {
-      const res = await fetch(`${API}/auth/register`, {
-        method: "POST", headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ email, password })
-      });
+      let res;
+      try {
+        res = await fetch(`${API}/auth/register`, { ...opts, signal: AbortSignal.timeout(12000) });
+      } catch {
+        btn.textContent = "Server se budi (30–50 sek)...";
+        errEl.textContent = "⏳ Server se pokreće, molimo pričekajte...";
+        errEl.style.display = "block";
+        res = await fetchWithRetry(`${API}/auth/register`, opts);
+        errEl.style.display = "none";
+      }
       const data = await res.json();
       if (res.ok) {
         okEl.textContent = "Registracija uspješna! Možete se prijaviti.";
@@ -776,7 +796,7 @@
         errEl.style.display = "block";
       }
     } catch (e) {
-      errEl.textContent = "Server nije dostupan. Pokušajte ponovo.";
+      errEl.textContent = "Server nije dostupan. Provjerite internetsku vezu i pokušajte ponovo.";
       errEl.style.display = "block";
     } finally {
       btn.disabled = false; btn.textContent = "Registriraj se";
@@ -790,12 +810,20 @@
     const btn = document.getElementById("loginBtn");
     errEl.style.display = "none";
     document.getElementById("verifyPrompt").style.display = "none";
-    btn.disabled = true; btn.textContent = "Prijava...";
+    btn.disabled = true; btn.textContent = "Spajanje na server...";
+    const body = JSON.stringify({ email, password });
+    const opts = { method: "POST", headers: {"Content-Type": "application/json"}, body };
     try {
-      const res = await fetch(`${API}/auth/login`, {
-        method: "POST", headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({ email, password })
-      });
+      let res;
+      try {
+        res = await fetch(`${API}/auth/login`, { ...opts, signal: AbortSignal.timeout(12000) });
+      } catch {
+        btn.textContent = "Server se budi (30–50 sek)...";
+        errEl.textContent = "⏳ Server se pokreće, molimo pričekajte...";
+        errEl.style.display = "block";
+        res = await fetchWithRetry(`${API}/auth/login`, opts);
+        errEl.style.display = "none";
+      }
       const data = await res.json();
       if (res.ok) {
         localStorage.setItem("token", data.access_token);
@@ -809,7 +837,7 @@
         btn.disabled = false; btn.textContent = "Prijavi se";
       }
     } catch (e) {
-      errEl.textContent = "Server nije dostupan. Pokušajte ponovo.";
+      errEl.textContent = "Server nije dostupan. Provjerite internetsku vezu i pokušajte ponovo.";
       errEl.style.display = "block";
       btn.disabled = false; btn.textContent = "Prijavi se";
     }
