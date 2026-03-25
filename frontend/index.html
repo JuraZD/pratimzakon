@@ -6,18 +6,21 @@
   <title>PratimZakon – Pratite Narodne novine bez napora</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --ink: #0d0d0d;
+      --ink: #111111;
       --paper: #f8f7f4;
       --white: #ffffff;
+      --bone: #F5F4F1;
       --mid: #6b6b6b;
-      --rule: #d4d0c9;
-      --serif: 'Playfair Display', Georgia, serif;
-      --sans: 'DM Sans', sans-serif;
+      --rule: rgba(0,0,0,0.12);
+      --red: #C41212;
+      --serif: 'Fraunces', Georgia, serif;
+      --mono: 'DM Mono', monospace;
+      --sans: 'Plus Jakarta Sans', sans-serif;
     }
 
     html { scroll-behavior: smooth; }
@@ -51,10 +54,12 @@
 
     /* ─── NAV ─── */
     nav {
-      border-bottom: 1px solid var(--ink);
+      border-bottom: 1px solid var(--rule);
       position: sticky;
       top: 0;
-      background: var(--white);
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       z-index: 50;
     }
 
@@ -80,36 +85,39 @@
     }
 
     .nav-links > a:first-child {
-      font-size: 13px;
-      font-weight: 500;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 400;
       color: var(--mid);
       padding: 0 16px;
       letter-spacing: .3px;
+      opacity: 0.7;
+      transition: opacity .2s;
     }
 
-    .nav-links > a:first-child:hover { color: var(--ink); }
+    .nav-links > a:first-child:hover { opacity: 0.6; color: var(--ink); }
 
     .btn {
       display: inline-block;
-      font-family: var(--sans);
-      font-size: 13px;
-      font-weight: 600;
+      font-family: var(--mono);
+      font-size: 12px;
+      font-weight: 500;
       letter-spacing: .4px;
       padding: 10px 22px;
       cursor: pointer;
       border: 1px solid var(--ink);
-      transition: background .18s, color .18s;
+      transition: background .2s, color .2s, border-color .2s;
     }
 
     .btn-ghost { background: transparent; color: var(--ink); }
-    .btn-ghost:hover { background: var(--ink); color: var(--white); }
+    .btn-ghost:hover { background: var(--bone); }
 
     .btn-solid { background: var(--ink); color: var(--white); }
     .btn-solid:hover { background: #2a2a2a; }
 
     /* ─── HERO ─── */
     .hero {
-      border-bottom: 1px solid var(--ink);
+      border-bottom: 1px solid var(--rule);
     }
 
     .hero .inner {
@@ -147,7 +155,7 @@
     .hero-right { padding-bottom: 8px; }
 
     .hero-stat-block {
-      border-top: 1px solid var(--ink);
+      border-top: 1px solid var(--rule);
       padding-top: 32px;
       margin-bottom: 32px;
     }
@@ -168,7 +176,7 @@
       font-style: italic;
       line-height: 1.6;
       color: var(--mid);
-      border-left: 2px solid var(--ink);
+      border-left: 1px solid var(--rule);
       padding-left: 20px;
     }
 
@@ -178,7 +186,7 @@
       background: var(--ink);
       color: var(--white);
       padding: 12px 0;
-      border-bottom: 1px solid var(--ink);
+      border-bottom: 1px solid var(--rule);
     }
 
     .ticker {
@@ -188,12 +196,13 @@
     }
 
     .ticker span {
+      font-family: var(--mono);
       font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 2px;
+      font-weight: 400;
+      letter-spacing: 1.5px;
       text-transform: uppercase;
-      padding: 0 40px;
-      opacity: .7;
+      padding: 0 36px;
+      opacity: .65;
     }
 
     .ticker span.sep { opacity: .25; }
@@ -206,7 +215,7 @@
     /* ─── HOW ─── */
     .how {
       background: var(--paper);
-      border-bottom: 1px solid var(--ink);
+      border-bottom: 1px solid var(--rule);
     }
 
     .how .inner {
@@ -215,8 +224,9 @@
     }
 
     .section-label {
+      font-family: var(--mono);
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 400;
       letter-spacing: 2.5px;
       text-transform: uppercase;
       color: var(--mid);
@@ -242,7 +252,7 @@
 
     .step {
       padding: 40px 48px 40px 0;
-      border-right: 1px solid var(--ink);
+      border-right: 1px solid var(--rule);
     }
 
     .step:last-child { border-right: none; padding-left: 48px; padding-right: 0; }
@@ -267,8 +277,9 @@
     }
 
     .step-sub {
-      font-size: 12px;
-      font-weight: 600;
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 400;
       letter-spacing: 1.5px;
       text-transform: uppercase;
       color: var(--mid);
@@ -281,14 +292,14 @@
 
     .kw-pill {
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 400;
       padding: 4px 12px;
-      border: 1px solid var(--ink);
+      border: 1px solid rgba(0,0,0,0.15);
       letter-spacing: .3px;
     }
 
     /* ─── PRICING ─── */
-    .pricing { border-bottom: 1px solid var(--ink); }
+    .pricing { border-bottom: 1px solid var(--rule); }
 
     .pricing .inner {
       padding-top: 96px;
@@ -311,22 +322,23 @@
     }
 
     .pricing-note {
-      font-size: 13px;
+      font-family: var(--mono);
+      font-size: 12px;
       color: var(--mid);
       max-width: 200px;
       text-align: right;
-      line-height: 1.6;
+      line-height: 1.7;
     }
 
     .plans {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      border: 1px solid var(--ink);
+      border: 1px solid var(--rule);
     }
 
     .plan {
       padding: 36px 32px;
-      border-right: 1px solid var(--ink);
+      border-right: 1px solid var(--rule);
       display: flex;
       flex-direction: column;
     }
@@ -335,8 +347,9 @@
     .plan.featured { background: var(--ink); color: var(--white); }
 
     .plan-name {
+      font-family: var(--mono);
       font-size: 11px;
-      font-weight: 600;
+      font-weight: 400;
       letter-spacing: 2.5px;
       text-transform: uppercase;
       opacity: .5;
@@ -352,7 +365,7 @@
       margin-bottom: 4px;
     }
 
-    .plan-per { font-size: 13px; opacity: .5; margin-bottom: 20px; }
+    .plan-per { font-family: var(--mono); font-size: 12px; opacity: .5; margin-bottom: 20px; }
 
     .plan-desc { font-size: 13px; opacity: .55; margin-bottom: 28px; line-height: 1.6; }
 
@@ -400,7 +413,7 @@
 
     .footer-logo { font-family: var(--serif); font-size: 18px; font-weight: 700; }
 
-    .footer-meta { font-size: 12px; color: rgba(255,255,255,.4); letter-spacing: .3px; }
+    .footer-meta { font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: .3px; }
     .footer-meta a { color: rgba(255,255,255,.4); transition: color .15s; }
     .footer-meta a:hover { color: rgba(255,255,255,.8); }
 
@@ -425,7 +438,7 @@
       width: 100%;
       max-width: 400px;
       position: relative;
-      border: 1px solid var(--ink);
+      border: 1px solid rgba(0,0,0,0.15);
       animation: modalIn .25s ease;
     }
 
@@ -460,8 +473,9 @@
 
     .form-group label {
       display: block;
-      font-size: 11px;
-      font-weight: 600;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 400;
       letter-spacing: 1.5px;
       text-transform: uppercase;
       margin-bottom: 7px;
@@ -502,10 +516,10 @@
       .hero .inner { grid-template-columns: 1fr; gap: 40px; padding-top: 56px; padding-bottom: 48px; }
       .hero-right { display: none; }
       .steps { grid-template-columns: 1fr; }
-      .step { border-right: none; border-bottom: 1px solid var(--ink); padding: 32px 0 !important; }
+      .step { border-right: none; border-bottom: 1px solid var(--rule); padding: 32px 0 !important; }
       .step:last-child { border-bottom: none; }
       .plans { grid-template-columns: 1fr; }
-      .plan { border-right: none; border-bottom: 1px solid var(--ink); }
+      .plan { border-right: none; border-bottom: 1px solid var(--rule); }
       .plan:last-child { border-bottom: none; }
       .plan.featured { border-bottom: 1px solid rgba(255,255,255,.15); }
       .pricing-header { flex-direction: column; align-items: flex-start; gap: 12px; }
