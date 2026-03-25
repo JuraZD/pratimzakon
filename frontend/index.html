@@ -52,6 +52,13 @@
     }
     .reveal.visible { opacity: 1; transform: none; }
 
+    .reveal-x {
+      opacity: 0;
+      transform: translateX(-20px);
+      transition: opacity .6s cubic-bezier(0.19, 1, 0.22, 1), transform .6s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+    .reveal-x.visible { opacity: 1; transform: none; }
+
     /* ─── NAV ─── */
     nav {
       border-bottom: 1px solid var(--rule);
@@ -272,49 +279,45 @@
       background: var(--mid);
     }
 
-    .steps {
+    .steps-editorial {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .step-editorial {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 0;
+      grid-template-columns: 80px 1fr;
+      border-bottom: 1px solid var(--rule);
+      padding: 52px 0;
     }
 
-    .step {
-      padding: 40px 48px 40px 0;
-      border-right: 1px solid var(--rule);
-    }
+    .step-editorial:last-child { border-bottom: none; }
 
-    .step:last-child { border-right: none; padding-left: 48px; padding-right: 0; }
-    .step:nth-child(2) { padding-left: 48px; padding-right: 48px; }
-
-    .step-index {
-      font-family: var(--serif);
-      font-size: 64px;
-      font-weight: 900;
-      line-height: 1;
-      color: var(--rule);
-      margin-bottom: 20px;
-      letter-spacing: -2px;
-    }
-
-    .step h3 {
-      font-family: var(--serif);
-      font-size: 22px;
-      font-weight: 700;
-      margin-bottom: 8px;
-      letter-spacing: -.3px;
-    }
-
-    .step-sub {
+    .step-num {
       font-family: var(--mono);
-      font-size: 11px;
+      font-size: 12px;
       font-weight: 400;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
       color: var(--mid);
-      margin-bottom: 12px;
+      letter-spacing: 1px;
+      padding-top: 6px;
+      opacity: 0.4;
     }
 
-    .step p { font-size: 14px; color: var(--mid); line-height: 1.75; }
+    .step-content {
+      padding-left: 48px;
+      border-left: 1px solid var(--rule);
+    }
+
+    .step-content h3 {
+      font-family: var(--serif);
+      font-size: clamp(22px, 2.5vw, 30px);
+      font-weight: 700;
+      margin-bottom: 12px;
+      letter-spacing: -.3px;
+      line-height: 1.2;
+    }
+
+    .step-content p { font-size: 15px; color: var(--mid); line-height: 1.75; }
 
     .kw-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
 
@@ -369,6 +372,22 @@
       border-right: 1px solid var(--rule);
       display: flex;
       flex-direction: column;
+      position: relative;
+    }
+
+    .plan-badge {
+      position: absolute;
+      top: -13px;
+      right: 28px;
+      background: var(--ink);
+      color: var(--white);
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 4px 12px;
+      transform: rotate(3deg);
     }
 
     .plan:last-child { border-right: none; }
@@ -385,11 +404,11 @@
     }
 
     .plan-price {
-      font-family: var(--serif);
+      font-family: var(--mono);
       font-size: 48px;
-      font-weight: 700;
+      font-weight: 500;
       line-height: 1;
-      letter-spacing: -1px;
+      letter-spacing: -2px;
       margin-bottom: 4px;
     }
 
@@ -412,13 +431,21 @@
     .plan.featured .plan-features li { border-color: rgba(255,255,255,.12); }
 
     .plan-features li::before {
-      content: '';
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background: currentColor;
+      content: '→';
+      font-family: var(--mono);
+      font-size: 11px;
       flex-shrink: 0;
-      opacity: .4;
+      opacity: .35;
+    }
+
+    .plan-features li.missing {
+      opacity: 0.3;
+      text-decoration: line-through;
+    }
+
+    .plan-features li.missing::before {
+      content: '–';
+      text-decoration: none;
     }
 
     .plan .btn { width: 100%; text-align: center; display: block; }
@@ -544,9 +571,8 @@
       .hero .inner { grid-template-columns: 1fr; gap: 0; padding-top: 56px; padding-bottom: 0; min-height: auto; }
       .hero-left { padding-right: 0; padding-bottom: 48px; }
       .hero-right { display: none; }
-      .steps { grid-template-columns: 1fr; }
-      .step { border-right: none; border-bottom: 1px solid var(--rule); padding: 32px 0 !important; }
-      .step:last-child { border-bottom: none; }
+      .step-editorial { grid-template-columns: 48px 1fr; padding: 36px 0; }
+      .step-content { padding-left: 24px; }
       .plans { grid-template-columns: 1fr; }
       .plan { border-right: none; border-bottom: 1px solid var(--rule); }
       .plan:last-child { border-bottom: none; }
@@ -628,30 +654,38 @@
 <section class="how">
   <div class="inner">
     <div class="section-label">Kako funkcionira</div>
-    <div class="steps">
+    <div class="steps-editorial">
 
-      <div class="step reveal">
-        <div class="step-index">01</div>
-        <h3>Registrirajte se</h3>
-        <p>Kreirajte besplatni račun u manje od minute. Nisu potrebne kreditne kartice.</p>
-      </div>
-
-      <div class="step reveal" style="transition-delay:.1s">
-        <div class="step-index">02</div>
-        <h3>Dodajte ključne riječi</h3>
-        <p>Unesite pojmove koji vas zanimaju.</p>
-        <div class="kw-pills">
-          <span class="kw-pill">PDV</span>
-          <span class="kw-pill">poljoprivreda</span>
-          <span class="kw-pill">priroda</span>
+      <div class="step-editorial reveal-x">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <h3>Registrirajte se</h3>
+          <p>Kreirajte besplatni račun u manje od minute. Nije potrebna kreditna kartica.</p>
         </div>
       </div>
 
-      <div class="step reveal" style="transition-delay:.2s">
-        <div class="step-index">03</div>
-        <h3>Primajte obavijesti</h3>
-        <div class="step-sub">Fokusirano u novi poslovni dan</div>
-        <p>Svaki radni dan šaljemo vam email s novim pogocima.</p>
+      <div class="step-editorial reveal-x" style="transition-delay:.15s">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <h3>Dodajte ključne riječi</h3>
+          <p>Unesite pojmove koji vas zanimaju — zakon, pravilnik, uredba, djelatnost.</p>
+          <div class="kw-pills">
+            <span class="kw-pill">PDV</span>
+            <span class="kw-pill">zakon o radu</span>
+            <span class="kw-pill">porez na dobit</span>
+            <span class="kw-pill">ovršni zakon</span>
+            <span class="kw-pill">GDPR</span>
+            <span class="kw-pill">poljoprivreda</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="step-editorial reveal-x" style="transition-delay:.3s">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <h3>Primajte obavijesti</h3>
+          <p>Svaki radni dan u 07:00 šaljemo email s novim pogocima — samo ono što je relevantno za vas.</p>
+        </div>
       </div>
 
     </div>
@@ -670,32 +704,38 @@
 
       <div class="plan">
         <div class="plan-name">Free</div>
-        <div class="plan-price">0</div>
-        <div class="plan-per">€ / mjesec</div>
+        <div class="plan-price">€0</div>
+        <div class="plan-per">/ mj.</div>
         <div class="plan-desc">Za početak, bez plaćanja.</div>
         <ul class="plan-features">
           <li>Do 3 ključne riječi</li>
           <li>Email obavijest</li>
+          <li class="missing">Do 10 ključnih riječi</li>
+          <li class="missing">Pretraga arhive (od 2015.)</li>
+          <li class="missing">Statistike i analitika</li>
         </ul>
         <a href="#" class="btn btn-ghost" onclick="openModal('register')">Počnite besplatno</a>
       </div>
 
       <div class="plan featured">
+        <div class="plan-badge">Popularno</div>
         <div class="plan-name">Basic</div>
-        <div class="plan-price">4,99</div>
-        <div class="plan-per">€ / mjesec</div>
+        <div class="plan-price">€4,99</div>
+        <div class="plan-per">/ mj.</div>
         <div class="plan-desc">Za profesionalce i tvrtke.</div>
         <ul class="plan-features">
           <li>Do 10 ključnih riječi</li>
           <li>Email obavijest</li>
+          <li class="missing">Pretraga arhive (od 2015.)</li>
+          <li class="missing">Statistike i analitika</li>
         </ul>
         <a href="#" class="btn btn-ghost" onclick="selectPlan('basic'); return false;">Odaberi Basic</a>
       </div>
 
       <div class="plan">
         <div class="plan-name">Plus</div>
-        <div class="plan-price">7,99</div>
-        <div class="plan-per">€ / mjesec</div>
+        <div class="plan-price">€7,99</div>
+        <div class="plan-per">/ mj.</div>
         <div class="plan-desc">Za agencije i veće timove.</div>
         <ul class="plan-features">
           <li>Do 20 ključnih riječi</li>
@@ -782,7 +822,7 @@
   const observer = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
   }, { threshold: .08 });
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+  document.querySelectorAll('.reveal, .reveal-x').forEach(el => observer.observe(el));
 
   // ─── MAGNETIC CTA ───
   const heroCta = document.getElementById('heroCta');
