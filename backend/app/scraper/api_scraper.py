@@ -157,12 +157,12 @@ def parse_act_jsonld(data, part: str, year: int, number: int, act_num: int) -> d
     if "@graph" in data:
         for item in data["@graph"]:
             if isinstance(item, dict) and any(
-                k in item for k in ("eli:title", "eli:passed_by", "eli:is_realized_by")
+                k in item for k in ("eli:title", "dcterms:title", "eli:passed_by", "eli:is_realized_by")
             ):
                 act = item
                 break
 
-    title = _extract_label(act.get("eli:title") or act.get("title", ""))
+    title = _extract_label(act.get("eli:title") or act.get("dcterms:title") or act.get("title", ""))
     institution = _extract_label(act.get("eli:passed_by") or act.get("passed_by", ""))
 
     doc_type_raw = _extract_label(act.get("eli:type_document") or act.get("type_document", ""))
