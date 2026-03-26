@@ -13,7 +13,7 @@ from ..limiter import limiter
 from ..database import get_db
 from ..models import User, Log
 from ..schemas import UserRegister, UserLogin, Token, UserOut, UserSettings
-from ..auth import hash_password, verify_password, create_access_token, get_current_user
+from ..auth import hash_password, verify_password, create_access_token, get_current_user, user_has_plan
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -278,7 +278,7 @@ def update_settings(
     current_user: User = Depends(get_current_user),
 ):
     """Ažurira korisničke postavke (npr. include_mu). MU dostupan samo Pro/Expert."""
-    if data.include_mu and current_user.plan == "free":
+    if data.include_mu and not user_has_plan(current_user, "plus", "expert"):
         raise HTTPException(status_code=403, detail="MU dostupan uz Pro ili Expert paket")
     current_user.include_mu = data.include_mu
     db.commit()

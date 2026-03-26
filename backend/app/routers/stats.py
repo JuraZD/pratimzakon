@@ -12,7 +12,7 @@ from sqlalchemy import func, extract
 
 from ..database import get_db
 from ..models import Document, User
-from ..auth import get_current_user
+from ..auth import get_current_user, user_has_plan
 
 router = APIRouter(prefix="/stats", tags=["stats"])
 
@@ -40,7 +40,7 @@ def get_stats(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if getattr(current_user, "plan_type", "free") not in ("plus", "expert"):
+    if not user_has_plan(current_user, "plus", "expert"):
         raise HTTPException(
             status_code=403,
             detail="Statistike su dostupne samo korisnicima Plus paketa.",
