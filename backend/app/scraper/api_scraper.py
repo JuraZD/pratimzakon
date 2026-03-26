@@ -19,7 +19,7 @@ import logging
 import os
 import re
 import sys
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from typing import Optional
 
 import dotenv
@@ -356,7 +356,7 @@ async def _run(year_from: int, year_to: int, dry_run: bool = False, min_editions
     lookup = build_lookup(db)
     logging.info(f"Učitano {len(lookup)} postojećih dokumenata iz baze")
 
-    run_start = datetime.utcnow()
+    run_start = datetime.now(timezone.utc).replace(tzinfo=None)
     total_updated = total_inserted = total_failed = 0
 
     headers = {
