@@ -279,6 +279,20 @@ def upsert_document(db, parsed: dict, lookup: dict) -> str:
 
 # ── Core runner ───────────────────────────────────────────────────────────────
 
+async def _fetch_by_url(session: aiohttp.ClientSession, sem: asyncio.Semaphore, url: str) -> Optional[dict]:
+    """Dohvaća punu JSON-LD reprezentaciju akta direktno s URL-a (za @id reference)."""
+    async with sem:
+        try:
+            async with session.get(url, headers={"Accept": "application/ld+json"}) as resp:
+                if resp.status == 404:
+                    return None
+                resp.raise_for_status()
+                return await resp.json(content_type=None)
+        except Exception as e:
+            logging.warning(f"GET {url} neuspješan: {e}")
+            return None
+
+
 async def _process_edition(session, sem, db, lookup, part: str, year: int, number: int) -> tuple[int, int, int]:
     """Obradi jedno izdanje. Vraća (updated, inserted, failed)."""
     act_nums = await fetch_acts(session, sem, part, year, number)
@@ -294,6 +308,9 @@ async def _process_edition(session, sem, db, lookup, part: str, year: int, numbe
         if not data:
             failed += 1
             continue
+        # API ponekad vraća samo {'@id': url} — dohvati punu JSON-LD via URL
+        if isinstance(data, dict) and set(data.keys()) == {"@id"}:
+            data = await _fetch_by_url(session, sem, data["@id"]) or data
         parsed = parse_act_jsonld(data, part, year, number, act_num)
         outcome = upsert_document(db, parsed, lookup)
         if outcome == "updated":
