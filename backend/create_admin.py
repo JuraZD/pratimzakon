@@ -1,6 +1,8 @@
-# =========================
-# backend/migrate.py
-# =========================
+# 0) provjeri da si u rootu repo-a
+cd /workspaces/pratimzakon
+
+# 1) popravi backend/migrate.py (OVO mora biti "čist" file, bez admina/lozinki)
+cat > backend/migrate.py <<'PY'
 #!/usr/bin/env python3
 """
 backend/migrate.py
@@ -70,11 +72,10 @@ def run() -> None:
 
 if __name__ == "__main__":
     run()
+PY
 
-
-# =========================
-# backend/create_admin.py
-# =========================
+# 2) kreiraj backend/create_admin.py (ovdje je OK da postoji "12345" u listi zabranjenih lozinki)
+cat > backend/create_admin.py <<'PY'
 #!/usr/bin/env python3
 """
 backend/create_admin.py
@@ -191,38 +192,20 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+PY
 
+# 3) dopuni backend/.env.template ako fali ADMIN_PASSWORD (one-off)
+grep -q "^ADMIN_PASSWORD=" backend/.env.template || printf "\n\n# One-off: koristi se samo za backend/create_admin.py (NE za runtime aplikacije)\nADMIN_PASSWORD=your-very-long-random-password\n" >> backend/.env.template
 
-# =========================
-# backend/.env.template  (CIJELI FILE, ažuriran)
-# =========================
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/pratimzakon
+# 4) validacije
+chmod +x backend/migrate.py backend/create_admin.py || true
+python -m py_compile backend/migrate.py backend/create_admin.py
 
-# JWT
-SECRET_KEY=your-secret-key-min-32-chars
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=10080
+# 5) mora biti OK (migrate.py ne smije sadržavati 12345/admin@admin.com/ensure_admin)
+grep -nE "admin@admin.com|12345|ensure_admin" backend/migrate.py || echo "OK: migrate.py je čist"
 
-# SMTP Email
-SMTP_SERVER=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USERNAME=your@email.com
-SMTP_PASSWORD=your-app-password
-FROM_EMAIL=your@email.com
-FROM_NAME=PratimZakon
-
-# Stripe
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-STRIPE_PRICE_BASIC=price_...
-STRIPE_PRICE_PLUS=price_...
-
-# App
-BASE_URL=https://your-backend.onrender.com
-FRONTEND_URL=https://your-user.github.io/pratimzakon
-
-ADMIN_EMAIL=admin@your-domain.com
-
-# One-off: koristi se samo za backend/create_admin.py (NE za runtime aplikacije)
-ADMIN_PASSWORD=your-very-long-random-password
+# 6) commit/push (ti si već na branchu hotfix/p0-remove-default-main; ovo push-a taj branch)
+git status
+git add backend/migrate.py backend/create_admin.py backend/.env.template
+git commit -m "Hotfix(P0): remove default admin seeding; add create_admin one-off script"
+git push -u origin HEAD
