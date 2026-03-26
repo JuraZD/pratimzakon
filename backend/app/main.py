@@ -1,25 +1,44 @@
+from __future__ import annotations
+
 import logging
 import os
-from urllib.parse import urlparse
 from contextlib import asynccontextmanager
+from urllib.parse import urlparse
+
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from starlette.middleware.base import BaseHTTPMiddleware
-from starlette.requests import Request
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
-from .limiter import limiter
-from dotenv import load_dotenv
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
 
-from .database import engine, Base
-from .routers import auth, keywords, stripe_router, admin, search, stats
+from .database import Base, engine
+from .limiter import limiter
 from .migrate_db import run_migrations
+from .routers import admin, auth, keywords, search, stats, stripe_router
 
 load_dotenv()
 
 logger = logging.getLogger(__name__)
+ENV = os.getenv("ENV", "production").strip().lower()
 
-ENV = os.getenv("ENV", "production")
+
+def _require_secure_secret_key() -> None:
+    secret = os.getenv("SECRET_KEY", "").strip()
+    placeholders = {"change-me-in-production", "your-secret-key-min-32-chars"}
+
+    if ENV != "production":
+        return
+
+    if not secret or secret in placeholders or len(secret) < 32:
+        raise RuntimeError(
+            "SECURITY ERROR: SECRET_KEY must be set to a random 32+ char value in production. "
+            "Set SECRET_KEY in hosting env vars."
+        )
+
+
+_require_secure_secret_key()
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -29,7 +48,6 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
-        # HSTS samo na HTTPS (production)
         if ENV == "production":
             response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         return response
@@ -37,15 +55,14 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Pokrenemo migracije kao background task — yield odmah da Render detektira port
     import asyncio
 
-    async def _run_db_setup():
+    async def _run_db_setup() -> None:
         try:
             await asyncio.to_thread(lambda: Base.metadata.create_all(bind=engine))
             await asyncio.to_thread(run_migrations)
-        except Exception as e:
-            logger.error(f"DB startup error: {e}")
+        except Exception:
+            logger.exception("DB startup error")
 
     asyncio.create_task(_run_db_setup())
     yield
@@ -62,17 +79,16 @@ app = FastAPI(
     redoc_url=_redoc_url,
     openapi_url=None if ENV == "production" else "/openapi.json",
 )
+
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost")
 
-# Podržava više origina odvojenih zarezom u FRONTEND_URL env varijabli
-# Npr: FRONTEND_URL=https://jurazd.github.io,https://pratimzakon.hr
 _extra_origins = [
-        f"{urlparse(o.strip()).scheme}://{urlparse(o.strip()).netloc}"
-        for o in FRONTEND_URL.split(",")
-        if o.strip()
+    f"{urlparse(o.strip()).scheme}://{urlparse(o.strip()).netloc}"
+    for o in FRONTEND_URL.split(",")
+    if o.strip()
 ]
 ALLOWED_ORIGINS = _extra_origins + [
     "http://localhost:3000",
