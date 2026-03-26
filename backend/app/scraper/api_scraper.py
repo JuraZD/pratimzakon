@@ -280,17 +280,41 @@ def upsert_document(db, parsed: dict, lookup: dict) -> str:
 # ── Core runner ───────────────────────────────────────────────────────────────
 
 async def _fetch_by_url(session: aiohttp.ClientSession, sem: asyncio.Semaphore, url: str) -> Optional[dict]:
-    """Dohvaća punu JSON-LD reprezentaciju akta direktno s URL-a (za @id reference)."""
+    """Dohvaća punu JSON-LD reprezentaciju akta direktno s URL-a (za @id reference).
+    Pokušaj 1: Accept: application/ld+json (brzo, direktno).
+    Pokušaj 2: HTML stranica + izvlačenje embedded JSON-LD (fallback za nove objave).
+    """
+    import json as _json, re as _re
+
+    # Pokušaj 1: JSON-LD Accept header
     async with sem:
         try:
             async with session.get(url, headers={"Accept": "application/ld+json"}) as resp:
+                if resp.status != 404:
+                    resp.raise_for_status()
+                    return await resp.json(content_type=None)
+        except Exception as e:
+            logging.warning(f"GET JSON-LD {url} neuspješan: {e}")
+            return None
+
+    # Pokušaj 2: HTML + embedded JSON-LD (za akte koji još nemaju ELI JSON-LD)
+    async with sem:
+        try:
+            async with session.get(url) as resp:
                 if resp.status == 404:
                     return None
                 resp.raise_for_status()
-                return await resp.json(content_type=None)
+                html = await resp.text()
+                m = _re.search(
+                    r'<script[^>]+type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+                    html, _re.DOTALL
+                )
+                if m:
+                    return _json.loads(m.group(1))
         except Exception as e:
-            logging.warning(f"GET {url} neuspješan: {e}")
-            return None
+            logging.warning(f"GET HTML {url} neuspješan: {e}")
+
+    return None
 
 
 async def _process_edition(session, sem, db, lookup, part: str, year: int, number: int) -> tuple[int, int, int]:
