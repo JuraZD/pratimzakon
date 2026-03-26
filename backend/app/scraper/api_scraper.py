@@ -24,6 +24,7 @@ from typing import Optional
 
 import dotenv
 
+# Učitaj dotenv i pripremi sys.path
 dotenv.load_dotenv(os.path.join(os.path.dirname(__file__), "../../.env"))
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../"))
 
@@ -33,17 +34,16 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()],
 )
 
+# Osnovne konstante
 BASE_URL = "https://narodne-novine.nn.hr"
-RATE_LIMIT = 3   # službeni NN API limit (req/s)
+RATE_LIMIT = 3  # službeni NN API limit (req/s)
 PARTS = ("SL", "MU")
 
 # Regex za izvlačenje act_num iz HTML URL-a
-# Format: /clanci/sluzbeni/YYYY_ISSUE_SEQ_ACTNUM.html
 ACT_NUM_RE = re.compile(r"_(\d+)\.html$")
 
 
 # ── HTTP helpers ──────────────────────────────────────────────────────────────
-
 async def _get(session: aiohttp.ClientSession, sem: asyncio.Semaphore, path: str):
     async with sem:
         try:
@@ -71,7 +71,6 @@ async def _post(session: aiohttp.ClientSession, sem: asyncio.Semaphore, path: st
 
 
 # ── API pozivi ────────────────────────────────────────────────────────────────
-
 async def fetch_years(session, sem) -> list[int]:
     data = await _get(session, sem, "/api/index")
     if isinstance(data, list):
@@ -101,7 +100,6 @@ async def fetch_act_jsonld(session, sem, part: str, year: int, number: int, act_
 
 
 # ── JSON-LD parsiranje ────────────────────────────────────────────────────────
-
 def _extract_label(obj) -> str:
     if obj is None:
         return ""
@@ -218,7 +216,6 @@ def parse_act_jsonld(data, part: str, year: int, number: int, act_num: int) -> d
 
 
 # ── DB upsert ─────────────────────────────────────────────────────────────────
-
 def build_lookup(db) -> dict[str, int]:
     """Gradi mapu act_num -> document.id za brzo pronalaženje postojećih dokumenata."""
     from app.models import Document
@@ -234,8 +231,10 @@ def upsert_document(db, parsed: dict, lookup: dict) -> str:
     """Ažurira postojeći ili umeće novi dokument. Vraća 'updated', 'inserted' ili 'skipped'."""
     from app.models import Document
 
-    act_num = parsed["act_num"]
-    existing_id = lookup.get(act_num)
+    act_num = parsed.get("act_num")
+    existing_id = None
+    if act_num:
+        existing_id = lookup.get(str(act_num))
 
     if isinstance(existing_id, int):
         doc = db.get(Document, existing_id)
@@ -258,7 +257,7 @@ def upsert_document(db, parsed: dict, lookup: dict) -> str:
         # već insertan u ovom runu
         return "skipped"
 
-    if not parsed["title"]:
+    if not parsed.get("title"):
         return "skipped"
 
     db.add(Document(
@@ -273,19 +272,110 @@ def upsert_document(db, parsed: dict, lookup: dict) -> str:
         part=parsed["part"],
         issue_number=parsed["issue_number"],
     ))
-    lookup[act_num] = True  # označi kao obrađen
+    if act_num:
+        lookup[str(act_num)] = True  # označi kao obrađen
     return "inserted"
 
 
-# ── Core runner ───────────────────────────────────────────────────────────────
+# ── HTML fallback scraper ────────────────────────────────────────────────────
+async def _scrape_html_issue(session: aiohttp.ClientSession, sem: asyncio.Semaphore, year: int, number: int, part: str) -> list[dict]:
+    """
+    HTML scraping via search.aspx. Podržava SL (kategorija=1) i MU (kategorija=2).
+    Vraća listu dokumenata s osnovnim metapodacima. Ako nema rezultata, vraća praznu listu.
+    """
+    kategorija = "1" if part == "SL" else "2"
+    params = {
+        "godina": year,
+        "broj": number,
+        "kategorija": kategorija,
+        "qtype": "1",
+        "pretraga": "da",
+        "sortiraj": "4",
+        "rpp": "100",
+    }
+    # Dohvat HTML stranice
+    async with sem:
+        try:
+            async with session.get(f"{BASE_URL}/search.aspx", params=params) as resp:
+                if resp.status != 200:
+                    logging.warning(f"HTML fallback search.aspx vrati status {resp.status} za {part} {year}/{number}")
+                    return []
+                html = await resp.text()
+        except Exception as e:
+            logging.warning(f"HTML fallback search.aspx neuspješan za {part} {year}/{number}: {e}")
+            return []
 
+    # Izvuci datum izdanja iz prve meta linije
+    published_date: Optional[date] = None
+    date_match = re.search(r'<div[^>]*class="official-number-and-date"[^>]*>(.*?)</div>', html, re.DOTALL)
+    if date_match:
+        meta_text = re.sub(r"<[^>]+>", "", date_match.group(1))
+        parts = [p.strip() for p in meta_text.split(",")]
+        if len(parts) >= 4:
+            pub_str = parts[3].rstrip(".").strip()
+            published_date = _parse_date(pub_str)
+
+    results: list[dict] = []
+    # Pattern za svaki item pretrage
+    item_pattern = re.compile(
+        r'<div[^>]*class="searchListItem"[^>]*>.*?'
+        r'<div[^>]*class="resultTitle"[^>]*>.*?<a[^>]*href="(?P<href>[^"]+)"[^>]*>(?P<title>.*?)</a>.*?</div>.*?'
+        r'<div[^>]*class="official-number-and-date"[^>]*>(?P<meta>.*?)</div>.*?</div>',
+        re.DOTALL
+    )
+
+    for m in item_pattern.finditer(html):
+        href = m.group("href")
+        raw_title = m.group("title")
+        # Izbaci HTML tagove iz naslova i ukloni završne brojeve
+        title_text = re.sub(r"<[^>]+>", "", raw_title)
+        naziv = re.sub(r"\s*\d+\s*$", "", title_text).strip()
+        # Absolutni link
+        link = href
+        if href and not href.startswith("http"):
+            link = BASE_URL + href
+        # Meta info: tip dokumenta i datum
+        meta_raw = m.group("meta")
+        meta_text = re.sub(r"<[^>]+>", "", meta_raw).strip()
+        meta_parts = [p.strip() for p in meta_text.split(",")]
+        doc_type: Optional[str] = None
+        pub_date_local: Optional[date] = None
+        if len(meta_parts) >= 3:
+            doc_type_raw = meta_parts[2].strip()
+            doc_type = doc_type_raw.upper() if doc_type_raw else None
+        if len(meta_parts) >= 4:
+            pub_str = meta_parts[3].rstrip(".").strip()
+            pub_date_local = _parse_date(pub_str)
+        pub_date_final = pub_date_local or published_date
+        # act_num iz href-a
+        act_num: Optional[str] = None
+        mm = ACT_NUM_RE.search(href)
+        if mm:
+            act_num = mm.group(1)
+        results.append({
+            "title": naziv,
+            "url": link,
+            "pdf_url": None,
+            "type": doc_type,
+            "institution": None,
+            "legal_area": None,
+            "date_document": None,
+            "published_date": pub_date_final,
+            "part": part,
+            "issue_number": number,
+            "act_num": act_num,
+        })
+    logging.info(f"HTML fallback {part} {year}/{number}: {len(results)} akata")
+    return results
+
+
+# ── Core runner ───────────────────────────────────────────────────────────────
 async def _fetch_by_url(session: aiohttp.ClientSession, sem: asyncio.Semaphore, url: str) -> Optional[dict]:
     """Dohvaća punu JSON-LD reprezentaciju akta direktno s URL-a (za @id reference).
     Pokušaj 1: Accept: application/ld+json (brzo, direktno).
     Pokušaj 2: HTML stranica + izvlačenje embedded JSON-LD (fallback za nove objave).
     """
     import json as _json, re as _re
-
     # Pokušaj 1: JSON-LD Accept header
     async with sem:
         try:
@@ -296,8 +386,7 @@ async def _fetch_by_url(session: aiohttp.ClientSession, sem: asyncio.Semaphore, 
         except Exception as e:
             logging.warning(f"GET JSON-LD {url} neuspješan: {e}")
             return None
-
-    # Pokušaj 2: HTML + embedded JSON-LD (za akte koji još nemaju ELI JSON-LD)
+    # Pokušaj 2: HTML + embedded JSON-LD
     async with sem:
         try:
             async with session.get(url) as resp:
@@ -313,7 +402,6 @@ async def _fetch_by_url(session: aiohttp.ClientSession, sem: asyncio.Semaphore, 
                     return _json.loads(m.group(1))
         except Exception as e:
             logging.warning(f"GET HTML {url} neuspješan: {e}")
-
     return None
 
 
@@ -322,11 +410,9 @@ async def _process_edition(session, sem, db, lookup, part: str, year: int, numbe
     act_nums = await fetch_acts(session, sem, part, year, number)
     if not act_nums:
         return 0, 0, 0
-
     results = await asyncio.gather(*[
         fetch_act_jsonld(session, sem, part, year, number, a) for a in act_nums
     ])
-
     updated = inserted = failed = 0
     for act_num, data in zip(act_nums, results):
         if not data:
@@ -348,43 +434,48 @@ async def _process_edition(session, sem, db, lookup, part: str, year: int, numbe
             inserted += 1
         else:
             failed += 1
-
     db.commit()
+    # Ako nije ubačen nijedan dokument i svi su propali, pokušaj HTML fallback
+    if inserted == 0 and failed == len(act_nums):
+        html_entries = await _scrape_html_issue(session, sem, year, number, part)
+        for entry in html_entries:
+            outcome = upsert_document(db, entry, lookup)
+            if outcome == "updated":
+                updated += 1
+            elif outcome == "inserted":
+                inserted += 1
+        db.commit()
+        # Nakon uspješnog fallbacka nema grešaka
+        failed = 0
     return updated, inserted, failed
 
 
 async def _run(year_from: int, year_to: int, dry_run: bool = False, min_editions: dict = None):
     from app.database import SessionLocal
     from app.models import Log, Document
-
     db = SessionLocal()
     lookup = build_lookup(db)
     logging.info(f"Učitano {len(lookup)} postojećih dokumenata iz baze")
-
     run_start = datetime.now(timezone.utc).replace(tzinfo=None)
     total_updated = total_inserted = total_failed = 0
-
     headers = {
         "User-Agent": "PratimZakon/2.0 (+https://pratimzakon.hr)",
         "Content-Type": "application/json",
     }
     sem = asyncio.Semaphore(RATE_LIMIT)
-
     async with aiohttp.ClientSession(
         connector=aiohttp.TCPConnector(limit=10),
         headers=headers,
     ) as session:
         logging.info(f"Obrada {year_from}–{year_to}, dijelovi: {PARTS}")
-
         for year in range(year_from, year_to + 1):
             for part in PARTS:
                 editions = await fetch_editions(session, sem, part, year)
                 if not editions:
                     logging.info(f"  {part} {year}: nema izdanja")
                     continue
-
                 # Filtriraj samo nova izdanja (ona koja nisu u bazi)
-                # Buffer od 2 unazad za sigurnost (u slučaju djelomično obrađenih)
+                # Buffer od 2 unazad za sigurnost
                 if min_editions and min_editions.get(part, 0) > 0:
                     cutoff = max(0, min_editions[part] - 2)
                     to_process = sorted(e for e in editions if e > cutoff)
@@ -398,7 +489,6 @@ async def _run(year_from: int, year_to: int, dry_run: bool = False, min_editions
                 else:
                     to_process = sorted(editions)
                     logging.info(f"{part} {year}: {len(to_process)} izdanja")
-
                 for number in to_process:
                     if dry_run:
                         logging.info(f"    [dry-run] {part} {year}/{number}")
@@ -411,7 +501,6 @@ async def _run(year_from: int, year_to: int, dry_run: bool = False, min_editions
                         f"    {part} {year}/{number}: "
                         f"ažurirano={u}, novo={i}, greška={f}"
                     )
-
     if not dry_run:
         if total_inserted > 0:
             from app.email.notifier import send_keyword_notifications
@@ -420,7 +509,6 @@ async def _run(year_from: int, year_to: int, dry_run: bool = False, min_editions
             if new_ids:
                 logging.info(f"Slanje notifikacija za {len(new_ids)} novih dokumenata")
                 send_keyword_notifications(new_ids, db)
-
         db.add(Log(
             event_type="api_scraper",
             detail=(
@@ -429,7 +517,6 @@ async def _run(year_from: int, year_to: int, dry_run: bool = False, min_editions
             ),
         ))
         db.commit()
-
     db.close()
     logging.info(
         f"Završeno. ažurirano={total_updated}, novo={total_inserted}, greška={total_failed}"
@@ -453,10 +540,8 @@ def run_daily(dry_run: bool = False):
     from app.models import Document
     from sqlalchemy import func
     from datetime import date as date_type
-
     now = datetime.now()
     year_from = now.year - 1 if now.month == 1 else now.year
-
     db = SessionLocal()
     min_editions: dict[str, int] = {}
     for part in PARTS:
@@ -467,24 +552,19 @@ def run_daily(dry_run: bool = False):
         min_editions[part] = val or 0
         logging.info(f"Zadnji {part} broj u bazi ({year_from}+): {min_editions[part]}")
     db.close()
-
     asyncio.run(_run(year_from, now.year, dry_run, min_editions=min_editions))
 
 
 if __name__ == "__main__":
     import argparse
-
     parser = argparse.ArgumentParser(description="NN API Scraper")
     subparsers = parser.add_subparsers(dest="mode", required=True)
-
     bp = subparsers.add_parser("backfill", help="Jednokratni backfill 2015–danas")
     bp.add_argument("--from", dest="year_from", type=int, default=2015)
     bp.add_argument("--to", dest="year_to", type=int, default=None)
     bp.add_argument("--dry-run", action="store_true")
-
     dp = subparsers.add_parser("daily", help="Dnevni scraper (tekuća godina)")
     dp.add_argument("--dry-run", action="store_true")
-
     args = parser.parse_args()
     if args.mode == "backfill":
         run_backfill(args.year_from, args.year_to, args.dry_run)
