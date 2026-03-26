@@ -114,6 +114,10 @@
     .btn-solid { background: var(--ink); color: var(--white); }
     .btn-solid:hover { background: #2a2a2a; }
 
+
+    .font-controls {display: flex;gap: 6px;margin-left: 10px;}
+    .btn-font {padding: 6px 14px;font-size: 0.75rem;line-height: 1;}
+  
     /* ─── HERO ─── */
     .hero {
       border-bottom: 1px solid var(--rule);
@@ -679,8 +683,9 @@
       <a href="#" class="btn btn-solid" onclick="openModal('register')">Registracija</a>
     </div>
     <div style="display:flex;gap:6px;margin-left:10px;">
-      <button onclick="changeFontSize(1)">A+</button>button>
-      <button onclick="changeFontSize(-1)">A+</button>button>
+      <div class="font-controls">
+        <button class="btn btn-ghost btn-font" onclick="changeFontSize(1)" aria-label="Povećaj font">A+</button>
+        <button class="btn btn-ghost btn-font" onclick="changeFontSize(-1)" aria-label="Povećaj font">A-</button>
     </div>
   </div>
 </nav>
