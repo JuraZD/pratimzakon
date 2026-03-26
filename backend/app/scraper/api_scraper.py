@@ -296,7 +296,7 @@ async def _process_edition(session, sem, db, lookup, part: str, year: int, numbe
     return updated, inserted, failed
 
 
-async def _run(year_from: int, year_to: int, dry_run: bool = False):
+async def _run(year_from: int, year_to: int, dry_run: bool = False, min_editions: dict = None):
     from app.database import SessionLocal
     from app.models import Log, Document
 
@@ -325,9 +325,21 @@ async def _run(year_from: int, year_to: int, dry_run: bool = False):
                 if not editions:
                     logging.info(f"  {part} {year}: nema izdanja")
                     continue
-                logging.info(f"  {part} {year}: {len(editions)} izdanja")
 
-                for number in editions:
+                # Filtriraj samo nova izdanja (ona koja nisu u bazi)
+                # Buffer od 2 unazad za sigurnost (u slučaju djelomično obrađenih)
+                if min_editions and min_editions.get(part, 0) > 0:
+                    cutoff = max(0, min_editions[part] - 2)
+                    to_process = sorted(e for e in editions if e > cutoff)
+                    logging.info(
+                        f"  {part} {year}: {len(to_process)} novih izdanja "
+                        f"(od broja {cutoff + 1}, ukupno u godini: {len(editions)})"
+                    )
+                else:
+                    to_process = sorted(editions)
+                    logging.info(f"  {part} {year}: {len(to_process)} izdanja")
+
+                for number in to_process:
                     if dry_run:
                         logging.info(f"    [dry-run] {part} {year}/{number}")
                         continue
@@ -372,16 +384,31 @@ def run_backfill(year_from: int = 2015, year_to: int = None, dry_run: bool = Fal
 
 def run_daily(dry_run: bool = False):
     """
-    Dnevni mod — dohvaća izdanja koja još nisu u bazi za tekuću godinu.
-    Ako je siječanj, obrađuje i prethodnu godinu (radi sigurnost oko novogodišnjih objava).
+    Dnevni mod — dohvaća samo nova izdanja koja još nisu u bazi.
+    Provjerava zadnji poznati broj u bazi za SL i MU, pa obrađuje
+    samo izdanja viša od toga (uz buffer od 2 za sigurnost).
+    Ako je siječanj, uključuje i prethodnu godinu.
     """
     from app.database import SessionLocal
     from app.models import Document
     from sqlalchemy import func
+    from datetime import date as date_type
 
     now = datetime.now()
     year_from = now.year - 1 if now.month == 1 else now.year
-    asyncio.run(_run(year_from, now.year, dry_run))
+
+    db = SessionLocal()
+    min_editions: dict[str, int] = {}
+    for part in PARTS:
+        val = db.query(func.max(Document.issue_number)).filter(
+            Document.part == part,
+            Document.published_date >= date_type(year_from, 1, 1),
+        ).scalar()
+        min_editions[part] = val or 0
+        logging.info(f"Zadnji {part} broj u bazi ({year_from}+): {min_editions[part]}")
+    db.close()
+
+    asyncio.run(_run(year_from, now.year, dry_run, min_editions=min_editions))
 
 
 if __name__ == "__main__":
