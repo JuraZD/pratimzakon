@@ -523,7 +523,7 @@ def unsubscribe(token: str, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(status_code=400, detail="Neispravan token")
 
-    if getattr(user, "email_notofications_enabled", True) is False:
+    if getattr(user, "email_notifications_enabled", True) is False:
       return {"message":"Već ste odjavljeni od email obavijesti."}
 
     user.email_notifications_enabled = False  

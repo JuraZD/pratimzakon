@@ -15,7 +15,7 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
     email_verified = Column(Boolean, default=False)
-    email_notofications_enabled = Column(Boolean, default=True)
+    email_notifications_enabled = Column(Boolean, default=True)
     subscription_status = Column(String, default="free")  # free | active | expired
     subscription_end = Column(Date, nullable=True)
     keyword_limit = Column(Integer, default=3)

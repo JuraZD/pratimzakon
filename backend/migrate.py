@@ -6,10 +6,6 @@ Idempotentne ALTER/UPDATE migracije za postojeću bazu.
 
 Pokretanje:
   cd backend && python migrate.py
-
-NAPOMENA:
-  Ova skripta NE kreira admin korisnike.
-  Admin se kreira RUČNO kroz backend/create_admin.py.
 """
 
 from __future__ import annotations
@@ -34,6 +30,35 @@ MIGRATIONS: list[tuple[str, str]] = [
     ("keywords.document_types", "ALTER TABLE keywords ADD COLUMN IF NOT EXISTS document_types VARCHAR NULL"),
     ("documents.pdf_url", "ALTER TABLE documents ADD COLUMN IF NOT EXISTS pdf_url TEXT NULL"),
     ("documents.part", "ALTER TABLE documents ADD COLUMN IF NOT EXISTS part VARCHAR DEFAULT 'SL'"),
+    (
+        "users.email_notifications_enabled",
+        "ALTER TABLE users ADD COLUMN IF NOT EXISTS email_notifications_enabled BOOLEAN DEFAULT TRUE",
+    ),
+    (
+        "sync: backfill email_notifications_enabled NULL->TRUE",
+        "UPDATE users SET email_notifications_enabled = TRUE WHERE email_notifications_enabled IS NULL",
+    ),
+    (
+        "sync: copy from legacy typo column (if exists)",
+        """
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1
+    FROM information_schema.columns
+    WHERE table_name = 'users'
+      AND column_name = 'email_notofications_enabled'
+  ) THEN
+    EXECUTE 'UPDATE users SET email_notifications_enabled = email_notofications_enabled';
+  END IF;
+END $$;
+        """,
+    ),
+    (
+        "sync: unsubscribe legacy inactive => notifications off",
+        "UPDATE users SET email_notifications_enabled = FALSE WHERE subscription_status = 'inactive'",
+    ),
+    ("sync: legacy inactive => free", "UPDATE users SET subscription_status = 'free' WHERE subscription_status = 'inactive'"),
     (
         "sync: plan za aktivne korisnike s 15 kw",
         "UPDATE users SET plan = 'pro' WHERE subscription_status = 'active' AND keyword_limit <= 15 AND plan = 'free'",
