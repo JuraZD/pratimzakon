@@ -1,0 +1,13 @@
+-r backend/requirements.txt
+
+# extras (bilo je u starom pyproject.toml)
+lxml>=6.0.2
+pandas>=2.3.3
+
+# optional extras (dashboard/analysis/dev)
+plotly>=6.5.0
+streamlit>=1.52.1
+matplotlib>=3.10.7
+seaborn>=0.13.2
+ipykernel>=7.1.0
+jupyter>=1.1.1
