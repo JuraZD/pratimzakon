@@ -41,6 +41,21 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
+PAID_PLANS = {"basic", "plus", "pro", "expert"}
+
+
+def user_has_plan(user: User, *allowed_plans: str) -> bool:
+    """Provjeri ima li korisnik aktivnu pretplatu i odgovarajući plan.
+
+    Jedina autorizacijska provjera plana — koristi plan_type i subscription_status
+    zajedno da spriječi desync između ta dva polja.
+    """
+    return (
+        user.subscription_status == "active"
+        and getattr(user, "plan_type", "free") in allowed_plans
+    )
+
+
 def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

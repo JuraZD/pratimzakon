@@ -1092,7 +1092,7 @@
   }
 
   function escHtml(str) {
-    return str.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+    return String(str).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#x27;");
   }
 
   function renderNextNotif() {
@@ -1140,7 +1140,7 @@
       recentEl.innerHTML = data.recent_docs.map(d => `
         <div class="recent-doc-item">
           <a href="${escHtml(d.url)}" target="_blank" rel="noopener" class="recent-doc-title">${escHtml(d.title)}</a>
-          <span class="recent-doc-meta">${d.type ? escHtml(d.type) + ' · ' : ''}${d.published_date ? d.published_date : ''}</span>
+          <span class="recent-doc-meta">${d.type ? escHtml(d.type) + ' · ' : ''}${d.published_date ? escHtml(d.published_date) : ''}</span>
         </div>`).join("");
     }
 

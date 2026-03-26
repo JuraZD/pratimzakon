@@ -7,13 +7,14 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
 logger = logging.getLogger(__name__)
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
+from ..limiter import limiter
 
 from ..database import get_db
 from ..models import User, Log, Keyword
 from ..schemas import UserRegister, UserLogin, Token, UserOut, UserSettings
-from ..auth import hash_password, verify_password, create_access_token, get_current_user
+from ..auth import hash_password, verify_password, create_access_token, get_current_user, user_has_plan
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -252,12 +253,15 @@ def verify_email(token: str, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=Token)
-def login(data: UserLogin, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def login(request: Request, data: UserLogin, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == data.email).first()
+    invalid_credentials = HTTPException(status_code=401, detail="Pogrešan email ili lozinka")
+
     if not user or not verify_password(data.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Pogrešan email ili lozinka")
+        raise invalid_credentials
     if not user.email_verified:
-        raise HTTPException(status_code=403, detail="Potvrdite email adresu")
+        raise invalid_credentials
 
     token = create_access_token({"sub": str(user.id)})
     return {"access_token": token}
@@ -275,7 +279,7 @@ def update_settings(
     current_user: User = Depends(get_current_user),
 ):
     """Ažurira korisničke postavke (npr. include_mu). MU dostupan samo Pro/Expert."""
-    if data.include_mu and current_user.plan == "free":
+    if data.include_mu and not user_has_plan(current_user, "plus", "expert"):
         raise HTTPException(status_code=403, detail="MU dostupan uz Pro ili Expert paket")
     current_user.include_mu = data.include_mu
     db.commit()
