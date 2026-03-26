@@ -163,6 +163,12 @@ def parse_act_jsonld(data, part: str, year: int, number: int, act_num: int) -> d
                 break
 
     title = _extract_label(act.get("eli:title") or act.get("title", ""))
+    if not title:
+        logging.warning(
+            f"Prazan naslov za {part} {year}/{number} akt {act_num}. "
+            f"Tip podatka: {type(data).__name__}, "
+            f"Ključevi: {list(act.keys()) if isinstance(act, dict) else repr(act)[:200]}"
+        )
     institution = _extract_label(act.get("eli:passed_by") or act.get("passed_by", ""))
 
     doc_type_raw = _extract_label(act.get("eli:type_document") or act.get("type_document", ""))
