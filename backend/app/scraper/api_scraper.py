@@ -144,9 +144,14 @@ def _parse_date(s) -> Optional[date]:
 
 def parse_act_jsonld(data, part: str, year: int, number: int, act_num: int) -> dict:
     """Izvlači sve relevantne podatke iz JSON-LD akta."""
-    # API ponekad vraća listu umjesto dict-a — uzmi prvi dict element
+    # API ponekad vraća listu umjesto dict-a.
+    # Tražimo dict koji sadrži stvarne podatke akta (ne @context objekt).
     if isinstance(data, list):
-        data = next((item for item in data if isinstance(item, dict)), {})
+        relevant_keys = ("@graph", "eli:title", "eli:passed_by", "eli:is_realized_by")
+        data = next(
+            (item for item in data if isinstance(item, dict) and any(k in item for k in relevant_keys)),
+            next((item for item in data if isinstance(item, dict)), {}),
+        )
 
     act = data
     if "@graph" in data:
