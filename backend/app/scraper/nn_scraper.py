@@ -509,7 +509,6 @@ class NarodneNovineScraper:
                 url=entry["url"],
                 pdf_url=entry.get("pdf_url"),
                 type=entry.get("type", ""),
-                part=entry.get("part", "SL"),
                 institution=entry.get("institution"),
                 legal_area=entry.get("legal_area"),
                 date_document=entry.get("date_document"),
