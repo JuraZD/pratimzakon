@@ -294,12 +294,13 @@ async def _process_edition(session, sem, db, lookup, part: str, year: int, numbe
 
 async def _run(year_from: int, year_to: int, dry_run: bool = False):
     from app.database import SessionLocal
-    from app.models import Log
+    from app.models import Log, Document
 
     db = SessionLocal()
     lookup = build_lookup(db)
     logging.info(f"Učitano {len(lookup)} postojećih dokumenata iz baze")
 
+    run_start = datetime.utcnow()
     total_updated = total_inserted = total_failed = 0
 
     headers = {
@@ -336,6 +337,14 @@ async def _run(year_from: int, year_to: int, dry_run: bool = False):
                     )
 
     if not dry_run:
+        if total_inserted > 0:
+            from app.email.notifier import send_keyword_notifications
+            new_docs = db.query(Document.id).filter(Document.created_at >= run_start).all()
+            new_ids = [d.id for d in new_docs]
+            if new_ids:
+                logging.info(f"Slanje notifikacija za {len(new_ids)} novih dokumenata")
+                send_keyword_notifications(new_ids, db)
+
         db.add(Log(
             event_type="api_scraper",
             detail=(
