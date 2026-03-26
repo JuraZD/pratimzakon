@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import logging
 import os
-from contextlib import asynccontextmanager
 from urllib.parse import urlparse
 
 from dotenv import load_dotenv
@@ -13,32 +11,12 @@ from slowapi.errors import RateLimitExceeded
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
-from .database import Base, engine
 from .limiter import limiter
-from .migrate_db import run_migrations
 from .routers import admin, auth, keywords, search, stats, stripe_router
 
 load_dotenv()
 
-logger = logging.getLogger(__name__)
 ENV = os.getenv("ENV", "production").strip().lower()
-
-
-def _require_secure_secret_key() -> None:
-    secret = os.getenv("SECRET_KEY", "").strip()
-    placeholders = {"change-me-in-production", "your-secret-key-min-32-chars"}
-
-    if ENV != "production":
-        return
-
-    if not secret or secret in placeholders or len(secret) < 32:
-        raise RuntimeError(
-            "SECURITY ERROR: SECRET_KEY must be set to a random 32+ char value in production. "
-            "Set SECRET_KEY in hosting env vars."
-        )
-
-
-_require_secure_secret_key()
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
@@ -53,28 +31,12 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return response
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    import asyncio
-
-    async def _run_db_setup() -> None:
-        try:
-            await asyncio.to_thread(lambda: Base.metadata.create_all(bind=engine))
-            await asyncio.to_thread(run_migrations)
-        except Exception:
-            logger.exception("DB startup error")
-
-    asyncio.create_task(_run_db_setup())
-    yield
-
-
 _docs_url = None if ENV == "production" else "/docs"
 _redoc_url = None if ENV == "production" else "/redoc"
 
 app = FastAPI(
     title="PratimZakon API",
     version="1.0.0",
-    lifespan=lifespan,
     docs_url=_docs_url,
     redoc_url=_redoc_url,
     openapi_url=None if ENV == "production" else "/openapi.json",
@@ -84,7 +46,6 @@ app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost")
-
 _extra_origins = [
     f"{urlparse(o.strip()).scheme}://{urlparse(o.strip()).netloc}"
     for o in FRONTEND_URL.split(",")
