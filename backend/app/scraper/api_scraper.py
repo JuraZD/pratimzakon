@@ -332,9 +332,14 @@ async def _process_edition(session, sem, db, lookup, part: str, year: int, numbe
         if not data:
             failed += 1
             continue
-        # API ponekad vraća samo {'@id': url} — dohvati punu JSON-LD via URL
+        # API ponekad vraća samo {'@id': url} — dohvati punu JSON-LD via ELI URL.
+        # Ne koristimo data["@id"] jer može biti blank node (_:b0) ili relativna putanja.
+        # Konstruiramo poznati ELI URL format direktno.
         if isinstance(data, dict) and set(data.keys()) == {"@id"}:
-            data = await _fetch_by_url(session, sem, data["@id"]) or data
+            eli_section = "sluzbeni-list" if part == "SL" else "medunarodni-ugovori"
+            eli_url = f"{BASE_URL}/eli/{eli_section}/{year}/{number}/{act_num}/"
+            logging.debug(f"@id stub za {part} {year}/{number} akt {act_num}, dohvaćam {eli_url}")
+            data = await _fetch_by_url(session, sem, eli_url) or data
         parsed = parse_act_jsonld(data, part, year, number, act_num)
         outcome = upsert_document(db, parsed, lookup)
         if outcome == "updated":
