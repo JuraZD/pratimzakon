@@ -142,8 +142,12 @@ def _parse_date(s) -> Optional[date]:
         return None
 
 
-def parse_act_jsonld(data: dict, part: str, year: int, number: int, act_num: int) -> dict:
+def parse_act_jsonld(data, part: str, year: int, number: int, act_num: int) -> dict:
     """Izvlači sve relevantne podatke iz JSON-LD akta."""
+    # API ponekad vraća listu umjesto dict-a — uzmi prvi dict element
+    if isinstance(data, list):
+        data = next((item for item in data if isinstance(item, dict)), {})
+
     act = data
     if "@graph" in data:
         for item in data["@graph"]:
