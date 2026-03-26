@@ -2,9 +2,10 @@
 """
 backend/migrate.py
 
-Idempotentne ALTER/UPDATE migracije za postojeću bazu.
+Blocking DB init + idempotentne ALTER/UPDATE migracije.
+Render startCommand pokreće ovu skriptu prije Uvicorn-a.
 
-Pokretanje:
+Pokretanje lokalno:
   cd backend && python migrate.py
 """
 
@@ -22,7 +23,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 sys.path.insert(0, os.path.dirname(__file__))
 load_dotenv(os.path.join(os.path.dirname(__file__), ".env"))
 
-from app.database import engine  # noqa: E402
+from app.database import Base, engine  # noqa: E402
 
 MIGRATIONS: list[tuple[str, str]] = [
     ("users.plan", "ALTER TABLE users ADD COLUMN IF NOT EXISTS plan VARCHAR DEFAULT 'free'"),
@@ -55,7 +56,7 @@ END $$;
         """,
     ),
     (
-        "sync: unsubscribe legacy inactive => notifications off",
+        "sync: legacy inactive => notifications off",
         "UPDATE users SET email_notifications_enabled = FALSE WHERE subscription_status = 'inactive'",
     ),
     ("sync: legacy inactive => free", "UPDATE users SET subscription_status = 'free' WHERE subscription_status = 'inactive'"),
@@ -75,6 +76,9 @@ END $$;
 
 
 def run() -> None:
+    # Kritično: osiguraj da tablice postoje prije ALTER-a
+    Base.metadata.create_all(bind=engine)
+
     with engine.connect() as conn:
         for name, sql in MIGRATIONS:
             try:
