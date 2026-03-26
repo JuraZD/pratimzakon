@@ -336,13 +336,17 @@ async def _run(year_from: int, year_to: int, dry_run: bool = False, min_editions
                 if min_editions and min_editions.get(part, 0) > 0:
                     cutoff = max(0, min_editions[part] - 2)
                     to_process = sorted(e for e in editions if e > cutoff)
-                    logging.info(
-                        f"  {part} {year}: {len(to_process)} novih izdanja "
-                        f"(od broja {cutoff + 1}, ukupno u godini: {len(editions)})"
-                    )
+                    if to_process:
+                        logging.info(
+                            f"{part} {year}: {len(to_process)} novih izdanja "
+                            f"(od broja {cutoff + 1}, ukupno u godini: {len(editions)})"
+                        )
+                    else:
+                        logging.info(f"{part} {year}: nema novih izdanja")
+                        continue
                 else:
                     to_process = sorted(editions)
-                    logging.info(f"  {part} {year}: {len(to_process)} izdanja")
+                    logging.info(f"{part} {year}: {len(to_process)} izdanja")
 
                 for number in to_process:
                     if dry_run:
