@@ -138,6 +138,27 @@
     .search-hint { font-size: 12px; color: var(--mid); line-height: 1.55; margin-top: 4px; }
     .search-hint em { font-style: normal; font-weight: 600; color: var(--ink); background: var(--bone); padding: 1px 5px; }
 
+    /* AUTOCOMPLETE */
+    .autocomplete-wrap { position: relative; }
+    .autocomplete-list {
+      position: absolute;
+      top: 100%; left: 0; right: 0;
+      background: var(--white);
+      border: 1px solid var(--ink);
+      border-top: none;
+      z-index: 100;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+    .autocomplete-item {
+      padding: 8px 12px;
+      font-size: 13px;
+      cursor: pointer;
+      border-bottom: 1px solid var(--rule);
+    }
+    .autocomplete-item:last-child { border-bottom: none; }
+    .autocomplete-item:hover { background: var(--bone); }
+
     /* RESULTS */
     .results-meta {
       font-family: var(--mono);
@@ -290,6 +311,7 @@
 <main>
   <h1>Pretraga arhive</h1>
   <p class="subtitle" id="searchSubtitle">Pretražite objave Narodnih novina od 01. siječnja 2026. do danas</p>
+  <p class="subtitle" id="latestIssueLabel" style="margin-top:4px;"></p>
 
   <!-- Gate za ne-Plus korisnike -->
   <div class="gate" id="expertGate" style="display:none">
@@ -333,7 +355,10 @@
         </div>
         <div class="filter-group">
           <label>Institucija</label>
-          <input type="text" id="fInst" placeholder='npr. "Vlada RH"'>
+          <div class="autocomplete-wrap">
+            <input type="text" id="fInst" placeholder='npr. "Vlada RH"' autocomplete="off" oninput="instAutocomplete(this.value)" onblur="setTimeout(closeInstList, 150)">
+            <div class="autocomplete-list" id="instList" style="display:none"></div>
+          </div>
         </div>
         <div class="filter-group">
           <label>Datum od</label>
@@ -380,6 +405,42 @@
   async function init() {
     if (!getToken()) { window.location.href = "index.html"; return; }
     document.getElementById("searchArea").style.display = "block";
+    loadLatestIssue();
+  }
+
+  async function loadLatestIssue() {
+    const res = await authFetch("/search/latest-issue");
+    if (!res || !res.ok) return;
+    const data = await res.json();
+    if (data.label) {
+      document.getElementById("latestIssueLabel").textContent = `Zadnji broj Narodnih novina: ${data.label}`;
+    }
+  }
+
+  let _instTimer = null;
+  async function instAutocomplete(val) {
+    clearTimeout(_instTimer);
+    const list = document.getElementById("instList");
+    if (val.trim().length < 1) { list.style.display = "none"; return; }
+    _instTimer = setTimeout(async () => {
+      const res = await authFetch(`/search/institutions?q=${encodeURIComponent(val.trim())}`);
+      if (!res || !res.ok) return;
+      const items = await res.json();
+      if (!items.length) { list.style.display = "none"; return; }
+      list.innerHTML = items.map(inst =>
+        `<div class="autocomplete-item" onmousedown="selectInst('${escHtml(inst)}')">${escHtml(inst)}</div>`
+      ).join("");
+      list.style.display = "block";
+    }, 250);
+  }
+
+  function selectInst(val) {
+    document.getElementById("fInst").value = val;
+    closeInstList();
+  }
+
+  function closeInstList() {
+    document.getElementById("instList").style.display = "none";
   }
 
   async function doSearch(page) {

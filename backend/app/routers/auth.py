@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import User, Log
+from ..models import User, Log, Keyword
 from ..schemas import UserRegister, UserLogin, Token, UserOut, UserSettings
 from ..auth import hash_password, verify_password, create_access_token, get_current_user
 
@@ -471,6 +471,40 @@ def cancel_subscription(current_user: User = Depends(get_current_user), db: Sess
 
     _send_cancel_confirmation_email(current_user.email)
     return {"message": "Pretplata otkazana"}
+
+
+@router.post("/downgrade-to-free")
+def downgrade_to_free(current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    """Spušta korisnika na besplatni plan. Email obavijesti ostaju aktivne."""
+    if current_user.subscription_status != "active":
+        raise HTTPException(status_code=400, detail="Nemate aktivnu pretplatu")
+
+    # Otkaži pretplatu u Stripeu (ako imamo subscription_id)
+    stripe.api_key = os.getenv("STRIPE_SECRET_KEY", "")
+    sub_id = getattr(current_user, "stripe_subscription_id", None)
+    if sub_id:
+        try:
+            stripe.Subscription.cancel(sub_id)
+        except Exception as e:
+            logging.warning(f"Stripe cancel failed for {current_user.email}: {e}")
+
+    # Ukloni ključne riječi iznad limita od 3 (zadrži prvih 3 po ID-u)
+    user_keywords = db.query(Keyword).filter(
+        Keyword.user_id == current_user.id
+    ).order_by(Keyword.id).all()
+    for kw in user_keywords[3:]:
+        db.delete(kw)
+
+    # Spusti plan na besplatni — email obavijesti ostaju aktivne
+    current_user.plan = "free"
+    current_user.plan_type = "free"
+    current_user.keyword_limit = 3
+    current_user.subscription_status = "free"
+    current_user.stripe_subscription_id = None
+    db.add(Log(event_type="subscription_cancelled", user_id=current_user.id, detail=f"{current_user.email} [downgrade-to-free]"))
+    db.commit()
+
+    return {"message": "Plan spušten na besplatni. Email obavijesti ostaju aktivne."}
 
 
 @router.get("/unsubscribe")

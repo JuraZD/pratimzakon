@@ -8,7 +8,7 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import or_, func
 
 from ..database import get_db
 from ..models import Document, User
@@ -89,3 +89,47 @@ def search_documents(
     )
 
     return SearchResponse(total=total, page=page, per_page=per_page, results=results)
+
+
+@router.get("/latest-issue")
+def get_latest_issue(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Vraća broj i datum posljednjeg broja Narodnih novina u bazi."""
+    result = (
+        db.query(Document.issue_number, Document.published_date)
+        .filter(Document.issue_number.isnot(None))
+        .order_by(Document.published_date.desc(), Document.issue_number.desc())
+        .first()
+    )
+    if not result:
+        return {"issue_number": None, "published_date": None, "label": None}
+
+    issue_number, published_date = result
+    year = published_date.year if published_date else None
+    label = f"NN {issue_number}/{year}" if issue_number and year else None
+    return {"issue_number": issue_number, "published_date": str(published_date) if published_date else None, "label": label}
+
+
+@router.get("/institutions")
+def get_institutions(
+    q: str = Query("", description="Početak naziva institucije"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Vraća listu institucija koje odgovaraju upitu (za autocomplete)."""
+    if len(q.strip()) < 1:
+        return []
+
+    results = (
+        db.query(Document.institution)
+        .filter(Document.institution.isnot(None))
+        .filter(Document.institution != "")
+        .filter(Document.institution.ilike(f"%{q.strip()}%"))
+        .group_by(Document.institution)
+        .order_by(func.count(Document.institution).desc())
+        .limit(15)
+        .all()
+    )
+    return [row[0] for row in results if row[0]]

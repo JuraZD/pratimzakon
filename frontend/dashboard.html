@@ -290,6 +290,8 @@
     }
 
     .upgrade-plan .btn { width: 100%; text-align: center; display: block; }
+    .upgrade-plan.selectable { cursor: pointer; transition: outline .15s; }
+    .upgrade-plan.selectable:hover { outline: 1px solid var(--mid); }
 
     .msg { font-size: 13px; margin-top: 10px; }
     .msg-error { color: #b91c1c; }
@@ -592,17 +594,17 @@
 
       <p class="modal-section-title">Odaberite plan</p>
       <div class="upgrade-plans" id="mPlanCards">
-        <div class="upgrade-plan featured" id="mPlanBasic">
+        <div class="upgrade-plan featured selectable" id="mPlanBasic" onclick="selectPlanCard('basic')">
           <h3>Basic</h3>
           <div class="price">4,99 <span>€/mj</span></div>
           <p>Do 10 ključnih riječi · email obavijesti</p>
-          <button class="btn btn-solid" id="mBtnBasic" onclick="showPlanConfirm('basic')">Odaberi Basic</button>
+          <button class="btn btn-solid" id="mBtnBasic" onclick="event.stopPropagation(); showPlanConfirm('basic')">Odaberi Basic</button>
         </div>
-        <div class="upgrade-plan" id="mPlanPlus">
+        <div class="upgrade-plan selectable" id="mPlanPlus" onclick="selectPlanCard('plus')">
           <h3>Plus</h3>
           <div class="price">7,99 <span>€/mj</span></div>
           <p>Do 20 ključnih riječi · pretraga arhive · statistike</p>
-          <button class="btn" id="mBtnPlus" onclick="showPlanConfirm('plus')">Odaberi Plus</button>
+          <button class="btn" id="mBtnPlus" onclick="event.stopPropagation(); showPlanConfirm('plus')">Odaberi Plus</button>
         </div>
       </div>
 
@@ -627,7 +629,7 @@
 
       <p class="modal-section-title" id="downgradeTitle" style="display:none">Spusti na besplatni plan</p>
       <div class="cancel-zone" id="downgradeZone" style="display:none">
-        <p>Prelaskom na besplatni plan gubite email obavijesti. Limit ključnih riječi smanjuje se na 3.</p>
+        <p>Prelaskom na besplatni plan limit ključnih riječi smanjuje se na 3. Ključne riječi iznad tog broja bit će automatski uklonjene. Email obavijesti ostaju aktivne.</p>
         <div id="downgradeInitRow">
           <button class="btn-cancel-back" onclick="showDowngradeConfirm()">Spusti na besplatni</button>
         </div>
@@ -789,7 +791,6 @@
     if (!keyword) return;
 
     const body = { keyword };
-    if (document_types) body.document_types = document_types;
 
     const res = await authFetch("/keywords/", {
       method: "POST",
@@ -903,14 +904,25 @@
 
   let _pendingPlan = null;
 
+  function selectPlanCard(plan) {
+    const btn = document.getElementById(plan === "basic" ? "mBtnBasic" : "mBtnPlus");
+    if (btn && !btn.disabled) showPlanConfirm(plan);
+  }
+
   function showPlanConfirm(plan) {
     _pendingPlan = plan;
     const labels = { basic: "Basic (€4,99/mj)", plus: "Plus (€7,99/mj)" };
-    document.getElementById("mPlanConfirmText").textContent =
-      `Jeste li sigurni da želite prijeći na ${labels[plan]}? Poslat ćemo vam upute za aktivaciju mailom u roku 24 sata.`;
+    const isActivePaid = userData && userData.subscription_status === "active";
+    const msg = isActivePaid
+      ? `Jeste li sigurni da želite prijeći na ${labels[plan]}? Plan će biti promijenjen odmah uz obračun razlike.`
+      : `Jeste li sigurni da želite prijeći na ${labels[plan]}? Bit ćete preusmjereni na stranicu za plaćanje.`;
+    document.getElementById("mPlanConfirmText").textContent = msg;
     document.getElementById("mPlanConfirmRow").style.display = "block";
     document.getElementById("mBtnBasic").disabled = true;
     document.getElementById("mBtnPlus").disabled = true;
+    // Vizualno označi odabrani plan
+    document.getElementById("mPlanBasic").style.outline = plan === "basic" ? "2px solid var(--ink)" : "";
+    document.getElementById("mPlanPlus").style.outline  = plan === "plus"  ? "2px solid var(--ink)" : "";
   }
 
   function hidePlanConfirm() {
@@ -920,6 +932,9 @@
     const btnPlus  = document.getElementById("mBtnPlus");
     if (btnBasic && !btnBasic.textContent.includes("Trenutni")) btnBasic.disabled = false;
     if (btnPlus  && !btnPlus.textContent.includes("Trenutni"))  btnPlus.disabled  = false;
+    // Resetiraj vizualni odabir kartica (osim trenutnog plana)
+    if (btnBasic && !btnBasic.textContent.includes("Trenutni")) document.getElementById("mPlanBasic").style.outline = "";
+    if (btnPlus  && !btnPlus.textContent.includes("Trenutni"))  document.getElementById("mPlanPlus").style.outline  = "";
   }
 
   async function confirmRequestPlan() {
@@ -931,32 +946,63 @@
 
     const confirmBtn = document.getElementById("mPlanConfirmBtn");
     confirmBtn.disabled = true;
-    confirmBtn.textContent = "Preusmjeravam na plaćanje…";
 
-    try {
-      const res = await authFetch(`/stripe/checkout/${plan}`, { method: "POST" });
-      if (!res) { confirmBtn.disabled = false; confirmBtn.textContent = "Potvrdi zahtjev"; return; }
+    // Ako korisnik već ima aktivnu pretplatu → prebaci plan (switch), inače → novi checkout
+    const isActivePaid = userData && userData.subscription_status === "active";
 
-      if (res.ok) {
-        const data = await res.json();
-        if (data.checkout_url) {
-          window.location.href = data.checkout_url;
-          return;
+    if (isActivePaid) {
+      confirmBtn.textContent = "Mijenjam plan…";
+      try {
+        const res = await authFetch(`/stripe/switch-plan/${plan}`, { method: "POST" });
+        if (!res) { confirmBtn.disabled = false; confirmBtn.textContent = "Potvrdi zahtjev"; return; }
+
+        if (res.ok) {
+          okEl.textContent = "Plan uspješno promijenjen!";
+          okEl.style.display = "block";
+          hidePlanConfirm();
+          await loadUser();
+          await loadKeywords();
+        } else {
+          let msg = "Greška pri promjeni plana.";
+          try { const d = await res.json(); msg = d.detail || msg; } catch (_) {}
+          errEl.textContent = msg;
+          errEl.style.display = "block";
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = "Potvrdi zahtjev";
         }
-        _pendingPlan = null;
-      } else {
-        let msg = "Greška pri slanju zahtjeva.";
-        try { const d = await res.json(); msg = d.detail || msg; } catch (_) {}
-        errEl.textContent = msg;
+      } catch (e) {
+        errEl.textContent = "Greška pri promjeni plana.";
         errEl.style.display = "block";
         confirmBtn.disabled = false;
         confirmBtn.textContent = "Potvrdi zahtjev";
       }
-    } catch (e) {
-      errEl.textContent = "Greška pri slanju zahtjeva.";
-      errEl.style.display = "block";
-      confirmBtn.disabled = false;
-      confirmBtn.textContent = "Potvrdi zahtjev";
+    } else {
+      confirmBtn.textContent = "Preusmjeravam na plaćanje…";
+      try {
+        const res = await authFetch(`/stripe/checkout/${plan}`, { method: "POST" });
+        if (!res) { confirmBtn.disabled = false; confirmBtn.textContent = "Potvrdi zahtjev"; return; }
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.checkout_url) {
+            window.location.href = data.checkout_url;
+            return;
+          }
+          _pendingPlan = null;
+        } else {
+          let msg = "Greška pri slanju zahtjeva.";
+          try { const d = await res.json(); msg = d.detail || msg; } catch (_) {}
+          errEl.textContent = msg;
+          errEl.style.display = "block";
+          confirmBtn.disabled = false;
+          confirmBtn.textContent = "Potvrdi zahtjev";
+        }
+      } catch (e) {
+        errEl.textContent = "Greška pri slanju zahtjeva.";
+        errEl.style.display = "block";
+        confirmBtn.disabled = false;
+        confirmBtn.textContent = "Potvrdi zahtjev";
+      }
     }
   }
 
@@ -979,23 +1025,26 @@
     btn.disabled = true;
 
     try {
-      const res = await authFetch("/auth/cancel-subscription", { method: "POST" });
+      const res = await authFetch("/auth/downgrade-to-free", { method: "POST" });
       if (!res) { btn.disabled = false; return; }
 
       if (res.ok) {
         document.getElementById("downgradeConfirmRow").style.display = "none";
         document.getElementById("downgradeInitRow").style.display = "none";
-        okEl.textContent = "Zahtjev primljen — u roku 24h prelazite na besplatni plan.";
+        okEl.textContent = "Uspješno ste prešli na besplatni plan. Email obavijesti ostaju aktivne.";
         okEl.style.display = "block";
+        // Osvježi podatke i ključne riječi
+        await loadUser();
+        await loadKeywords();
       } else {
-        let msg = "Greška pri slanju zahtjeva.";
+        let msg = "Greška pri promjeni plana.";
         try { const d = await res.json(); msg = d.detail || msg; } catch (_) {}
         errEl.textContent = msg;
         errEl.style.display = "block";
         btn.disabled = false;
       }
     } catch (e) {
-      errEl.textContent = "Greška pri slanju zahtjeva.";
+      errEl.textContent = "Greška pri promjeni plana.";
       errEl.style.display = "block";
       btn.disabled = false;
     }
