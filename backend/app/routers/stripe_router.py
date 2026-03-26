@@ -42,6 +42,46 @@ def create_checkout(
     return {"checkout_url": session.url}
 
 
+@router.post("/switch-plan/{plan}")
+def switch_plan(
+    plan: str,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Prebacuje između plaćenih planova (Basic <-> Plus) via Stripe Subscription Update."""
+    if plan not in PLAN_CONFIG:
+        raise HTTPException(status_code=400, detail="Nepoznat paket")
+
+    if current_user.subscription_status != "active":
+        raise HTTPException(status_code=400, detail="Nemate aktivnu pretplatu")
+
+    current_plan_type = current_user.plan_type
+    if current_plan_type == plan or (current_plan_type in ("pro",) and plan == "basic") or (current_plan_type in ("expert",) and plan == "plus"):
+        raise HTTPException(status_code=400, detail="Već ste na tom planu")
+
+    sub_id = getattr(current_user, "stripe_subscription_id", None)
+    if sub_id:
+        try:
+            subscription = stripe.Subscription.retrieve(sub_id)
+            item_id = subscription["items"]["data"][0]["id"]
+            stripe.Subscription.modify(
+                sub_id,
+                items=[{"id": item_id, "price": PLAN_CONFIG[plan]["price_id"]}],
+                proration_behavior="always_invoice",
+            )
+        except stripe.error.StripeError as e:
+            raise HTTPException(status_code=400, detail=f"Stripe greška: {str(e)}")
+
+    # Ažuriraj plan u bazi
+    current_user.plan = plan
+    current_user.plan_type = plan
+    current_user.keyword_limit = PLAN_CONFIG[plan]["keyword_limit"]
+    db.add(Log(event_type="plan_set", user_id=current_user.id, detail=f"{current_user.email} [switch->{plan}]"))
+    db.commit()
+
+    return {"message": f"Plan uspješno promijenjen na {plan}"}
+
+
 @router.post("/webhook")
 async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
     payload = await request.body()
