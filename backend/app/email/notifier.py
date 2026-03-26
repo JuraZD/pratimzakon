@@ -226,7 +226,7 @@ def send_keyword_notifications(new_document_ids: List[int], db: Session) -> Dict
         db.query(User)
         .filter(
             User.email_verified == True,
-            User.subscription_status != "inactive",
+            User.email_notofications_enabled == True,
         )
         .all()
     )

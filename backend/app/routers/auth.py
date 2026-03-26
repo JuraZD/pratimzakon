@@ -279,9 +279,14 @@ def update_settings(
     current_user: User = Depends(get_current_user),
 ):
     """Ažurira korisničke postavke (npr. include_mu). MU dostupan samo Pro/Expert."""
-    if data.include_mu and not user_has_plan(current_user, "plus", "expert"):
+    if data.include_mu is not None:
+      if data.include_mu and not user_has_plan(current_user, "plus", "expert"):
         raise HTTPException(status_code=403, detail="MU dostupan uz Pro ili Expert paket")
-    current_user.include_mu = data.include_mu
+      current_user.include_mu = data.include_mu
+    
+    if getattr(data, "email_notifications_enabled", None) is not None:
+      current_user.email_notifications_enabled = data.email_notifications_enabled
+
     db.commit()
     db.refresh(current_user)
     return current_user
@@ -468,7 +473,8 @@ def cancel_subscription(current_user: User = Depends(get_current_user), db: Sess
     current_user.plan = "free"
     current_user.plan_type = "free"
     current_user.keyword_limit = 3
-    current_user.subscription_status = "inactive"
+    current_user.email_notifications_enabled = False
+    current_user.subscription_status = "free"
     current_user.stripe_subscription_id = None
     db.add(Log(event_type="subscription_cancelled", user_id=current_user.id, detail=current_user.email))
     db.commit()
@@ -516,7 +522,12 @@ def unsubscribe(token: str, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.unsubscribe_token == token).first()
     if not user:
         raise HTTPException(status_code=400, detail="Neispravan token")
-    user.subscription_status = "inactive"
+
+    if getattr(user, "email_notofications_enabled", True) is False:
+      return {"message":"Već ste odjavljeni od email obavijesti."}
+
+    user.email_notifications_enabled = False  
+    
     db.add(Log(event_type="unsubscribe", user_id=user.id))
     db.commit()
     _send_goodbye_email(user.email)

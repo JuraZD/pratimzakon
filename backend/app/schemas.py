@@ -25,6 +25,7 @@ class UserOut(BaseModel):
     id: int
     email: str
     email_verified: bool
+    email_notifications_enabled: bool
     subscription_status: str
     subscription_end: Optional[date]
     keyword_limit: int
@@ -56,7 +57,8 @@ class KeywordOut(BaseModel):
 
 
 class UserSettings(BaseModel):
-    include_mu: bool
+    include_mu: Optional[bool] = None
+    email_notifications_enabled: Optional[bool] = None
 
 
 # --- Admin ---
