@@ -338,14 +338,12 @@
 
     .email-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 16px;
+
     }
 
     .email-card {
       border: 1px solid var(--rule);
-      padding: 20px;
-      background: var(--white);
+
     }
 
     .email-card h3 {
@@ -357,20 +355,12 @@
 
     .email-subject {
       font-family: var(--serif);
-      font-size: 20px;
-      line-height: 1.3;
-      margin-bottom: 12px;
+
       letter-spacing: -0.2px;
     }
 
     .email-body {
       white-space: pre-line;
-      font-size: 0.9rem;
-      color: var(--mid);
-      line-height: 1.7;
-      margin-bottom: 14px;
-    }
-
 
     /* ─── PRICING ─── */
     .pricing { border-bottom: 1px solid var(--rule); }
@@ -728,7 +718,7 @@
       .hero-right { display: none; }
       .step-editorial { grid-template-columns: 48px 1fr; padding: 36px 0; }
       .step-content { padding-left: 24px; }
-      .email-grid { grid-template-columns: 1fr; }
+
       .plans { grid-template-columns: 1fr; }
       .plan { border-right: none; border-bottom: 1px solid var(--rule); }
       .plan:last-child { border-bottom: none; }
@@ -866,6 +856,7 @@
 <section class="email-examples" id="email-primjeri">
   <div class="inner">
     <div class="section-label">Kako izgleda u praksi</div>
+
     <div class="email-grid">
       <article class="email-card reveal">
         <h3>📧 FREE</h3>
@@ -884,9 +875,6 @@ Detalji:
 
 Za više informacija pogledajte službene objave.</p>
 
-      </article>
-
-      <article class="email-card reveal" style="transition-delay:.12s">
         <h3>📧 BASIC</h3>
         <p class="email-subject">Promjena poreza na dohodak (relevantno za tebe)</p>
         <p class="email-body">Poštovani,
