@@ -357,6 +357,38 @@
       line-height: 1.7;
     }
 
+    .conversion-block {
+      margin-top: 28px;
+      border: 1px solid var(--rule);
+      background: var(--paper);
+      padding: 24px;
+    }
+
+    .conversion-block h3 {
+      font-family: var(--serif);
+      font-size: clamp(22px, 2.4vw, 30px);
+      line-height: 1.2;
+      letter-spacing: -0.4px;
+      margin-bottom: 14px;
+    }
+
+    .conversion-list {
+      list-style: none;
+      display: grid;
+      gap: 8px;
+      color: var(--mid);
+      font-size: 0.95rem;
+    }
+
+    .usp-oneliner {
+      margin-top: 20px;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--mid);
+      letter-spacing: 0.4px;
+    }
+
     .plans {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -701,13 +733,13 @@
     <div class="hero-left reveal">
       <div class="hero-eyebrow">Monitoring V2.0 — Narodne novine, svaki radni dan</div>
       <h1>
-        <span class="h1-display">ZAKON</span>
-        <em>se promijenio?</em>
+        <span class="h1-display">Ne moraš čitati sve zakone</span>
+        <em>— dobiješ ono što je važno za tebe</em>
       </h1>
-      <p class="hero-desc">Definirajte ključne riječi i primajte email obavijest čim se pojavi relevantan propis, pravilnik ili uredba — svako jutro, na vrijeme.</p>
+      <p class="hero-desc">AI filtrira i objašnjava zakonodavstvo — ti dobiješ samo ono što je važno.</p>
       <div class="hero-actions">
         <div class="btn-magnetic">
-          <a href="#" id="heroCta" class="btn btn-solid btn-lg" onclick="openModal('register')">Primi Sutrašnji Izvještaj</a>
+          <a href="#" id="heroCta" class="btn btn-solid btn-lg" onclick="openModal('register')">Počni besplatno</a>
         </div>
         <a href="#pricing" class="btn btn-ghost btn-lg">Pogledajte planove</a>
       </div>
@@ -758,8 +790,8 @@
       <div class="step-editorial reveal-x" style="transition-delay:.15s">
         <div class="step-num">02</div>
         <div class="step-content">
-          <h3>Dodajte ključne riječi</h3>
-          <p>Unesite pojmove koji vas zanimaju — zakon, pravilnik, uredba, djelatnost.</p>
+          <h3>Dodajte teme koje te zanimaju</h3>
+          <p>Unesite teme koje te zanimaju — zakon, pravilnik, uredba ili djelatnost.</p>
           <div class="kw-pills">
             <span class="kw-pill">PDV</span>
             <span class="kw-pill">zakon o radu</span>
@@ -774,8 +806,8 @@
       <div class="step-editorial reveal-x" style="transition-delay:.3s">
         <div class="step-num">03</div>
         <div class="step-content">
-          <h3>Primajte obavijesti</h3>
-          <p>Svaki radni dan u 07:00 šaljemo email s novim pogocima — samo ono što je relevantno za vas.</p>
+          <h3>Primaj email alert</h3>
+          <p>Ne moraš pratiti sve objave — dobiješ email alert samo kad je važno za tebe.</p>
         </div>
       </div>
 
@@ -794,50 +826,62 @@
     <div class="plans">
 
       <div class="plan reveal">
-        <div class="plan-name">Free</div>
+        <div class="plan-name">🟢 FREE</div>
         <div class="plan-price">€0</div>
-        <div class="plan-per">/ mj.</div>
-        <div class="plan-desc">Za početak, bez plaćanja.</div>
+        <div class="plan-per">/ mj</div>
+        <div class="plan-desc">Za početak, bez obveza</div>
         <ul class="plan-features">
-          <li>Do 3 ključne riječi</li>
-          <li>Email obavijest</li>
-          <li class="missing">Do 10 ključnih riječi</li>
-          <li class="missing">Pretraga arhive (od 01. sij. 2026.)</li>
-          <li class="missing">Statistike i analitika</li>
+          <li>Do 3 teme koje te zanimaju</li>
+          <li>Email alertovi o novim promjenama</li>
+          <li>Pregled novih objava</li>
+          <li class="missing">Bez filtriranja (moguće više nebitnih informacija)</li>
         </ul>
-        <a href="#" class="btn btn-ghost" onclick="openModal('register')">Počnite besplatno</a>
+        <a href="#" class="btn btn-ghost" onclick="openModal('register')">Počni besplatno</a>
       </div>
 
       <div class="plan featured reveal" style="transition-delay:.12s">
-        <div class="plan-badge">Popularno</div>
-        <div class="plan-name">Basic</div>
+        <div class="plan-badge">Najpopularniji</div>
+        <div class="plan-name">🟡 BASIC</div>
         <div class="plan-price">€4,99</div>
-        <div class="plan-per">/ mj.</div>
-        <div class="plan-desc">Za profesionalce i tvrtke.</div>
+        <div class="plan-per">/ mj</div>
+        <div class="plan-desc">Manje buke, više relevantnih informacija</div>
         <ul class="plan-features">
-          <li>Do 10 ključnih riječi</li>
-          <li>Email obavijest</li>
-          <li class="missing">Pretraga arhive (od 01. sij. 2026.)</li>
-          <li class="missing">Statistike i analitika</li>
+          <li>Do 10 tema koje te zanimaju</li>
+          <li>✅ AI filtrirane obavijesti</li>
+          <li>Email alert samo kad je stvarno važno</li>
+          <li>💡 Smanjuje broj nebitnih informacija</li>
         </ul>
         <a href="#" class="btn btn-ghost" onclick="selectPlan('basic'); return false;">Odaberi Basic</a>
       </div>
 
       <div class="plan reveal" style="transition-delay:.24s">
-        <div class="plan-name">Plus</div>
+        <div class="plan-name">🔴 PLUS</div>
         <div class="plan-price">€7,99</div>
-        <div class="plan-per">/ mj.</div>
-        <div class="plan-desc">Za agencije i veće timove.</div>
+        <div class="plan-per">/ mj</div>
+        <div class="plan-desc">Razumij što se mijenja i zašto je važno</div>
         <ul class="plan-features">
-          <li>Do 20 ključnih riječi</li>
-          <li>Email obavijest</li>
-          <li>Pretraga arhive (od 01. sij. 2026.)</li>
+          <li>Do 20 tema koje te zanimaju</li>
+          <li>✅ AI procjena relevantnosti i utjecaja</li>
+          <li>✅ Objašnjenje zašto se odnosi na tebe</li>
+          <li>✅ Strukturirani sažetak zakona</li>
+          <li>Pretraga arhive</li>
           <li>Statistike i analitika</li>
+          <li>💡 Ne samo da vidiš promjenu — nego je razumiješ</li>
         </ul>
         <a href="#" class="btn btn-ghost" onclick="selectPlan('plus'); return false;">Odaberi Plus</a>
       </div>
 
     </div>
+    <div class="conversion-block reveal">
+      <h3>❗ Zašto prijeći na Basic ili Plus?</h3>
+      <ul class="conversion-list">
+        <li>❌ Previše nebitnih informacija u FREE verziji</li>
+        <li>✅ AI filtrira samo ono što je važno</li>
+        <li>✅ Uštedi sate praćenja zakonodavstva</li>
+        <li>✅ Jasno vidiš što se stvarno odnosi na tebe</li>
+      </ul>
+    </div>
+    <p class="usp-oneliner">FREE = sve · BASIC = samo relevantno · PLUS = relevantno + objašnjeno</p>
     <p style="font-family:var(--mono);font-size:11px;color:var(--mid);text-align:center;margin-top:24px;letter-spacing:.3px;">
       Cijene su izražene bez PDV-a. Sukladno čl. 90. st. 2. Zakona o porezu na dodanu vrijednost (NN 73/13 i izmjene), PDV nije obračunan.
     </p>
