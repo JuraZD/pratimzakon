@@ -338,11 +338,22 @@
 
     .email-grid {
       display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 24px;
+      align-items: start;
 
     }
 
     .email-card {
       border: 1px solid var(--rule);
+      padding: 28px;
+      background: var(--white);
+      min-height: 100%;
+    }
+
+    .email-card.highlight {
+      border-color: var(--ink);
+      background: #fcfcfb;
 
     }
 
@@ -355,12 +366,20 @@
 
     .email-subject {
       font-family: var(--serif);
+      font-size: clamp(22px, 2vw, 28px);
+      line-height: 1.3;
+      margin-bottom: 14px;
 
       letter-spacing: -0.2px;
     }
 
     .email-body {
       white-space: pre-line;
+      font-size: 1rem;
+      color: var(--mid);
+      line-height: 1.8;
+      margin-bottom: 14px;
+    }
 
     /* ─── PRICING ─── */
     .pricing { border-bottom: 1px solid var(--rule); }
@@ -430,6 +449,22 @@
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       border: 1px solid var(--rule);
+    }
+
+    @media (max-width: 1280px) {
+      .email-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 1100px) {
+      .plans { grid-template-columns: repeat(2, 1fr); }
+      .plan { border-bottom: 1px solid var(--rule); }
+      .plan:nth-child(2) { border-right: none; }
+      .plan:nth-child(3) { grid-column: 1 / -1; border-right: none; border-bottom: none; }
+      .plan.featured { border-bottom: 1px solid rgba(255,255,255,.15); }
+    }
+
+    @media (max-width: 900px) {
+      .email-grid { grid-template-columns: 1fr; }
     }
 
     .plan {
@@ -718,6 +753,8 @@
       .hero-right { display: none; }
       .step-editorial { grid-template-columns: 48px 1fr; padding: 36px 0; }
       .step-content { padding-left: 24px; }
+      .email-grid { gap: 16px; }
+      .email-card { padding: 22px; }
 
       .plans { grid-template-columns: 1fr; }
       .plan { border-right: none; border-bottom: 1px solid var(--rule); }
@@ -856,6 +893,9 @@
 <section class="email-examples" id="email-primjeri">
   <div class="inner">
     <div class="section-label">Kako izgleda u praksi</div>
+    <p style="max-width:760px;color:var(--mid);margin-bottom:24px;line-height:1.8;">
+      Isti zakon, tri razine vrijednosti: FREE daje sve objave, BASIC filtrira relevantno, a PLUS objašnjava što promjena znači za tebe.
+    </p>
 
     <div class="email-grid">
       <article class="email-card reveal">
@@ -874,6 +914,9 @@ Detalji:
 • Izmjene u obračunu doprinosa
 
 Za više informacija pogledajte službene objave.</p>
+      </article>
+
+      <article class="email-card highlight reveal" style="transition-delay:.12s">
 
         <h3>📧 BASIC</h3>
         <p class="email-subject">Promjena poreza na dohodak (relevantno za tebe)</p>
@@ -913,6 +956,12 @@ Moguć rast ili smanjenje porezne obveze (ovisno o razini prihoda)
 Ova izmjena mijenja način obračuna poreza i može imati direktan financijski utjecaj.
 
 📌 Preporuka: provjeri kako se nova pravila primjenjuju na tvoju situaciju.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING COPY FINAL LOCK: ne mijenjati bez izričite odluke (vidi docs/pricing-copy-lock.md) -->
 
 <section class="pricing" id="pricing">
   <div class="inner">
@@ -938,6 +987,8 @@ Ova izmjena mijenja način obračuna poreza i može imati direktan financijski u
       </div>
 
       <div class="plan featured reveal" style="transition-delay:.12s">
+        <div class="plan-badge">Najvažniji</div>
+        <div class="plan-name">🟡 BASIC (NAJVAŽNIJI)</div>
 
         <div class="plan-price">€4,99</div>
         <div class="plan-per">/ mj</div>
@@ -952,6 +1003,7 @@ Ova izmjena mijenja način obračuna poreza i može imati direktan financijski u
       </div>
 
       <div class="plan reveal" style="transition-delay:.24s">
+        <div class="plan-name">🔴 PLUS (VALUE PLAN)</div>
 
         <div class="plan-price">€7,99</div>
         <div class="plan-per">/ mj</div>

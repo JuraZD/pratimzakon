@@ -22,6 +22,7 @@ Detalji:
 
 Za više informacija pogledajte službene objave.
 
+---
 
 
 ## BASIC email
@@ -39,6 +40,7 @@ izdvajamo promjenu koja je relevantna za tvoje odabrane teme:
 
 Primaš samo relevantne informacije.
 
+---
 
 
 ## PLUS email
