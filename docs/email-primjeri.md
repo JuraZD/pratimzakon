@@ -22,7 +22,7 @@ Detalji:
 
 Za više informacija pogledajte službene objave.
 
----
+
 
 ## BASIC email
 **Subject:** Promjena poreza na dohodak (relevantno za tebe)
@@ -39,7 +39,7 @@ izdvajamo promjenu koja je relevantna za tvoje odabrane teme:
 
 Primaš samo relevantne informacije.
 
----
+
 
 ## PLUS email
 **Subject:** Važna promjena poreza — evo što znači za tebe
@@ -65,3 +65,4 @@ Ova izmjena mijenja način obračuna poreza i može imati direktan financijski u
 
 📌 Preporuka:
 Provjeri kako se nova pravila primjenjuju na tvoju situaciju.
+
