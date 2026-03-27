@@ -325,6 +325,71 @@
       letter-spacing: .3px;
     }
 
+    /* ─── EMAIL EXAMPLES ─── */
+    .email-examples {
+      border-bottom: 1px solid var(--rule);
+      background: var(--white);
+    }
+
+    .email-examples .inner {
+      padding-top: 96px;
+      padding-bottom: 96px;
+    }
+
+    .email-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+    }
+
+    .email-card {
+      border: 1px solid var(--rule);
+      padding: 20px;
+      background: var(--white);
+    }
+
+    .email-card h3 {
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .email-subject {
+      font-family: var(--serif);
+      font-size: 20px;
+      line-height: 1.3;
+      margin-bottom: 12px;
+      letter-spacing: -0.2px;
+    }
+
+    .email-body {
+      white-space: pre-line;
+      font-size: 0.9rem;
+      color: var(--mid);
+      line-height: 1.7;
+      margin-bottom: 14px;
+    }
+
+    .email-diff {
+      border-top: 1px solid var(--rule);
+      padding-top: 10px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--mid);
+      letter-spacing: .2px;
+    }
+
+    .email-emotion {
+      margin-top: 24px;
+      border: 1px solid var(--rule);
+      background: var(--paper);
+      padding: 16px;
+      font-size: 0.9rem;
+      color: var(--mid);
+      line-height: 1.7;
+    }
+
     /* ─── PRICING ─── */
     .pricing { border-bottom: 1px solid var(--rule); }
 
@@ -681,6 +746,7 @@
       .hero-right { display: none; }
       .step-editorial { grid-template-columns: 48px 1fr; padding: 36px 0; }
       .step-content { padding-left: 24px; }
+      .email-grid { grid-template-columns: 1fr; }
       .plans { grid-template-columns: 1fr; }
       .plan { border-right: none; border-bottom: 1px solid var(--rule); }
       .plan:last-child { border-bottom: none; }
@@ -810,6 +876,79 @@
         </div>
       </div>
 
+    </div>
+  </div>
+</section>
+
+<!-- EMAIL EXAMPLES -->
+<section class="email-examples" id="email-primjeri">
+  <div class="inner">
+    <div class="section-label">Kako izgleda u praksi</div>
+    <div class="email-grid">
+      <article class="email-card reveal">
+        <h3>📧 FREE</h3>
+        <p class="email-subject">Nove zakonske promjene (3 novosti)</p>
+        <p class="email-body">Poštovani,
+
+u nastavku su objavljene nove promjene u zakonodavstvu:
+• Izmjene Zakona o porezu na dohodak (NN 123/2026)
+• Pravilnik o izmjenama poreznih obrazaca
+• Dopune Zakona o doprinosima
+
+Detalji:
+• Promijenjeni porezni razredi
+• Ažurirani obrasci za prijavu
+• Izmjene u obračunu doprinosa
+
+Za više informacija pogledajte službene objave.</p>
+        <div class="email-diff">Osjećaj: “ovo je naporno” · Bez filtriranja, bez konteksta.</div>
+      </article>
+
+      <article class="email-card reveal" style="transition-delay:.12s">
+        <h3>📧 BASIC</h3>
+        <p class="email-subject">Promjena poreza na dohodak (relevantno za tebe)</p>
+        <p class="email-body">Poštovani,
+
+izdvajamo promjenu koja je relevantna za tvoje odabrane teme:
+
+📌 Zakon o porezu na dohodak – izmjene
+• Ažurirani porezni razredi
+• Promjene u obračunu osobnog odbitka
+
+📩 Ova obavijest je filtrirana prema temama koje te zanimaju.
+
+Primaš samo relevantne informacije.</p>
+        <div class="email-diff">Osjećaj: “ok, korisno” · Samo 1 zakon, bez šuma, fokus.</div>
+      </article>
+
+      <article class="email-card reveal" style="transition-delay:.24s">
+        <h3>📧 PLUS</h3>
+        <p class="email-subject">Važna promjena poreza — evo što znači za tebe</p>
+        <p class="email-body">Poštovani,
+
+zabilježena je promjena koja utječe na tvoje odabrane teme:
+
+📌 Zakon o porezu na dohodak – izmjene
+🔍 Što se promijenilo:
+• Novi porezni razredi
+• Izmjena osobnog odbitka
+
+🎯 Zašto je ovo važno za tebe:
+Ako imaš prihode iz samostalne djelatnosti ili plaću iznad prosjeka, ova promjena može utjecati na iznos poreza koji plaćaš.
+
+📊 Procjena utjecaja:
+Moguć rast ili smanjenje porezne obveze (ovisno o razini prihoda)
+
+🧾 Sažetak:
+Ova izmjena mijenja način obračuna poreza i može imati direktan financijski utjecaj.
+
+📌 Preporuka: provjeri kako se nova pravila primjenjuju na tvoju situaciju.</p>
+        <div class="email-diff">Osjećaj: “ovo mi stvarno treba” · Kontekst + objašnjenje + utjecaj.</div>
+      </article>
+    </div>
+
+    <div class="email-emotion reveal">
+      <strong>KLJUČNI MOMENT:</strong> FREE daje sve informacije, BASIC daje samo relevantno, PLUS daje relevantno + objašnjeno što to znači za tebe.
     </div>
   </div>
 </section>
