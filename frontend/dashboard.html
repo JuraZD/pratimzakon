@@ -458,7 +458,54 @@
     .archive-search-input:focus { border-color: var(--ink); }
     .archive-search-row { display: flex; gap: 10px; }
     #archiveSearchHint { font-size: 12px; color: var(--mid); margin-top: 6px; min-height: 18px; }
-  </style>
+  
+    /* ─── KW HITS MODAL ─── */
+    .kw-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:1000; align-items:center; justify-content:center; }
+    .kw-modal-overlay.open { display:flex; }
+    .kw-modal { background:var(--white); max-width:720px; width:calc(100% - 40px); max-height:80vh; display:flex; flex-direction:column; border:1px solid var(--rule); }
+    .kw-modal-head { padding:20px 24px; border-bottom:1px solid var(--rule); display:flex; align-items:center; justify-content:space-between; flex-shrink:0; }
+    .kw-modal-title { font-family:var(--serif); font-size:18px; font-weight:700; }
+    .kw-modal-close { background:none; border:none; font-size:22px; cursor:pointer; color:var(--mid); padding:0 4px; line-height:1; }
+    .kw-modal-close:hover { color:var(--ink); }
+    .kw-modal-body { overflow-y:auto; padding:20px 24px; flex:1; }
+    .kw-modal-loading { color:var(--mid); font-size:13px; font-family:var(--mono); padding:20px 0; }
+    .kw-result-item { padding:12px 0; border-bottom:1px solid var(--rule); }
+    .kw-result-item:last-child { border-bottom:none; }
+    .kw-result-title { font-family:var(--serif); font-size:15px; font-weight:600; margin-bottom:4px; }
+    .kw-result-title a { color:var(--ink); text-decoration:none; }
+    .kw-result-title a:hover { text-decoration:underline; }
+    .kw-result-meta { font-family:var(--mono); font-size:11px; color:var(--mid); letter-spacing:.3px; }
+    .kw-modal-pagination { display:flex; gap:6px; align-items:center; justify-content:center; padding:16px 0 0; border-top:1px solid var(--rule); margin-top:12px; flex-wrap:wrap; }
+    .kw-page-btn { padding:5px 10px; border:1px solid var(--rule); background:var(--white); cursor:pointer; font-family:var(--mono); font-size:12px; }
+    .kw-page-btn:hover { background:var(--bone); }
+    .kw-page-btn.active { background:var(--ink); color:var(--white); border-color:var(--ink); }
+    .kw-page-btn:disabled { opacity:.4; cursor:default; }
+
+    /* ─── FULL SEARCH MODULE ─── */
+    .search-module .filters-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:16px; }
+    .search-module .filter-group label { display:block; font-family:var(--mono); font-size:10px; letter-spacing:1px; text-transform:uppercase; color:var(--mid); margin-bottom:6px; }
+    .search-module .filter-group input,
+    .search-module .filter-group select { width:100%; padding:8px 10px; border:1px solid var(--rule); background:var(--white); font-family:var(--sans); font-size:13px; color:var(--ink); }
+    .search-module .filter-full { grid-column:1/-1; }
+    .search-module .search-hint-sm { font-family:var(--mono); font-size:10px; color:var(--mid); margin-top:4px; letter-spacing:.3px; }
+    .search-module .filter-actions { display:flex; gap:10px; justify-content:flex-end; margin-top:4px; }
+    .search-module .results-area { margin-top:16px; }
+    .search-module .results-meta { font-family:var(--mono); font-size:11px; color:var(--mid); margin-bottom:12px; letter-spacing:.3px; }
+    .search-module .s-result { padding:12px 0; border-bottom:1px solid var(--rule); }
+    .search-module .s-result:last-child { border-bottom:none; }
+    .search-module .s-result-title { font-family:var(--serif); font-size:15px; font-weight:600; margin-bottom:4px; }
+    .search-module .s-result-title a { color:var(--ink); text-decoration:none; }
+    .search-module .s-result-title a:hover { text-decoration:underline; }
+    .search-module .s-result-meta { font-family:var(--mono); font-size:11px; color:var(--mid); letter-spacing:.3px; }
+    .search-module .s-loading { font-family:var(--mono); font-size:13px; color:var(--mid); padding:16px 0; }
+    .search-module .s-empty { font-family:var(--mono); font-size:13px; color:var(--mid); padding:16px 0; }
+    .search-module .s-pagination { display:flex; gap:6px; justify-content:center; flex-wrap:wrap; padding-top:16px; border-top:1px solid var(--rule); margin-top:12px; }
+    .search-module .s-page-btn { padding:5px 10px; border:1px solid var(--rule); background:var(--white); cursor:pointer; font-family:var(--mono); font-size:12px; }
+    .search-module .s-page-btn:hover { background:var(--bone); }
+    .search-module .s-page-btn.active { background:var(--ink); color:var(--white); border-color:var(--ink); }
+    .search-module .s-page-btn:disabled { opacity:.4; cursor:default; }
+    @media(max-width:600px) { .search-module .filters-grid { grid-template-columns:1fr; } }
+</style>
 </head>
 <body>
 
@@ -466,17 +513,16 @@
   <a href="index.html" class="logo">PratimZakon</a>
   <div class="nav-right">
     <span id="userEmail">–</span>
-    <a href="search.html" class="btn">Pretraga arhive</a>
     <a href="stats.html" id="statsLink" class="btn" style="display:none">Statistike</a>
     <button class="btn" id="subscriptionBtn" style="display:none" onclick="openSubscriptionModal()">Pretplata</button>
     <button class="btn" onclick="logout()">Odjava</button>
   </div>
 </nav>
 <div id="headerStatsBar">
-  <div class="hbar-item"><span>Kljunih rijei:</span><strong id="hbarKw"></strong></div>
+  <div class="hbar-item"><span>Ključnih riječi:</span><strong id="hbarKw"></strong></div>
   <div class="hbar-item"><span>Pogodaka (30 dana):</span><strong id="hbarHits"></strong></div>
-  <div class="hbar-item"><span>Praenih dokumenata:</span><strong id="hbarDocs"></strong></div>
-  <div class="hbar-item"><span>Sljedea obavijest:</span><strong id="hbarNext"></strong></div>
+  <div class="hbar-item"><span>Praćenih dokumenata:</span><strong id="hbarDocs"></strong></div>
+  <div class="hbar-item"><span>Sljedeća obavijest:</span><strong id="hbarNext"></strong></div>
 </div>
 
 <main id="mainContent" style="display:none">
@@ -579,15 +625,62 @@
   </div>
 
   <!-- PRETRAGA ARHIVE -->
-  <div class="card">
+
+
+
+  <div class="card search-module">
     <div class="card-title">Pretraga arhive</div>
-    <p style="font-size:13px;color:var(--mid);margin-bottom:16px;line-height:1.6;">Pretra~ite objave Narodnih novina. Upiaite jednu ili viae kljunih rijei  pretra~uje se naslov dokumenta.</p>
-    <div class="archive-search-row">
-      <input type="text" id="archiveSearchInput" class="archive-search-input" placeholder="npr. zakon o radu" maxlength="200" onkeydown="if(event.key==='Enter')doArchiveSearch()">
-      <button class="btn btn-solid" onclick="doArchiveSearch()">Pretra~i</button>
+    <p style="font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--rule);">Pretražite objave Narodnih novina. Upišite jednu ili više ključnih riječi — pretražuje se naslov dokumenta.</p>
+
+    <div class="filters-grid">
+      <div class="filter-group filter-full">
+        <label>Pretraga po naslovu</label>
+        <input type="text" id="smQ" placeholder="npr. porez dohodak ili zakon radu" onkeydown="if(event.key==='Enter')smSearch(1)">
+        <div class="search-hint-sm">Više riječi sužava rezultate. Nije osjetljivo na velika/mala slova.</div>
+      </div>
+      <div class="filter-group">
+        <label>Tip dokumenta</label>
+        <select id="smType">
+          <option value="">Svi tipovi</option>
+          <option value="ZAKON">Zakon</option>
+          <option value="UREDBA">Uredba</option>
+          <option value="PRAVILNIK">Pravilnik</option>
+          <option value="ODLUKA">Odluka</option>
+          <option value="RJEŠENJE">Rješenje</option>
+          <option value="NAREDBA">Naredba</option>
+          <option value="SPORAZUM">Sporazum</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Dio</label>
+        <select id="smPart">
+          <option value="">SL + MU</option>
+          <option value="SL">Službeni list (SL)</option>
+          <option value="MU">Međunarodni ugovori (MU)</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Institucija</label>
+        <input type="text" id="smInstitution" placeholder='npr. "Vlada RH"'>
+      </div>
+      <div class="filter-group">
+        <label>Datum od</label>
+        <input type="date" id="smDateFrom">
+      </div>
+      <div class="filter-group">
+        <label>Datum do</label>
+        <input type="date" id="smDateTo">
+      </div>
     </div>
-    <div id="archiveSearchHint"></div>
+
+    <div class="filter-actions">
+      <button class="btn" onclick="smClear()">Poništi</button>
+      <button class="btn btn-solid" onclick="smSearch(1)">Pretraži</button>
+    </div>
+
+    <div class="results-area" id="smResults"></div>
   </div>
+
 
   <!-- POSTAVKE RAČUNA -->
   <div class="card">
@@ -631,6 +724,19 @@
     </div>
   </div>
 
+
+<!-- KW HITS MODAL -->
+<div class="kw-modal-overlay" id="kwModalOverlay" onclick="if(event.target===this)closeKwModal()">
+  <div class="kw-modal">
+    <div class="kw-modal-head">
+      <div class="kw-modal-title" id="kwModalTitle">Rezultati</div>
+      <button class="kw-modal-close" onclick="closeKwModal()">×</button>
+    </div>
+    <div class="kw-modal-body" id="kwModalBody">
+      <div class="kw-modal-loading">Učitavam...</div>
+    </div>
+  </div>
+</div>
 </main>
 
 <!-- PRETPLATA MODAL -->
@@ -748,7 +854,7 @@
     document.getElementById("mainContent").style.display = "block";
 
     // Plan badge
-    const planNames = { free: "Free", basic: "Basic", plus: "Plus", pro: "Basic", expert: "Plus" };
+    const planNames = { free: "Basic (trial)", basic: "Basic (trial)", plus: "Basic (trial)", pro: "Basic (trial)", expert: "Basic (trial)" };
     const planBadge = document.getElementById("planBadge");
     planBadge.textContent = planNames[userData.plan] || userData.plan;
     planBadge.className = `badge badge-plan-${userData.plan || "free"}`;
@@ -805,7 +911,7 @@
 
   function renderKeywords() {
     const list = document.getElementById("kwList");
-    const limit = userData?.keyword_limit || 3;
+    const limit = Math.min(userData?.keyword_limit || 3, 5);
     const count = keywords.length;
     const limitDisplay = limit >= 9999 ? "∞" : limit;
 
@@ -1208,9 +1314,9 @@
       actEl.innerHTML = '<span style="font-size:13px;color:var(--mid);">Dodajte ključne riječi za praćenje.</span>';
     } else {
       actEl.innerHTML = data.keyword_hits.map(k => `
-        <a href="search.html?q=${encodeURIComponent(k.keyword)}" class="kw-hit-row">
+        <div class="kw-hit-row" onclick="openKwModal(this.dataset.kw)" data-kw="${escHtml(k.keyword)}" style="cursor:pointer">
           <span class="kw-hit-name">${escHtml(k.keyword)}</span>
-          <span class="kw-hit-count">${k.hits} ${k.hits === 1 ? 'pogodak' : k.hits < 5 ? 'pogotka' : 'pogodaka'}</span>
+          <span class="kw-hit-count">${k.hits} ${k.hits === 1 ? 'pogodak' : k.hits < 5 ? 'pogotka' : 'pogodaka'} →</span>
         </div>`).join("");
     }
   }
@@ -1283,13 +1389,6 @@
   }
 
   
-function doArchiveSearch() {
-  const q = document.getElementById('archiveSearchInput').value.trim();
-  const hint = document.getElementById('archiveSearchHint');
-  if (!q) { hint.textContent = 'Unesite pojam za pretragu.'; return; }
-  hint.textContent = '';
-  window.location.href = 'search.html?q=' + encodeURIComponent(q);
-}
 
 // Init
   if (!getToken()) {
@@ -1305,6 +1404,142 @@ function doArchiveSearch() {
       document.getElementById("kwSuccess").style.display = "block";
     }
   }
+
+
+  // ─── KEYWORD HITS MODAL ───
+  let _kwPage = 1;
+  let _kwKeyword = '';
+
+  async function openKwModal(kw) {
+    _kwKeyword = kw;
+    _kwPage = 1;
+    document.getElementById('kwModalTitle').textContent = '"' + kw + '" — pogoci';
+    document.getElementById('kwModalOverlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+    await loadKwModalPage(1);
+  }
+
+  function closeKwModal() {
+    document.getElementById('kwModalOverlay').classList.remove('open');
+    document.body.style.overflow = '';
+    document.getElementById('kwModalBody').innerHTML = '<div class="kw-modal-loading">Učitavam...</div>';
+  }
+
+  async function loadKwModalPage(page) {
+    const body = document.getElementById('kwModalBody');
+    body.innerHTML = '<div class="kw-modal-loading">Učitavam...</div>';
+    const params = new URLSearchParams({ q: _kwKeyword, per_page: 10, page });
+    const res = await authFetch('/search/?' + params);
+    if (!res) return;
+    const data = await res.json();
+    if (!res.ok) { body.innerHTML = '<div class="kw-modal-loading">Greška pri učitavanju.</div>'; return; }
+
+    if (data.total === 0) {
+      body.innerHTML = '<div class="kw-modal-loading">Nema rezultata.</div>';
+      return;
+    }
+
+    const totalPages = Math.ceil(data.total / 10);
+    const from = (page - 1) * 10 + 1;
+    const to = Math.min(page * 10, data.total);
+
+    let html = '<div class="results-meta">Pronađeno <strong>' + data.total + '</strong> dokumenata · prikazano ' + from + '–' + to + '</div>';
+
+    for (const doc of data.results) {
+      const meta = [];
+      if (doc.type) meta.push(escHtml(doc.type));
+      if (doc.published_date) meta.push(escHtml(doc.published_date));
+      if (doc.issuer) meta.push(escHtml(doc.issuer));
+      html += '<div class="kw-result-item">';
+      html += '<div class="kw-result-title"><a href="' + escHtml(doc.url) + '" target="_blank" rel="noopener">' + escHtml(doc.title) + '</a></div>';
+      if (meta.length) html += '<div class="kw-result-meta">' + meta.join(' · ') + '</div>';
+      html += '</div>';
+    }
+
+    if (totalPages > 1) {
+      html += '<div class="kw-modal-pagination">';
+      html += '<button class="kw-page-btn" onclick="loadKwModalPage(' + (page-1) + ')" ' + (page<=1?'disabled':'') + '>← Prethodna</button>';
+      const start = Math.max(1, page-2), end = Math.min(totalPages, page+2);
+      for (let p = start; p <= end; p++) {
+        html += '<button class="kw-page-btn ' + (p===page?'active':'') + '" onclick="loadKwModalPage(' + p + ')">' + p + '</button>';
+      }
+      html += '<button class="kw-page-btn" onclick="loadKwModalPage(' + (page+1) + ')" ' + (page>=totalPages?'disabled':'') + '>Sljedeća →</button>';
+      html += '</div>';
+    }
+
+    body.innerHTML = html;
+  }
+
+  // ─── FULL SEARCH MODULE (embedded in dashboard) ───
+  let _smPage = 1;
+
+  function smClear() {
+    ['smQ','smInstitution','smDateFrom','smDateTo'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('smType').value = '';
+    document.getElementById('smPart').value = '';
+    document.getElementById('smResults').innerHTML = '';
+  }
+
+  async function smSearch(page) {
+    _smPage = page || 1;
+    const q = document.getElementById('smQ').value.trim();
+    const type = document.getElementById('smType').value;
+    const part = document.getElementById('smPart').value;
+    const institution = document.getElementById('smInstitution').value.trim();
+    const dateFrom = document.getElementById('smDateFrom').value;
+    const dateTo = document.getElementById('smDateTo').value;
+
+    const params = new URLSearchParams({ per_page: 10, page: _smPage });
+    if (q) params.set('q', q);
+    if (type) params.set('type', type);
+    if (part) params.set('part', part);
+    if (institution) params.set('institution', institution);
+    if (dateFrom) params.set('date_from', dateFrom);
+    if (dateTo) params.set('date_to', dateTo);
+
+    const area = document.getElementById('smResults');
+    area.innerHTML = '<div class="s-loading">Pretražujem...</div>';
+
+    const res = await authFetch('/search/?' + params);
+    if (!res) return;
+    const data = await res.json();
+    if (!res.ok) { area.innerHTML = '<div class="s-loading">Greška.</div>'; return; }
+
+    if (data.total === 0) {
+      area.innerHTML = '<div class="s-empty">Nema rezultata za zadane kriterije.</div>';
+      return;
+    }
+
+    const totalPages = Math.ceil(data.total / 10);
+    const from = (_smPage - 1) * 10 + 1;
+    const to = Math.min(_smPage * 10, data.total);
+    let html = '<div class="results-meta">Pronađeno <strong>' + data.total + '</strong> dokumenata · prikazano ' + from + '–' + to + '</div>';
+
+    for (const doc of data.results) {
+      const meta = [];
+      if (doc.type) meta.push(escHtml(doc.type));
+      if (doc.published_date) meta.push(escHtml(doc.published_date));
+      if (doc.issuer) meta.push(escHtml(doc.issuer));
+      html += '<div class="s-result">';
+      html += '<div class="s-result-title"><a href="' + escHtml(doc.url) + '" target="_blank" rel="noopener">' + escHtml(doc.title) + '</a></div>';
+      if (meta.length) html += '<div class="s-result-meta">' + meta.join(' · ') + (doc.pdf_url ? ' · <a href="'+escHtml(doc.pdf_url)+'" target="_blank">PDF</a>' : '') + '</div>';
+      html += '</div>';
+    }
+
+    if (totalPages > 1) {
+      html += '<div class="s-pagination">';
+      html += '<button class="s-page-btn" onclick="smSearch(' + (_smPage-1) + ')" ' + (_smPage<=1?'disabled':'') + '>← Prethodna</button>';
+      const start = Math.max(1, _smPage-2), end = Math.min(totalPages, _smPage+2);
+      for (let p = start; p <= end; p++) {
+        html += '<button class="s-page-btn ' + (p===_smPage?'active':'') + '" onclick="smSearch(' + p + ')">' + p + '</button>';
+      }
+      html += '<button class="s-page-btn" onclick="smSearch(' + (_smPage+1) + ')" ' + (_smPage>=totalPages?'disabled':'') + '>Sljedeća →</button>';
+      html += '</div>';
+    }
+
+    area.innerHTML = html;
+  }
+
 </script>
 </body>
 </html>
