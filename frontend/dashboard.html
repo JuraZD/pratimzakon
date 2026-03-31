@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dashboard – PratimZakon</title>
+  <title>Dashboard â PratimZakon</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --ink: #111111;
+      --ink: #0D0D0D;
       --bone: #F5F4F1;
       --white: #ffffff;
       --mid: #6b6b6b;
@@ -432,7 +432,7 @@
 <nav>
   <a href="index.html" class="logo">PratimZakon</a>
   <div class="nav-right">
-    <span id="userEmail">–</span>
+    <span id="userEmail">â</span>
     <a href="search.html" class="btn">Pretraga arhive</a>
     <a href="stats.html" id="statsLink" class="btn" style="display:none">Statistike</a>
     <button class="btn" id="subscriptionBtn" style="display:none" onclick="openSubscriptionModal()">Pretplata</button>
@@ -444,38 +444,38 @@
 
   <!-- STATUS -->
   <div class="card">
-    <div class="card-title">Vaš račun</div>
+    <div class="card-title">VaÅ¡ raÄun</div>
     <div class="status-bar">
       <div class="status-item">
         <div class="status-label">Plan</div>
-        <div class="status-value"><span class="badge" id="planBadge">–</span></div>
+        <div class="status-value"><span class="badge" id="planBadge">â</span></div>
       </div>
       <div class="status-item">
         <div class="status-label">Status pretplate</div>
-        <div class="status-value"><span class="badge" id="statusBadge">–</span></div>
+        <div class="status-value"><span class="badge" id="statusBadge">â</span></div>
       </div>
       <div class="status-item">
         <div class="status-label">Aktivno do</div>
-        <div class="status-value" id="subEnd" style="font-size:13px;">–</div>
+        <div class="status-value" id="subEnd" style="font-size:13px;">â</div>
       </div>
       <div class="status-item" id="daysLeftItem" style="display:none">
         <div class="status-label">Preostalo</div>
-        <div class="status-value" id="daysLeft" style="font-size:13px;">–</div>
+        <div class="status-value" id="daysLeft" style="font-size:13px;">â</div>
       </div>
       <div class="status-item" id="daysLeftItem" style="display:none">
         <div class="status-label">Preostalo</div>
-        <div class="status-value" id="daysLeft">–</div>
+        <div class="status-value" id="daysLeft">â</div>
       </div>
       <div class="status-item">
-        <div class="status-label">Ključne riječi</div>
-        <div class="status-value" id="kwCount">–</div>
+        <div class="status-label">KljuÄne rijeÄi</div>
+        <div class="status-value" id="kwCount">â</div>
       </div>
     </div>
 
     <!-- MU TOGGLE (vidljiv samo Pro/Expert) -->
     <div id="muRow" style="display:none;align-items:center;justify-content:space-between;gap:16px;padding:14px 20px;border-top:1px solid var(--rule);margin-top:0;">
       <div>
-        <p style="font-family:var(--sans);font-size:13px;font-weight:600;color:var(--ink);margin:0 0 2px;">Međunarodni ugovori (MU)</p>
+        <p style="font-family:var(--sans);font-size:13px;font-weight:600;color:var(--ink);margin:0 0 2px;">MeÄunarodni ugovori (MU)</p>
         <p style="font-family:var(--mono);font-size:11px;color:var(--mid);margin:0;letter-spacing:.3px;">Primajte obavijesti i za MU izdanja Narodnih novina</p>
       </div>
       <label class="toggle">
@@ -487,8 +487,8 @@
 
   <!-- KEYWORDS -->
   <div class="card">
-    <div class="card-title">Moje ključne riječi</div>
-    <p style="font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--rule);">Automatska obavijest stiže svaki radni dan u 07:00 — pratimo nova objavljivanja u Narodnim novinama i javljamo se samo kad ima nešto relevantno za vaše ključne riječi.</p>
+    <div class="card-title">Moje kljuÄne rijeÄi</div>
+    <p style="font-size:13px;color:var(--mid);line-height:1.6;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--rule);">Automatska obavijest stiÅ¾e svaki radni dan u 07:00 â pratimo nova objavljivanja u Narodnim novinama i javljamo se samo kad ima neÅ¡to relevantno za vaÅ¡e kljuÄne rijeÄi.</p>
     <ul class="kw-list" id="kwList"></ul>
 
     <div class="kw-add">
@@ -499,7 +499,7 @@
     <div class="msg msg-success" id="kwSuccess" style="display:none"></div>
 
     <div class="limit-bar">
-      <div class="limit-text" id="limitText">0 / 0 ključnih riječi</div>
+      <div class="limit-text" id="limitText">0 / 0 kljuÄnih rijeÄi</div>
       <div class="limit-track"><div class="limit-fill" id="limitFill" style="width:0%"></div></div>
     </div>
   </div>
@@ -509,8 +509,8 @@
     <div class="card-title">Pregled</div>
 
     <div class="activity-row">
-      <p class="activity-label">Sljedeća obavijest</p>
-      <p class="activity-value" id="nextNotif">–</p>
+      <p class="activity-label">SljedeÄa obavijest</p>
+      <p class="activity-value" id="nextNotif">â</p>
     </div>
 
     <hr class="activity-divider">
@@ -518,8 +518,8 @@
     <div class="activity-row">
       <p class="activity-label">Brze radnje</p>
       <div class="quick-actions">
-        <button class="btn btn-solid" onclick="document.getElementById('kwInput').focus();document.getElementById('kwInput').scrollIntoView({behavior:'smooth'})">Dodaj ključnu riječ</button>
-        <a href="search.html" class="btn">Pretraži arhivu</a>
+        <button class="btn btn-solid" onclick="document.getElementById('kwInput').focus();document.getElementById('kwInput').scrollIntoView({behavior:'smooth'})">Dodaj kljuÄnu rijeÄ</button>
+        <a href="search.html" class="btn">PretraÅ¾i arhivu</a>
         <a href="stats.html" class="btn" id="statsQuickBtn" style="display:none">Statistike</a>
       </div>
     </div>
@@ -527,30 +527,30 @@
     <hr class="activity-divider">
 
     <div class="activity-row">
-      <p class="activity-label">Zadnje pronađeno</p>
-      <div id="recentDocs"><span style="font-size:13px;color:var(--mid);">Učitavam…</span></div>
+      <p class="activity-label">Zadnje pronaÄeno</p>
+      <div id="recentDocs"><span style="font-size:13px;color:var(--mid);">UÄitavamâ¦</span></div>
     </div>
 
     <hr class="activity-divider">
 
     <div class="activity-row">
-      <p class="activity-label">Aktivnost ključnih riječi <span style="font-family:var(--mono);font-size:11px;color:var(--mid);">30 dana</span></p>
-      <div id="kwActivity"><span style="font-size:13px;color:var(--mid);">Učitavam…</span></div>
+      <p class="activity-label">Aktivnost kljuÄnih rijeÄi <span style="font-family:var(--mono);font-size:11px;color:var(--mid);">30 dana</span></p>
+      <div id="kwActivity"><span style="font-size:13px;color:var(--mid);">UÄitavamâ¦</span></div>
     </div>
   </div>
 
-  <!-- POSTAVKE RAČUNA -->
+  <!-- POSTAVKE RAÄUNA -->
   <div class="card">
-    <div class="card-title">Postavke računa</div>
+    <div class="card-title">Postavke raÄuna</div>
 
     <div class="activity-row">
       <p class="activity-label">Email obavijesti</p>
-      <p style="font-size:13px;color:var(--mid);margin:0 0 12px;line-height:1.6;">Odjavljujete se od svih automatskih email obavijesti. Vaš račun ostaje aktivan.</p>
+      <p style="font-size:13px;color:var(--mid);margin:0 0 12px;line-height:1.6;">Odjavljujete se od svih automatskih email obavijesti. VaÅ¡ raÄun ostaje aktivan.</p>
       <div id="unsubEmailInitRow">
         <button class="btn" onclick="showUnsubEmailConfirm()">Odjavi me od obavijesti</button>
       </div>
       <div id="unsubEmailConfirmRow" style="display:none">
-        <p style="font-size:12px;color:#555;font-weight:600;margin-bottom:12px;">Jeste li sigurni da se želite odjaviti od email obavijesti?</p>
+        <p style="font-size:12px;color:#555;font-weight:600;margin-bottom:12px;">Jeste li sigurni da se Å¾elite odjaviti od email obavijesti?</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
           <button class="btn-cancel-confirm" onclick="confirmUnsubEmail()">Da, odjavi me</button>
           <button class="btn-cancel-back" onclick="hideUnsubEmailConfirm()">Odustani</button>
@@ -563,17 +563,17 @@
     <hr class="activity-divider">
 
     <div class="activity-row">
-      <p class="activity-label" style="color:#b91c1c;">Brisanje računa</p>
+      <p class="activity-label" style="color:#b91c1c;">Brisanje raÄuna</p>
       <div style="background:#fef2f2;border:1px solid #fca5a5;border-left:3px solid #b91c1c;padding:16px;margin-bottom:16px;">
-        <p style="font-size:13px;color:#7f1d1d;margin:0;line-height:1.6;">Trajno briše vaš račun, sve ključne riječi i podatke. Ova radnja se ne može poništiti.</p>
+        <p style="font-size:13px;color:#7f1d1d;margin:0;line-height:1.6;">Trajno briÅ¡e vaÅ¡ raÄun, sve kljuÄne rijeÄi i podatke. Ova radnja se ne moÅ¾e poniÅ¡titi.</p>
       </div>
       <div id="deleteAccountInitRow">
-        <button class="btn-danger" onclick="showDeleteAccountConfirm()">Trajno obriši račun</button>
+        <button class="btn-danger" onclick="showDeleteAccountConfirm()">Trajno obriÅ¡i raÄun</button>
       </div>
       <div id="deleteAccountConfirmRow" style="display:none">
         <p style="font-size:12px;color:#7f1d1d;font-weight:600;margin-bottom:12px;">Jeste li apsolutno sigurni? Ova radnja je nepovratna.</p>
         <div style="display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="btn-cancel-confirm" onclick="confirmDeleteAccount()">Da, trajno obriši</button>
+          <button class="btn-cancel-confirm" onclick="confirmDeleteAccount()">Da, trajno obriÅ¡i</button>
           <button class="btn-cancel-back" onclick="hideDeleteAccountConfirm()">Odustani</button>
         </div>
       </div>
@@ -596,14 +596,14 @@
       <div class="upgrade-plans" id="mPlanCards">
         <div class="upgrade-plan featured selectable" id="mPlanBasic" onclick="selectPlanCard('basic')">
           <h3>Basic</h3>
-          <div class="price">4,99 <span>€/mj</span></div>
-          <p>Do 10 ključnih riječi · email obavijesti</p>
+          <div class="price">4,99 <span>â¬/mj</span></div>
+          <p>Do 10 kljuÄnih rijeÄi Â· email obavijesti</p>
           <button class="btn btn-solid" id="mBtnBasic" onclick="event.stopPropagation(); showPlanConfirm('basic')">Odaberi Basic</button>
         </div>
         <div class="upgrade-plan selectable" id="mPlanPlus" onclick="selectPlanCard('plus')">
           <h3>Plus</h3>
-          <div class="price">7,99 <span>€/mj</span></div>
-          <p>Do 20 ključnih riječi · pretraga arhive · statistike</p>
+          <div class="price">7,99 <span>â¬/mj</span></div>
+          <p>Do 20 kljuÄnih rijeÄi Â· pretraga arhive Â· statistike</p>
           <button class="btn" id="mBtnPlus" onclick="event.stopPropagation(); showPlanConfirm('plus')">Odaberi Plus</button>
         </div>
       </div>
@@ -622,21 +622,21 @@
       <div class="msg msg-success" id="mPlanSuccess" style="display:none"></div>
 
       <p style="font-family:var(--mono);font-size:11px;color:var(--mid);margin:12px 0 0;letter-spacing:.3px;line-height:1.6;">
-        Cijene su izražene bez PDV-a. Sukladno čl. 90. st. 2. Zakona o PDV-u (NN 73/13 i izmjene), PDV nije obračunan.
+        Cijene su izraÅ¾ene bez PDV-a. Sukladno Äl. 90. st. 2. Zakona o PDV-u (NN 73/13 i izmjene), PDV nije obraÄunan.
       </p>
 
       <hr class="modal-divider" id="downgradeDivider" style="display:none">
 
       <p class="modal-section-title" id="downgradeTitle" style="display:none">Spusti na besplatni plan</p>
       <div class="cancel-zone" id="downgradeZone" style="display:none">
-        <p>Prelaskom na besplatni plan limit ključnih riječi smanjuje se na 3. Ključne riječi iznad tog broja bit će automatski uklonjene. Email obavijesti ostaju aktivne.</p>
+        <p>Prelaskom na besplatni plan limit kljuÄnih rijeÄi smanjuje se na 3. KljuÄne rijeÄi iznad tog broja bit Äe automatski uklonjene. Email obavijesti ostaju aktivne.</p>
         <div id="downgradeInitRow">
           <button class="btn-cancel-back" onclick="showDowngradeConfirm()">Spusti na besplatni</button>
         </div>
         <div id="downgradeConfirmRow" style="display:none">
-          <p style="font-size:12px;color:#555;font-weight:600;margin-bottom:12px;">Jeste li sigurni da želite prijeći na besplatni plan?</p>
+          <p style="font-size:12px;color:#555;font-weight:600;margin-bottom:12px;">Jeste li sigurni da Å¾elite prijeÄi na besplatni plan?</p>
           <div class="cancel-confirm-row">
-            <button class="btn-cancel-confirm" onclick="confirmDowngrade()">Da, pređi na besplatni</button>
+            <button class="btn-cancel-confirm" onclick="confirmDowngrade()">Da, preÄi na besplatni</button>
             <button class="btn-cancel-back" onclick="hideDowngradeConfirm()">Odustani</button>
           </div>
         </div>
@@ -648,14 +648,14 @@
 
       <p class="modal-section-title" id="cancelTitle">Otkazivanje pretplate</p>
       <div class="cancel-zone" id="cancelZone">
-        <p>Otkazivanjem pretplate šaljete zahtjev za prekid aktivne pretplate. Kontaktirat ćemo vas s potvrdom. Email obavijesti ostaju aktivne do kraja obračunskog perioda.</p>
+        <p>Otkazivanjem pretplate Å¡aljete zahtjev za prekid aktivne pretplate. Kontaktirat Äemo vas s potvrdom. Email obavijesti ostaju aktivne do kraja obraÄunskog perioda.</p>
         <div id="cancelInitRow">
-          <button class="btn-danger" onclick="showCancelConfirm()">Otkaži pretplatu</button>
+          <button class="btn-danger" onclick="showCancelConfirm()">OtkaÅ¾i pretplatu</button>
         </div>
         <div id="cancelConfirmRow" style="display:none">
-          <p style="font-size:12px;color:#7f1d1d;font-weight:600;margin-bottom:12px;">Jeste li sigurni da želite otkazati pretplatu?</p>
+          <p style="font-size:12px;color:#7f1d1d;font-weight:600;margin-bottom:12px;">Jeste li sigurni da Å¾elite otkazati pretplatu?</p>
           <div class="cancel-confirm-row">
-            <button class="btn-cancel-confirm" onclick="confirmCancel()">Da, otkažite pretplatu</button>
+            <button class="btn-cancel-confirm" onclick="confirmCancel()">Da, otkaÅ¾ite pretplatu</button>
             <button class="btn-cancel-back" onclick="hideCancelConfirm()">Odustani</button>
           </div>
         </div>
@@ -718,11 +718,11 @@
       endDate.setHours(0, 0, 0, 0);
       const daysRemaining = Math.ceil((endDate - today) / (1000 * 60 * 60 * 24));
       if (daysRemaining >= 0) {
-        document.getElementById("daysLeft").textContent = daysRemaining === 0 ? "danas ističe" : `još ${daysRemaining} ${daysRemaining === 1 ? "dan" : daysRemaining < 5 ? "dana" : "dana"}`;
+        document.getElementById("daysLeft").textContent = daysRemaining === 0 ? "danas istiÄe" : `joÅ¡ ${daysRemaining} ${daysRemaining === 1 ? "dan" : daysRemaining < 5 ? "dana" : "dana"}`;
         document.getElementById("daysLeftItem").style.display = "block";
       }
     } else {
-      document.getElementById("subEnd").textContent = "bez ograničenja";
+      document.getElementById("subEnd").textContent = "bez ograniÄenja";
     }
 
     // MU toggle
@@ -732,7 +732,7 @@
       document.getElementById("muToggle").checked = userData.include_mu;
     }
 
-    // Type select – vidljiv samo za Pro/Expert
+    // Type select â vidljiv samo za Pro/Expert
     if (isPaid) {
     }
 
@@ -757,19 +757,19 @@
     const list = document.getElementById("kwList");
     const limit = userData?.keyword_limit || 3;
     const count = keywords.length;
-    const limitDisplay = limit >= 9999 ? "∞" : limit;
+    const limitDisplay = limit >= 9999 ? "â" : limit;
 
     document.getElementById("kwCount").textContent = count;
-    document.getElementById("limitText").textContent = `${count} / ${limitDisplay} ključnih riječi`;
+    document.getElementById("limitText").textContent = `${count} / ${limitDisplay} kljuÄnih rijeÄi`;
     document.getElementById("limitFill").style.width = limit >= 9999 ? `${Math.min(100, (count / 50) * 100)}%` : `${Math.min(100, (count / limit) * 100)}%`;
 
     if (keywords.length === 0) {
-      list.innerHTML = '<li class="kw-empty">Još niste dodali ključne riječi.</li>';
+      list.innerHTML = '<li class="kw-empty">JoÅ¡ niste dodali kljuÄne rijeÄi.</li>';
       return;
     }
     list.innerHTML = keywords.map(kw => {
       const typeTag = kw.document_types
-        ? `<span class="kw-type-tag">${escHtml(kw.document_types.replace(/,/g, " · "))}</span>`
+        ? `<span class="kw-type-tag">${escHtml(kw.document_types.replace(/,/g, " Â· "))}</span>`
         : "";
       return `
       <li class="kw-item">
@@ -808,7 +808,7 @@
       okEl.style.display = "block";
       setTimeout(() => okEl.style.display = "none", 3000);
     } else {
-      errEl.textContent = data.detail || "Greška.";
+      errEl.textContent = data.detail || "GreÅ¡ka.";
       errEl.style.display = "block";
     }
   }
@@ -879,7 +879,7 @@
           if (!card.querySelector(".modal-current-badge")) {
             const badge = document.createElement("span");
             badge.className = "modal-current-badge";
-            badge.textContent = "Vaš plan";
+            badge.textContent = "VaÅ¡ plan";
             badge.style.cssText = "display:inline-block;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;border:1px solid var(--ink);padding:1px 8px;margin-bottom:8px;font-family:var(--sans);";
             card.insertBefore(badge, card.firstChild);
           }
@@ -887,7 +887,7 @@
       });
     }
 
-    // Prikaži downgrade sekciju samo za aktivne plaćene korisnike
+    // PrikaÅ¾i downgrade sekciju samo za aktivne plaÄene korisnike
     if (isActive) {
       document.getElementById("downgradeDivider").style.display = "block";
       document.getElementById("downgradeTitle").style.display = "block";
@@ -911,16 +911,16 @@
 
   function showPlanConfirm(plan) {
     _pendingPlan = plan;
-    const labels = { basic: "Basic (€4,99/mj)", plus: "Plus (€7,99/mj)" };
+    const labels = { basic: "Basic (â¬4,99/mj)", plus: "Plus (â¬7,99/mj)" };
     const isActivePaid = userData && userData.subscription_status === "active";
     const msg = isActivePaid
-      ? `Jeste li sigurni da želite prijeći na ${labels[plan]}? Plan će biti promijenjen odmah uz obračun razlike.`
-      : `Jeste li sigurni da želite prijeći na ${labels[plan]}? Bit ćete preusmjereni na stranicu za plaćanje.`;
+      ? `Jeste li sigurni da Å¾elite prijeÄi na ${labels[plan]}? Plan Äe biti promijenjen odmah uz obraÄun razlike.`
+      : `Jeste li sigurni da Å¾elite prijeÄi na ${labels[plan]}? Bit Äete preusmjereni na stranicu za plaÄanje.`;
     document.getElementById("mPlanConfirmText").textContent = msg;
     document.getElementById("mPlanConfirmRow").style.display = "block";
     document.getElementById("mBtnBasic").disabled = true;
     document.getElementById("mBtnPlus").disabled = true;
-    // Vizualno označi odabrani plan
+    // Vizualno oznaÄi odabrani plan
     document.getElementById("mPlanBasic").style.outline = plan === "basic" ? "2px solid var(--ink)" : "";
     document.getElementById("mPlanPlus").style.outline  = plan === "plus"  ? "2px solid var(--ink)" : "";
   }
@@ -947,23 +947,23 @@
     const confirmBtn = document.getElementById("mPlanConfirmBtn");
     confirmBtn.disabled = true;
 
-    // Ako korisnik već ima aktivnu pretplatu → prebaci plan (switch), inače → novi checkout
+    // Ako korisnik veÄ ima aktivnu pretplatu â prebaci plan (switch), inaÄe â novi checkout
     const isActivePaid = userData && userData.subscription_status === "active";
 
     if (isActivePaid) {
-      confirmBtn.textContent = "Mijenjam plan…";
+      confirmBtn.textContent = "Mijenjam planâ¦";
       try {
         const res = await authFetch(`/stripe/switch-plan/${plan}`, { method: "POST" });
         if (!res) { confirmBtn.disabled = false; confirmBtn.textContent = "Potvrdi zahtjev"; return; }
 
         if (res.ok) {
-          okEl.textContent = "Plan uspješno promijenjen!";
+          okEl.textContent = "Plan uspjeÅ¡no promijenjen!";
           okEl.style.display = "block";
           hidePlanConfirm();
           await loadUser();
           await loadKeywords();
         } else {
-          let msg = "Greška pri promjeni plana.";
+          let msg = "GreÅ¡ka pri promjeni plana.";
           try { const d = await res.json(); msg = d.detail || msg; } catch (_) {}
           errEl.textContent = msg;
           errEl.style.display = "block";
@@ -971,13 +971,13 @@
           confirmBtn.textContent = "Potvrdi zahtjev";
         }
       } catch (e) {
-        errEl.textContent = "Greška pri promjeni plana.";
+        errEl.textContent = "GreÅ¡ka pri promjeni plana.";
         errEl.style.display = "block";
         confirmBtn.disabled = false;
         confirmBtn.textContent = "Potvrdi zahtjev";
       }
     } else {
-      confirmBtn.textContent = "Preusmjeravam na plaćanje…";
+      confirmBtn.textContent = "Preusmjeravam na plaÄanjeâ¦";
       try {
         const res = await authFetch(`/stripe/checkout/${plan}`, { method: "POST" });
         if (!res) { confirmBtn.disabled = false; confirmBtn.textContent = "Potvrdi zahtjev"; return; }
@@ -990,7 +990,7 @@
           }
           _pendingPlan = null;
         } else {
-          let msg = "Greška pri slanju zahtjeva.";
+          let msg = "GreÅ¡ka pri slanju zahtjeva.";
           try { const d = await res.json(); msg = d.detail || msg; } catch (_) {}
           errEl.textContent = msg;
           errEl.style.display = "block";
@@ -998,7 +998,7 @@
           confirmBtn.textContent = "Potvrdi zahtjev";
         }
       } catch (e) {
-        errEl.textContent = "Greška pri slanju zahtjeva.";
+        errEl.textContent = "GreÅ¡ka pri slanju zahtjeva.";
         errEl.style.display = "block";
         confirmBtn.disabled = false;
         confirmBtn.textContent = "Potvrdi zahtjev";
@@ -1031,20 +1031,20 @@
       if (res.ok) {
         document.getElementById("downgradeConfirmRow").style.display = "none";
         document.getElementById("downgradeInitRow").style.display = "none";
-        okEl.textContent = "Uspješno ste prešli na besplatni plan. Email obavijesti ostaju aktivne.";
+        okEl.textContent = "UspjeÅ¡no ste preÅ¡li na besplatni plan. Email obavijesti ostaju aktivne.";
         okEl.style.display = "block";
-        // Osvježi podatke i ključne riječi
+        // OsvjeÅ¾i podatke i kljuÄne rijeÄi
         await loadUser();
         await loadKeywords();
       } else {
-        let msg = "Greška pri promjeni plana.";
+        let msg = "GreÅ¡ka pri promjeni plana.";
         try { const d = await res.json(); msg = d.detail || msg; } catch (_) {}
         errEl.textContent = msg;
         errEl.style.display = "block";
         btn.disabled = false;
       }
     } catch (e) {
-      errEl.textContent = "Greška pri promjeni plana.";
+      errEl.textContent = "GreÅ¡ka pri promjeni plana.";
       errEl.style.display = "block";
       btn.disabled = false;
     }
@@ -1075,17 +1075,17 @@
       if (res.ok) {
         document.getElementById("cancelConfirmRow").style.display = "none";
         document.getElementById("cancelInitRow").style.display = "none";
-        okEl.textContent = "Zahtjev za otkazivanje primljen — kontaktirat ćemo vas s potvrdom.";
+        okEl.textContent = "Zahtjev za otkazivanje primljen â kontaktirat Äemo vas s potvrdom.";
         okEl.style.display = "block";
       } else {
-        let msg = "Greška pri slanju zahtjeva.";
+        let msg = "GreÅ¡ka pri slanju zahtjeva.";
         try { const d = await res.json(); msg = d.detail || msg; } catch (_) {}
         errEl.textContent = msg;
         errEl.style.display = "block";
         confirmBtn.disabled = false;
       }
     } catch (e) {
-      errEl.textContent = "Greška pri slanju zahtjeva.";
+      errEl.textContent = "GreÅ¡ka pri slanju zahtjeva.";
       errEl.style.display = "block";
       confirmBtn.disabled = false;
     }
@@ -1112,7 +1112,7 @@
     next.setDate(now.getDate() + daysAhead);
     next.setHours(7, 0, 0, 0);
 
-    const dayNames = ["nedjelja","ponedjeljak","utorak","srijeda","četvrtak","petak","subota"];
+    const dayNames = ["nedjelja","ponedjeljak","utorak","srijeda","Äetvrtak","petak","subota"];
     const dayName = dayNames[next.getDay()];
     const dateStr = next.toLocaleDateString("hr-HR", { day: "numeric", month: "numeric" });
 
@@ -1133,20 +1133,20 @@
 
     const data = await res.json();
 
-    // Zadnje pronađeno
+    // Zadnje pronaÄeno
     if (!data.recent_docs || data.recent_docs.length === 0) {
-      recentEl.innerHTML = '<span style="font-size:13px;color:var(--mid);">Još nema pronađenih dokumenata.</span>';
+      recentEl.innerHTML = '<span style="font-size:13px;color:var(--mid);">JoÅ¡ nema pronaÄenih dokumenata.</span>';
     } else {
       recentEl.innerHTML = data.recent_docs.map(d => `
         <div class="recent-doc-item">
           <a href="${escHtml(d.url)}" target="_blank" rel="noopener" class="recent-doc-title">${escHtml(d.title)}</a>
-          <span class="recent-doc-meta">${d.type ? escHtml(d.type) + ' · ' : ''}${d.published_date ? escHtml(d.published_date) : ''}</span>
+          <span class="recent-doc-meta">${d.type ? escHtml(d.type) + ' Â· ' : ''}${d.published_date ? escHtml(d.published_date) : ''}</span>
         </div>`).join("");
     }
 
-    // Aktivnost ključnih riječi
+    // Aktivnost kljuÄnih rijeÄi
     if (!data.keyword_hits || data.keyword_hits.length === 0) {
-      actEl.innerHTML = '<span style="font-size:13px;color:var(--mid);">Dodajte ključne riječi za praćenje.</span>';
+      actEl.innerHTML = '<span style="font-size:13px;color:var(--mid);">Dodajte kljuÄne rijeÄi za praÄenje.</span>';
     } else {
       actEl.innerHTML = data.keyword_hits.map(k => `
         <div class="kw-hit-row">
@@ -1179,18 +1179,18 @@
         okEl.textContent = "Odjavljeni ste od email obavijesti.";
         okEl.style.display = "block";
       } else {
-        let msg = "Greška.";
+        let msg = "GreÅ¡ka.";
         try { const d = await res.json(); msg = d.detail || msg; } catch (_) {}
         errEl.textContent = msg; errEl.style.display = "block";
         btn.disabled = false;
       }
     } catch (e) {
-      errEl.textContent = "Greška."; errEl.style.display = "block";
+      errEl.textContent = "GreÅ¡ka."; errEl.style.display = "block";
       btn.disabled = false;
     }
   }
 
-  // --- BRISANJE RAČUNA ---
+  // --- BRISANJE RAÄUNA ---
   function showDeleteAccountConfirm() {
     document.getElementById("deleteAccountInitRow").style.display = "none";
     document.getElementById("deleteAccountConfirmRow").style.display = "block";
@@ -1204,22 +1204,22 @@
     errEl.style.display = "none";
     const btn = document.querySelector("#deleteAccountConfirmRow .btn-cancel-confirm");
     btn.disabled = true;
-    btn.textContent = "Brišem…";
+    btn.textContent = "BriÅ¡emâ¦";
     try {
       const res = await authFetch("/auth/account", { method: "DELETE" });
-      if (!res) { btn.disabled = false; btn.textContent = "Da, trajno obriši"; return; }
+      if (!res) { btn.disabled = false; btn.textContent = "Da, trajno obriÅ¡i"; return; }
       if (res.ok) {
         localStorage.removeItem("token");
         window.location.href = "index.html?deleted=1";
       } else {
-        let msg = "Greška pri brisanju.";
+        let msg = "GreÅ¡ka pri brisanju.";
         try { const d = await res.json(); msg = d.detail || msg; } catch (_) {}
         errEl.textContent = msg; errEl.style.display = "block";
-        btn.disabled = false; btn.textContent = "Da, trajno obriši";
+        btn.disabled = false; btn.textContent = "Da, trajno obriÅ¡i";
       }
     } catch (e) {
-      errEl.textContent = "Greška pri brisanju."; errEl.style.display = "block";
-      btn.disabled = false; btn.textContent = "Da, trajno obriši";
+      errEl.textContent = "GreÅ¡ka pri brisanju."; errEl.style.display = "block";
+      btn.disabled = false; btn.textContent = "Da, trajno obriÅ¡i";
     }
   }
 
@@ -1233,7 +1233,7 @@
 
     const params = new URLSearchParams(window.location.search);
     if (params.get("success")) {
-      document.getElementById("kwSuccess").textContent = "Pretplata aktivirana! Osvježite stranicu za nove funkcije.";
+      document.getElementById("kwSuccess").textContent = "Pretplata aktivirana! OsvjeÅ¾ite stranicu za nove funkcije.";
       document.getElementById("kwSuccess").style.display = "block";
     }
   }
