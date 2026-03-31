@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Statistike â PratimZakon</title>
+  <title>Statistike – PratimZakon</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -206,12 +206,12 @@
   <h1>Statistike</h1>
   <p class="subtitle">Analiza objava Narodnih novina u bazi</p>
 
-  <div id="loadingState" class="loading">UÄitavam podatke...</div>
+  <div id="loadingState" class="loading">Učitavam podatke...</div>
 
   <div id="expertGate" class="gate" style="display:none">
-    <div style="font-size:32px;margin-bottom:12px;">â</div>
+    <div style="font-size:32px;margin-bottom:12px;">⊘</div>
     <h2>Plus paket</h2>
-    <p>Statistike i analitika dostupne su iskljuÄivo korisnicima Plus paketa.</p>
+    <p>Statistike i analitika dostupne su isključivo korisnicima Plus paketa.</p>
     <a href="dashboard.html" class="btn btn-solid">Nadogradite plan</a>
   </div>
 
@@ -219,7 +219,7 @@
     <div class="total-card">
       <div>
         <div class="total-label">Ukupno dokumenata u bazi</div>
-        <div class="total-number" id="totalDocs">â</div>
+        <div class="total-number" id="totalDocs">–</div>
         <div class="total-sub">Narodne novine od 2015. do danas</div>
       </div>
       <div style="font-family:var(--serif);font-size:56px;opacity:.15;font-weight:900;">NN</div>
@@ -241,7 +241,7 @@
       </div>
 
       <div class="chart-card">
-        <div class="chart-title">SluÅ¾beni list vs MeÄunarodni ugovori</div>
+        <div class="chart-title">Službeni list vs Međunarodni ugovori</div>
         <div class="chart-wrap" style="height:220px;">
           <canvas id="chartPart"></canvas>
         </div>
@@ -293,7 +293,7 @@
     if (!statsRes) return;
 
     if (!statsRes.ok) {
-      document.getElementById("loadingState").textContent = "GreÅ¡ka pri uÄitavanju.";
+      document.getElementById("loadingState").textContent = "Greška pri učitavanju.";
       return;
     }
 
@@ -405,7 +405,7 @@
   function fmtMonth(ym) {
     if (!ym) return "";
     const [y, m] = ym.split("-");
-    const names = ["","Sij","Velj","OÅ¾u","Tra","Svi","Lip","Srp","Kol","Ruj","Lis","Stu","Pro"];
+    const names = ["","Sij","Velj","Ožu","Tra","Svi","Lip","Srp","Kol","Ruj","Lis","Stu","Pro"];
     return `${names[parseInt(m)]} ${y}`;
   }
 
