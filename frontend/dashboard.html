@@ -425,6 +425,39 @@
       .nav-right { gap: 6px; }
       .btn { padding: 7px 12px; font-size: 11px; }
     }
+
+    /* HEADER STATS BAR */
+    #headerStatsBar {
+      background: var(--ink);
+      color: var(--white);
+      padding: 6px var(--cx);
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .4px;
+      display: none;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    #headerStatsBar.loaded { display: flex; }
+    #headerStatsBar .hbar-item span { color: rgba(255,255,255,0.55); margin-right: 4px; }
+    #headerStatsBar .hbar-item strong { color: var(--white); }
+    a.kw-hit-row {
+      text-decoration: none; color: inherit; transition: background .15s;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 6px 0; border-bottom: 1px solid var(--rule);
+    }
+    a.kw-hit-row:last-child { border-bottom: none; }
+    a.kw-hit-row:hover { background: var(--bone); }
+    a.kw-hit-row:hover .kw-hit-name { text-decoration: underline; }
+    a.kw-hit-row .kw-hit-count { color: var(--red); font-weight: 500; }
+    .archive-search-input {
+      flex: 1; padding: 10px 14px; border: 1px solid var(--rule);
+      font-family: var(--sans); font-size: 14px; outline: none;
+      transition: border-color .15s; background: var(--white); border-radius: 0;
+    }
+    .archive-search-input:focus { border-color: var(--ink); }
+    .archive-search-row { display: flex; gap: 10px; }
+    #archiveSearchHint { font-size: 12px; color: var(--mid); margin-top: 6px; min-height: 18px; }
   </style>
 </head>
 <body>
@@ -439,6 +472,12 @@
     <button class="btn" onclick="logout()">Odjava</button>
   </div>
 </nav>
+<div id="headerStatsBar">
+  <div class="hbar-item"><span>Ključnih riječi:</span><strong id="hbarKw">–</strong></div>
+  <div class="hbar-item"><span>Pogodaka (30 dana):</span><strong id="hbarHits">–</strong></div>
+  <div class="hbar-item"><span>Praćenih dokumenata:</span><strong id="hbarDocs">–</strong></div>
+  <div class="hbar-item"><span>Sljedeća obavijest:</span><strong id="hbarNext">–</strong></div>
+</div>
 
 <main id="mainContent" style="display:none">
 
@@ -537,6 +576,17 @@
       <p class="activity-label">Aktivnost kljuÄnih rijeÄi <span style="font-family:var(--mono);font-size:11px;color:var(--mid);">30 dana</span></p>
       <div id="kwActivity"><span style="font-size:13px;color:var(--mid);">UÄitavamâ¦</span></div>
     </div>
+  </div>
+
+  <!-- PRETRAGA ARHIVE -->
+  <div class="card">
+    <div class="card-title">Pretraga arhive</div>
+    <p style="font-size:13px;color:var(--mid);margin-bottom:16px;line-height:1.6;">Pretražite objave Narodnih novina. Upišite jednu ili više ključnih riječi — pretražuje se naslov dokumenta.</p>
+    <div class="archive-search-row">
+      <input type="text" id="archiveSearchInput" class="archive-search-input" placeholder="npr. zakon o radu" maxlength="200" onkeydown="if(event.key==='Enter')doArchiveSearch()">
+      <button class="btn btn-solid" onclick="doArchiveSearch()">Pretraži</button>
+    </div>
+    <div id="archiveSearchHint"></div>
   </div>
 
   <!-- POSTAVKE RAÄUNA -->
@@ -1141,7 +1191,16 @@
         <div class="recent-doc-item">
           <a href="${escHtml(d.url)}" target="_blank" rel="noopener" class="recent-doc-title">${escHtml(d.title)}</a>
           <span class="recent-doc-meta">${d.type ? escHtml(d.type) + ' Â· ' : ''}${d.published_date ? escHtml(d.published_date) : ''}</span>
-        </div>`).join("");
+        </a>`).join("");
+
+  // Update header stats bar
+  const hbar = document.getElementById('headerStatsBar');
+  if (hbar) {
+    document.getElementById('hbarKw').textContent = data.keyword_hits.length;
+    document.getElementById('hbarHits').textContent = data.keyword_hits.reduce((s, k) => s + k.hits, 0);
+    document.getElementById('hbarDocs').textContent = data.recent_docs ? data.recent_docs.length : 0;
+    hbar.classList.add('loaded');
+  }
     }
 
     // Aktivnost kljuÄnih rijeÄi
@@ -1149,7 +1208,7 @@
       actEl.innerHTML = '<span style="font-size:13px;color:var(--mid);">Dodajte kljuÄne rijeÄi za praÄenje.</span>';
     } else {
       actEl.innerHTML = data.keyword_hits.map(k => `
-        <div class="kw-hit-row">
+        <a href="search.html?q=${encodeURIComponent(k.keyword)}" class="kw-hit-row">
           <span class="kw-hit-name">${escHtml(k.keyword)}</span>
           <span class="kw-hit-count">${k.hits} ${k.hits === 1 ? 'pogodak' : k.hits < 5 ? 'pogotka' : 'pogodaka'}</span>
         </div>`).join("");
@@ -1223,7 +1282,16 @@
     }
   }
 
-  // Init
+  
+function doArchiveSearch() {
+  const q = document.getElementById('archiveSearchInput').value.trim();
+  const hint = document.getElementById('archiveSearchHint');
+  if (!q) { hint.textContent = 'Unesite pojam za pretragu.'; return; }
+  hint.textContent = '';
+  window.location.href = 'search.html?q=' + encodeURIComponent(q);
+}
+
+// Init
   if (!getToken()) {
     window.location.href = "index.html";
   } else {
