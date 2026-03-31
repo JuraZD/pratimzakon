@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PratimZakon – Pratite Narodne novine bez napora</title>
+  <title>PratimZakon â Pratite Narodne novine bez napora</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --ink: #111111;
+      --ink: #0D0D0D;
       --paper: #f8f7f4;
       --white: #ffffff;
       --bone: #F5F4F1;
@@ -40,7 +40,7 @@
 
     a { color: inherit; text-decoration: none; }
 
-    /* ─── INNER CONTAINER ─── */
+    /* âââ INNER CONTAINER âââ */
     .inner {
       max-width: 1100px;
       margin: 0 auto;
@@ -48,7 +48,7 @@
       padding-right: 40px;
     }
 
-    /* ─── FADE IN ─── */
+    /* âââ FADE IN âââ */
     .reveal {
       opacity: 0;
       transform: translateY(24px);
@@ -63,7 +63,7 @@
     }
     .reveal-x.visible { opacity: 1; transform: none; }
 
-    /* ─── NAV ─── */
+    /* âââ NAV âââ */
     nav {
       border-bottom: 1px solid var(--rule);
       position: sticky;
@@ -118,7 +118,7 @@
     .font-controls {display: flex;gap: 6px;margin-left: 10px;}
     .btn-font {padding: 6px 14px;font-size: 0.75rem;line-height: 1;}
   
-    /* ─── HERO ─── */
+    /* âââ HERO âââ */
     .hero {
       border-bottom: 1px solid var(--rule);
     }
@@ -211,7 +211,7 @@
       white-space: nowrap;
     }
 
-    /* ─── TICKER (ostaje full-width) ─── */
+    /* âââ TICKER (ostaje full-width) âââ */
     .ticker-wrap {
       overflow: hidden;
       background: var(--ink);
@@ -243,7 +243,7 @@
       to { transform: translateX(-50%); }
     }
 
-    /* ─── HOW ─── */
+    /* âââ HOW âââ */
     .how {
       background: var(--paper);
       border-bottom: 1px solid var(--rule);
@@ -325,7 +325,7 @@
       letter-spacing: .3px;
     }
 
-    /* ─── EMAIL EXAMPLES ─── */
+    /* âââ EMAIL EXAMPLES âââ */
     .email-examples {
       border-bottom: 1px solid var(--rule);
       background: var(--white);
@@ -381,7 +381,7 @@
       margin-bottom: 14px;
     }
 
-    /* ─── PRICING ─── */
+    /* âââ PRICING âââ */
     .pricing { border-bottom: 1px solid var(--rule); }
 
     .pricing .inner {
@@ -531,7 +531,7 @@
     .plan.featured .plan-features li { border-color: rgba(255,255,255,.12); }
 
     .plan-features li::before {
-      content: '→';
+      content: 'â';
       font-family: var(--mono);
       font-size: 11px;
       flex-shrink: 0;
@@ -544,7 +544,7 @@
     }
 
     .plan-features li.missing::before {
-      content: '–';
+      content: 'â';
       text-decoration: none;
     }
 
@@ -553,7 +553,7 @@
     .plan.featured .btn-ghost { border-color: var(--white); color: var(--white); }
     .plan.featured .btn-ghost:hover { background: var(--white); color: var(--ink); }
 
-    /* ─── FOOTER ─── */
+    /* âââ FOOTER âââ */
     footer { background: var(--ink); color: var(--white); }
 
     .footer-stats {
@@ -603,7 +603,7 @@
     .footer-meta a { color: rgba(255,255,255,.4); transition: color .15s; }
     .footer-meta a:hover { color: rgba(255,255,255,.8); }
 
-    /* ─── COOKIE BANNER ─── */
+    /* âââ COOKIE BANNER âââ */
     .cookie-banner {
       position: fixed;
       bottom: 0;
@@ -652,7 +652,7 @@
       .cookie-banner { flex-direction: column; align-items: flex-start; padding: 20px; }
     }
 
-    /* ─── AUTH MODAL ─── */
+    /* âââ AUTH MODAL âââ */
     .overlay {
       display: none;
       position: fixed;
@@ -746,7 +746,7 @@
       padding: 10px 14px; background: #f0fdf4; border-left: 2px solid #166534; display: none;
     }
 
-    /* ─── RESPONSIVE ─── */
+    /* âââ RESPONSIVE âââ */
     @media (max-width: 760px) {
       .hero .inner { grid-template-columns: 1fr; gap: 0; padding-top: 56px; padding-bottom: 0; min-height: auto; }
       .hero-left { padding-right: 0; padding-bottom: 48px; }
@@ -783,7 +783,7 @@
 <body>
 
 <div id="deletedBanner" style="display:none;background:#111111;color:#ffffff;text-align:center;padding:14px 16px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.5px;">
-  Vaš račun je uspješno obrisan. Žao nam je što odlazite.
+  VaÅ¡ raÄun je uspjeÅ¡no obrisan. Å½ao nam je Å¡to odlazite.
 </div>
 
 <!-- NAV -->
@@ -795,8 +795,8 @@
       <a href="#" class="btn btn-solid" onclick="openModal('register')">Registracija</a>
     </div>
     <div class="font-controls">
-      <button class="btn btn-ghost btn-font" onclick="changeFontSize(1)" aria-label="Povećaj font">A+</button>
-      <button class="btn btn-ghost btn-font" onclick="changeFontSize(-1)" aria-label="Smanji font">A–</button>
+      <button class="btn btn-ghost btn-font" onclick="changeFontSize(1)" aria-label="PoveÄaj font">A+</button>
+      <button class="btn btn-ghost btn-font" onclick="changeFontSize(-1)" aria-label="Smanji font">Aâ</button>
     </div>
   </div>
 </nav>
@@ -805,22 +805,22 @@
 <section class="hero">
   <div class="inner">
     <div class="hero-left reveal">
-      <div class="hero-eyebrow">Monitoring V2.0 — Narodne novine, svaki radni dan</div>
+      <div class="hero-eyebrow">Monitoring V2.0 â Narodne novine, svaki radni dan</div>
       <h1>
-        <span class="h1-display">Ne moraš čitati sve zakone</span>
-        <em>— dobiješ ono što je važno za tebe</em>
+        <span class="h1-display">Ne moraÅ¡ Äitati sve zakone</span>
+        <em>â dobijeÅ¡ ono Å¡to je vaÅ¾no za tebe</em>
       </h1>
-      <p class="hero-desc">AI filtrira i objašnjava zakonodavstvo — ti dobiješ samo ono što je važno.</p>
+      <p class="hero-desc">AI filtrira i objaÅ¡njava zakonodavstvo â ti dobijeÅ¡ samo ono Å¡to je vaÅ¾no.</p>
       <div class="hero-actions">
         <div class="btn-magnetic">
-          <a href="#" id="heroCta" class="btn btn-solid btn-lg" onclick="openModal('register')">Počni besplatno</a>
+          <a href="#" id="heroCta" class="btn btn-solid btn-lg" onclick="openModal('register')">PoÄni besplatno</a>
         </div>
         <a href="#pricing" class="btn btn-ghost btn-lg">Pogledajte planove</a>
       </div>
     </div>
 
     <div class="hero-right">
-      <div class="hero-vertical-label">Monitoring V2.0 · PratimZakon · HR</div>
+      <div class="hero-vertical-label">Monitoring V2.0 Â· PratimZakon Â· HR</div>
     </div>
   </div>
 </section>
@@ -828,22 +828,22 @@
 <!-- TICKER (full-width, bez .inner) -->
 <div class="ticker-wrap">
   <div class="ticker">
-    <span>PratimZakon</span><span class="sep">·</span>
-    <span>Zakon o radu</span><span class="sep">·</span>
-    <span>PDV izmjene</span><span class="sep">·</span>
-    <span>GDPR</span><span class="sep">·</span>
-    <span>Ovršni zakon</span><span class="sep">·</span>
-    <span>Zakon o trgovačkim društvima</span><span class="sep">·</span>
-    <span>Porez na dobit</span><span class="sep">·</span>
-    <span>Zakon o zaštiti potrošača</span><span class="sep">·</span>
-    <span>PratimZakon</span><span class="sep">·</span>
-    <span>Zakon o radu</span><span class="sep">·</span>
-    <span>PDV izmjene</span><span class="sep">·</span>
-    <span>GDPR</span><span class="sep">·</span>
-    <span>Ovršni zakon</span><span class="sep">·</span>
-    <span>Zakon o trgovačkim društvima</span><span class="sep">·</span>
-    <span>Porez na dobit</span><span class="sep">·</span>
-    <span>Zakon o zaštiti potrošača</span><span class="sep">·</span>
+    <span>PratimZakon</span><span class="sep">Â·</span>
+    <span>Zakon o radu</span><span class="sep">Â·</span>
+    <span>PDV izmjene</span><span class="sep">Â·</span>
+    <span>GDPR</span><span class="sep">Â·</span>
+    <span>OvrÅ¡ni zakon</span><span class="sep">Â·</span>
+    <span>Zakon o trgovaÄkim druÅ¡tvima</span><span class="sep">Â·</span>
+    <span>Porez na dobit</span><span class="sep">Â·</span>
+    <span>Zakon o zaÅ¡titi potroÅ¡aÄa</span><span class="sep">Â·</span>
+    <span>PratimZakon</span><span class="sep">Â·</span>
+    <span>Zakon o radu</span><span class="sep">Â·</span>
+    <span>PDV izmjene</span><span class="sep">Â·</span>
+    <span>GDPR</span><span class="sep">Â·</span>
+    <span>OvrÅ¡ni zakon</span><span class="sep">Â·</span>
+    <span>Zakon o trgovaÄkim druÅ¡tvima</span><span class="sep">Â·</span>
+    <span>Porez na dobit</span><span class="sep">Â·</span>
+    <span>Zakon o zaÅ¡titi potroÅ¡aÄa</span><span class="sep">Â·</span>
   </div>
 </div>
 
@@ -857,7 +857,7 @@
         <div class="step-num">01</div>
         <div class="step-content">
           <h3>Registrirajte se</h3>
-          <p>Kreirajte besplatni račun u manje od minute. Nije potrebna kreditna kartica.</p>
+          <p>Kreirajte besplatni raÄun u manje od minute. Nije potrebna kreditna kartica.</p>
         </div>
       </div>
 
@@ -865,12 +865,12 @@
         <div class="step-num">02</div>
         <div class="step-content">
           <h3>Dodajte teme koje te zanimaju</h3>
-          <p>Unesite teme koje te zanimaju — zakon, pravilnik, uredba ili djelatnost.</p>
+          <p>Unesite teme koje te zanimaju â zakon, pravilnik, uredba ili djelatnost.</p>
           <div class="kw-pills">
             <span class="kw-pill">PDV</span>
             <span class="kw-pill">zakon o radu</span>
             <span class="kw-pill">porez na dobit</span>
-            <span class="kw-pill">ovršni zakon</span>
+            <span class="kw-pill">ovrÅ¡ni zakon</span>
             <span class="kw-pill">GDPR</span>
             <span class="kw-pill">poljoprivreda</span>
           </div>
@@ -881,7 +881,7 @@
         <div class="step-num">03</div>
         <div class="step-content">
           <h3>Primaj email alert</h3>
-          <p>Ne moraš pratiti sve objave — dobiješ email alert samo kad je važno za tebe.</p>
+          <p>Ne moraÅ¡ pratiti sve objave â dobijeÅ¡ email alert samo kad je vaÅ¾no za tebe.</p>
         </div>
       </div>
 
@@ -894,145 +894,145 @@
   <div class="inner">
     <div class="section-label">Kako izgleda u praksi</div>
     <p style="max-width:760px;color:var(--mid);margin-bottom:24px;line-height:1.8;">
-      Isti zakon, tri razine vrijednosti: FREE daje sve objave, BASIC filtrira relevantno, a PLUS objašnjava što promjena znači za tebe.
+      Isti zakon, tri razine vrijednosti: FREE daje sve objave, BASIC filtrira relevantno, a PLUS objaÅ¡njava Å¡to promjena znaÄi za tebe.
     </p>
 
     <div class="email-grid">
       <article class="email-card reveal">
-        <h3>📧 FREE</h3>
+        <h3>ð§ FREE</h3>
         <p class="email-subject">Nove zakonske promjene (3 novosti)</p>
-        <p class="email-body">Poštovani,
+        <p class="email-body">PoÅ¡tovani,
 
 u nastavku su objavljene nove promjene u zakonodavstvu:
-• Izmjene Zakona o porezu na dohodak (NN 123/2026)
-• Pravilnik o izmjenama poreznih obrazaca
-• Dopune Zakona o doprinosima
+â¢ Izmjene Zakona o porezu na dohodak (NN 123/2026)
+â¢ Pravilnik o izmjenama poreznih obrazaca
+â¢ Dopune Zakona o doprinosima
 
 Detalji:
-• Promijenjeni porezni razredi
-• Ažurirani obrasci za prijavu
-• Izmjene u obračunu doprinosa
+â¢ Promijenjeni porezni razredi
+â¢ AÅ¾urirani obrasci za prijavu
+â¢ Izmjene u obraÄunu doprinosa
 
-Za više informacija pogledajte službene objave.</p>
+Za viÅ¡e informacija pogledajte sluÅ¾bene objave.</p>
       </article>
 
       <article class="email-card highlight reveal" style="transition-delay:.12s">
 
-        <h3>📧 BASIC</h3>
+        <h3>ð§ BASIC</h3>
         <p class="email-subject">Promjena poreza na dohodak (relevantno za tebe)</p>
-        <p class="email-body">Poštovani,
+        <p class="email-body">PoÅ¡tovani,
 
 izdvajamo promjenu koja je relevantna za tvoje odabrane teme:
 
-📌 Zakon o porezu na dohodak – izmjene
-• Ažurirani porezni razredi
-• Promjene u obračunu osobnog odbitka
+ð Zakon o porezu na dohodak â izmjene
+â¢ AÅ¾urirani porezni razredi
+â¢ Promjene u obraÄunu osobnog odbitka
 
-📩 Ova obavijest je filtrirana prema temama koje te zanimaju.
+ð© Ova obavijest je filtrirana prema temama koje te zanimaju.
 
-Primaš samo relevantne informacije.</p>
+PrimaÅ¡ samo relevantne informacije.</p>
 
       </article>
 
       <article class="email-card reveal" style="transition-delay:.24s">
-        <h3>📧 PLUS</h3>
-        <p class="email-subject">Važna promjena poreza — evo što znači za tebe</p>
-        <p class="email-body">Poštovani,
+        <h3>ð§ PLUS</h3>
+        <p class="email-subject">VaÅ¾na promjena poreza â evo Å¡to znaÄi za tebe</p>
+        <p class="email-body">PoÅ¡tovani,
 
-zabilježena je promjena koja utječe na tvoje odabrane teme:
+zabiljeÅ¾ena je promjena koja utjeÄe na tvoje odabrane teme:
 
-📌 Zakon o porezu na dohodak – izmjene
-🔍 Što se promijenilo:
-• Novi porezni razredi
-• Izmjena osobnog odbitka
+ð Zakon o porezu na dohodak â izmjene
+ð Å to se promijenilo:
+â¢ Novi porezni razredi
+â¢ Izmjena osobnog odbitka
 
-🎯 Zašto je ovo važno za tebe:
-Ako imaš prihode iz samostalne djelatnosti ili plaću iznad prosjeka, ova promjena može utjecati na iznos poreza koji plaćaš.
+ð¯ ZaÅ¡to je ovo vaÅ¾no za tebe:
+Ako imaÅ¡ prihode iz samostalne djelatnosti ili plaÄu iznad prosjeka, ova promjena moÅ¾e utjecati na iznos poreza koji plaÄaÅ¡.
 
-📊 Procjena utjecaja:
-Moguć rast ili smanjenje porezne obveze (ovisno o razini prihoda)
+ð Procjena utjecaja:
+MoguÄ rast ili smanjenje porezne obveze (ovisno o razini prihoda)
 
-🧾 Sažetak:
-Ova izmjena mijenja način obračuna poreza i može imati direktan financijski utjecaj.
+ð§¾ SaÅ¾etak:
+Ova izmjena mijenja naÄin obraÄuna poreza i moÅ¾e imati direktan financijski utjecaj.
 
-📌 Preporuka: provjeri kako se nova pravila primjenjuju na tvoju situaciju.</p>
+ð Preporuka: provjeri kako se nova pravila primjenjuju na tvoju situaciju.</p>
       </article>
     </div>
   </div>
 </section>
 
-<!-- PRICING COPY FINAL LOCK: ne mijenjati bez izričite odluke (vidi docs/pricing-copy-lock.md) -->
+<!-- PRICING COPY FINAL LOCK: ne mijenjati bez izriÄite odluke (vidi docs/pricing-copy-lock.md) -->
 
 <section class="pricing" id="pricing">
   <div class="inner">
     <div class="pricing-header reveal">
       <div class="pricing-title">Odaberite<br>plan.</div>
-      <div class="pricing-note">Bez obaveza. Plaćanje na mjesečnoj bazi. Otkažite kad želite.</div>
+      <div class="pricing-note">Bez obaveza. PlaÄanje na mjeseÄnoj bazi. OtkaÅ¾ite kad Å¾elite.</div>
     </div>
 
     <div class="plans">
 
       <div class="plan reveal">
-        <div class="plan-name">🟢 FREE</div>
-        <div class="plan-price">€0</div>
+        <div class="plan-name">ð¢ FREE</div>
+        <div class="plan-price">â¬0</div>
         <div class="plan-per">/ mj</div>
-        <div class="plan-desc">Za početak, bez obveza</div>
+        <div class="plan-desc">Za poÄetak, bez obveza</div>
         <ul class="plan-features">
           <li>Do 3 teme koje te zanimaju</li>
           <li>Email alertovi o novim promjenama</li>
           <li>Pregled novih objava</li>
-          <li class="missing">Bez filtriranja (moguće više nebitnih informacija)</li>
+          <li class="missing">Bez filtriranja (moguÄe viÅ¡e nebitnih informacija)</li>
         </ul>
-        <a href="#" class="btn btn-ghost" onclick="openModal('register')">Počni besplatno</a>
+        <a href="#" class="btn btn-ghost" onclick="openModal('register')">PoÄni besplatno</a>
       </div>
 
       <div class="plan featured reveal" style="transition-delay:.12s">
-        <div class="plan-badge">Najvažniji</div>
-        <div class="plan-name">🟡 BASIC (NAJVAŽNIJI)</div>
+        <div class="plan-badge">NajvaÅ¾niji</div>
+        <div class="plan-name">ð¡ BASIC (NAJVAÅ½NIJI)</div>
 
-        <div class="plan-price">€4,99</div>
+        <div class="plan-price">â¬4,99</div>
         <div class="plan-per">/ mj</div>
-        <div class="plan-desc">Manje buke, više relevantnih informacija</div>
+        <div class="plan-desc">Manje buke, viÅ¡e relevantnih informacija</div>
         <ul class="plan-features">
           <li>Do 10 tema koje te zanimaju</li>
-          <li>✅ AI filtrirane obavijesti</li>
-          <li>Email alert samo kad je stvarno važno</li>
-          <li>💡 Smanjuje broj nebitnih informacija</li>
+          <li>â AI filtrirane obavijesti</li>
+          <li>Email alert samo kad je stvarno vaÅ¾no</li>
+          <li>ð¡ Smanjuje broj nebitnih informacija</li>
         </ul>
         <a href="#" class="btn btn-ghost" onclick="selectPlan('basic'); return false;">Odaberi Basic</a>
       </div>
 
       <div class="plan reveal" style="transition-delay:.24s">
-        <div class="plan-name">🔴 PLUS (VALUE PLAN)</div>
+        <div class="plan-name">ð´ PLUS (VALUE PLAN)</div>
 
-        <div class="plan-price">€7,99</div>
+        <div class="plan-price">â¬7,99</div>
         <div class="plan-per">/ mj</div>
-        <div class="plan-desc">Razumij što se mijenja i zašto je važno</div>
+        <div class="plan-desc">Razumij Å¡to se mijenja i zaÅ¡to je vaÅ¾no</div>
         <ul class="plan-features">
           <li>Do 20 tema koje te zanimaju</li>
-          <li>✅ AI procjena relevantnosti i utjecaja</li>
-          <li>✅ Objašnjenje zašto se odnosi na tebe</li>
-          <li>✅ Strukturirani sažetak zakona</li>
+          <li>â AI procjena relevantnosti i utjecaja</li>
+          <li>â ObjaÅ¡njenje zaÅ¡to se odnosi na tebe</li>
+          <li>â Strukturirani saÅ¾etak zakona</li>
           <li>Pretraga arhive</li>
           <li>Statistike i analitika</li>
-          <li>💡 Ne samo da vidiš promjenu — nego je razumiješ</li>
+          <li>ð¡ Ne samo da vidiÅ¡ promjenu â nego je razumijeÅ¡</li>
         </ul>
         <a href="#" class="btn btn-ghost" onclick="selectPlan('plus'); return false;">Odaberi Plus</a>
       </div>
 
     </div>
     <div class="conversion-block reveal">
-      <h3>❗ Zašto prijeći na Basic ili Plus?</h3>
+      <h3>â ZaÅ¡to prijeÄi na Basic ili Plus?</h3>
       <ul class="conversion-list">
-        <li>❌ Previše nebitnih informacija u FREE verziji</li>
-        <li>✅ AI filtrira samo ono što je važno</li>
-        <li>✅ Uštedi sate praćenja zakonodavstva</li>
-        <li>✅ Jasno vidiš što se stvarno odnosi na tebe</li>
+        <li>â PreviÅ¡e nebitnih informacija u FREE verziji</li>
+        <li>â AI filtrira samo ono Å¡to je vaÅ¾no</li>
+        <li>â UÅ¡tedi sate praÄenja zakonodavstva</li>
+        <li>â Jasno vidiÅ¡ Å¡to se stvarno odnosi na tebe</li>
       </ul>
     </div>
-    <p class="usp-oneliner">FREE = sve · BASIC = samo relevantno · PLUS = relevantno + objašnjeno</p>
+    <p class="usp-oneliner">FREE = sve Â· BASIC = samo relevantno Â· PLUS = relevantno + objaÅ¡njeno</p>
     <p style="font-family:var(--mono);font-size:11px;color:var(--mid);text-align:center;margin-top:24px;letter-spacing:.3px;">
-      Cijene su izražene bez PDV-a. Sukladno čl. 90. st. 2. Zakona o porezu na dodanu vrijednost (NN 73/13 i izmjene), PDV nije obračunan.
+      Cijene su izraÅ¾ene bez PDV-a. Sukladno Äl. 90. st. 2. Zakona o porezu na dodanu vrijednost (NN 73/13 i izmjene), PDV nije obraÄunan.
     </p>
   </div>
 </section>
@@ -1044,7 +1044,7 @@ Ova izmjena mijenja način obračuna poreza i može imati direktan financijski u
     </div>
     <div class="footer-stat-col">
       <div class="footer-stat-num" data-counter="100" data-suffix="%">0%</div>
-      <div class="footer-stat-label">Točnost praćenja</div>
+      <div class="footer-stat-label">ToÄnost praÄenja</div>
     </div>
     <div class="footer-stat-col">
       <div class="footer-stat-num">07:00</div>
@@ -1062,7 +1062,7 @@ Ova izmjena mijenja način obračuna poreza i može imati direktan financijski u
 
 <!-- COOKIE BANNER -->
 <div class="cookie-banner" id="cookieBanner">
-  <div class="cookie-text">Koristimo kolačiće za poboljšanje iskustva.</div>
+  <div class="cookie-text">Koristimo kolaÄiÄe za poboljÅ¡anje iskustva.</div>
   <button class="cookie-btn" onclick="acceptCookies()">Prihvati</button>
 </div>
 
@@ -1072,7 +1072,7 @@ Ova izmjena mijenja način obračuna poreza i može imati direktan financijski u
     <button class="modal-close" onclick="closeModal()">&times;</button>
 
     <div id="registerForm">
-      <h2>Kreirajte račun</h2>
+      <h2>Kreirajte raÄun</h2>
       <div class="form-error" id="regError"></div>
       <div class="form-success" id="regSuccess"></div>
       <div class="form-group">
@@ -1084,7 +1084,7 @@ Ova izmjena mijenja način obračuna poreza i može imati direktan financijski u
         <input type="password" id="regPassword" placeholder="Najmanje 8 znakova">
       </div>
       <button class="btn btn-solid form-submit" id="regBtn" onclick="register()">Registriraj se</button>
-      <div class="form-switch">Već imate račun? <a href="#" onclick="showLogin()">Prijavite se</a></div>
+      <div class="form-switch">VeÄ imate raÄun? <a href="#" onclick="showLogin()">Prijavite se</a></div>
     </div>
 
     <div id="loginForm" style="display:none">
@@ -1092,8 +1092,8 @@ Ova izmjena mijenja način obračuna poreza i može imati direktan financijski u
       <div class="form-error" id="loginError"></div>
       <div class="form-success" id="loginSuccess"></div>
       <div id="verifyPrompt" style="display:none;margin-bottom:14px;padding:12px 14px;background:#fefce8;border-left:2px solid #ca8a04;font-size:13px;color:#92400e;line-height:1.6;">
-        Email adresa nije potvrđena.<br>
-        <a href="#" id="resendLink" onclick="resendVerification(); return false;" style="color:#92400e;font-weight:600;text-decoration:underline;">Pošalji verifikacijski link ponovo</a>
+        Email adresa nije potvrÄena.<br>
+        <a href="#" id="resendLink" onclick="resendVerification(); return false;" style="color:#92400e;font-weight:600;text-decoration:underline;">PoÅ¡alji verifikacijski link ponovo</a>
       </div>
       <div class="form-group">
         <label>Email adresa</label>
@@ -1101,10 +1101,10 @@ Ova izmjena mijenja način obračuna poreza i može imati direktan financijski u
       </div>
       <div class="form-group">
         <label>Lozinka</label>
-        <input type="password" id="loginPassword" placeholder="Vaša lozinka">
+        <input type="password" id="loginPassword" placeholder="VaÅ¡a lozinka">
       </div>
       <button class="btn btn-solid form-submit" id="loginBtn" onclick="login()">Prijavi se</button>
-      <div class="form-switch">Nemate račun? <a href="#" onclick="showRegister()">Registrirajte se</a></div>
+      <div class="form-switch">Nemate raÄun? <a href="#" onclick="showRegister()">Registrirajte se</a></div>
     </div>
   </div>
 </div>
@@ -1134,7 +1134,7 @@ Ova izmjena mijenja način obračuna poreza i može imati direktan financijski u
   }, { threshold: .08 });
   document.querySelectorAll('.reveal, .reveal-x').forEach(el => observer.observe(el));
 
-  // ─── MAGNETIC CTA ───
+  // âââ MAGNETIC CTA âââ
   const heroCta = document.getElementById('heroCta');
   if (heroCta) {
     const wrap = heroCta.closest('.btn-magnetic');
@@ -1151,7 +1151,7 @@ Ova izmjena mijenja način obračuna poreza i može imati direktan financijski u
     });
   }
 
-  // ─── ANIMATED COUNTERS ───
+  // âââ ANIMATED COUNTERS âââ
   function animateCounter(el) {
     const target = parseFloat(el.dataset.counter);
     const suffix = el.dataset.suffix || '';
@@ -1179,7 +1179,7 @@ Ova izmjena mijenja način obračuna poreza i može imati direktan financijski u
 
   document.querySelectorAll('[data-counter]').forEach(el => counterObserver.observe(el));
 
-  // ─── COOKIE BANNER ───
+  // âââ COOKIE BANNER âââ
   function acceptCookies() {
     document.getElementById('cookieBanner').classList.remove('visible');
     localStorage.setItem('cookiesAccepted', '1');
@@ -1197,9 +1197,9 @@ Ova izmjena mijenja način obračuna poreza i može imati direktan financijski u
   function selectPlan(plan) {
     openModal("register");
     window._selectedPlan = plan;
-    const labels = { basic: "Basic (€4,99/mj)", plus: "Plus (€7,99/mj)" };
+    const labels = { basic: "Basic (â¬4,99/mj)", plus: "Plus (â¬7,99/mj)" };
     const okEl = document.getElementById("regSuccess");
-    okEl.textContent = `Odabrali ste ${labels[plan]} plan — registrirajte se za nastavak.`;
+    okEl.textContent = `Odabrali ste ${labels[plan]} plan â registrirajte se za nastavak.`;
     okEl.style.display = "block";
   }
   function closeModal(e) {
@@ -1234,28 +1234,28 @@ Ova izmjena mijenja način obračuna poreza i može imati direktan financijski u
       try {
         res = await fetch(`${API}/auth/register`, { ...opts, signal: AbortSignal.timeout(12000) });
       } catch {
-        btn.textContent = "Server se budi (30–50 sek)...";
-        errEl.textContent = "⏳ Server se pokreće, molimo pričekajte...";
+        btn.textContent = "Server se budi (30â50 sek)...";
+        errEl.textContent = "â³ Server se pokreÄe, molimo priÄekajte...";
         errEl.style.display = "block";
         res = await fetchWithRetry(`${API}/auth/register`, opts);
         errEl.style.display = "none";
       }
       const data = await res.json();
       if (res.ok) {
-        okEl.textContent = "Registracija uspješna! Možete se prijaviti.";
+        okEl.textContent = "Registracija uspjeÅ¡na! MoÅ¾ete se prijaviti.";
         okEl.style.display = "block";
         setTimeout(() => {
           document.getElementById("loginEmail").value = email;
-          document.getElementById("loginSuccess").textContent = "Račun kreiran. Unesite lozinku i prijavite se.";
+          document.getElementById("loginSuccess").textContent = "RaÄun kreiran. Unesite lozinku i prijavite se.";
           document.getElementById("loginSuccess").style.display = "block";
           showLogin();
         }, 1500);
       } else {
-        errEl.textContent = data.detail || "Greška pri registraciji.";
+        errEl.textContent = data.detail || "GreÅ¡ka pri registraciji.";
         errEl.style.display = "block";
       }
     } catch (e) {
-      errEl.textContent = "Server nije dostupan. Provjerite internetsku vezu i pokušajte ponovo.";
+      errEl.textContent = "Server nije dostupan. Provjerite internetsku vezu i pokuÅ¡ajte ponovo.";
       errEl.style.display = "block";
     } finally {
       btn.disabled = false; btn.textContent = "Registriraj se";
@@ -1277,8 +1277,8 @@ Ova izmjena mijenja način obračuna poreza i može imati direktan financijski u
       try {
         res = await fetch(`${API}/auth/login`, { ...opts, signal: AbortSignal.timeout(12000) });
       } catch {
-        btn.textContent = "Server se budi (30–50 sek)...";
-        errEl.textContent = "⏳ Server se pokreće, molimo pričekajte...";
+        btn.textContent = "Server se budi (30â50 sek)...";
+        errEl.textContent = "â³ Server se pokreÄe, molimo priÄekajte...";
         errEl.style.display = "block";
         res = await fetchWithRetry(`${API}/auth/login`, opts);
         errEl.style.display = "none";
@@ -1291,12 +1291,12 @@ Ova izmjena mijenja način obračuna poreza i može imati direktan financijski u
         document.getElementById("verifyPrompt").style.display = "block";
         btn.disabled = false; btn.textContent = "Prijavi se";
       } else {
-        errEl.textContent = data.detail || "Pogrešan email ili lozinka.";
+        errEl.textContent = data.detail || "PogreÅ¡an email ili lozinka.";
         errEl.style.display = "block";
         btn.disabled = false; btn.textContent = "Prijavi se";
       }
     } catch (e) {
-      errEl.textContent = "Server nije dostupan. Provjerite internetsku vezu i pokušajte ponovo.";
+      errEl.textContent = "Server nije dostupan. Provjerite internetsku vezu i pokuÅ¡ajte ponovo.";
       errEl.style.display = "block";
       btn.disabled = false; btn.textContent = "Prijavi se";
     }
@@ -1311,7 +1311,7 @@ Ova izmjena mijenja način obračuna poreza i može imati direktan financijski u
       document.getElementById("loginError").style.display = "block";
       return;
     }
-    link.textContent = "Šalje se...";
+    link.textContent = "Å alje se...";
     try {
       await fetch(`${API}/auth/resend-verification`, {
         method: "POST", headers: {"Content-Type": "application/json"},
@@ -1321,8 +1321,8 @@ Ova izmjena mijenja način obračuna poreza i može imati direktan financijski u
       okEl.textContent = "Link za verifikaciju poslan. Provjerite inbox.";
       okEl.style.display = "block";
     } catch (e) {
-      link.textContent = "Pošalji verifikacijski link ponovo";
-      document.getElementById("loginError").textContent = "Server nije dostupan. Pokušajte ponovo.";
+      link.textContent = "PoÅ¡alji verifikacijski link ponovo";
+      document.getElementById("loginError").textContent = "Server nije dostupan. PokuÅ¡ajte ponovo.";
       document.getElementById("loginError").style.display = "block";
     }
   }
