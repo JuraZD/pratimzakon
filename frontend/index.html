@@ -718,7 +718,100 @@
       .font-controls { margin-top: 8px; margin-left: 0; display: flex; gap: 6px; }
     }
         
-  </style>
+  
+    /* ─── TRIAL / BLUR PLANS ─── */
+    .trial-badge {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      background: var(--ink);
+      color: var(--white);
+      padding: 4px 12px;
+      margin-bottom: 16px;
+    }
+    .plan-trial {
+      border: 2px solid var(--ink) !important;
+      position: relative;
+    }
+    .plan-locked-wrap {
+      position: relative;
+      display: contents;
+    }
+    .plan-locked {
+      position: relative;
+    }
+    .plan-locked > * {
+      filter: blur(5px);
+      user-select: none;
+      pointer-events: none;
+    }
+    .plan-locked-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2;
+      gap: 8px;
+      background: rgba(255,255,255,0.05);
+    }
+    .plan-locked-overlay .lock-icon {
+      font-size: 28px;
+      line-height: 1;
+    }
+    .plan-locked-overlay .lock-label {
+      font-family: var(--mono);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--ink);
+      text-align: center;
+    }
+    .plan-locked.featured > * {
+      filter: blur(5px);
+    }
+    .plan-locked.featured .plan-locked-overlay .lock-label {
+      color: var(--white);
+    }
+    .trial-strip {
+      background: var(--ink);
+      color: var(--white);
+      text-align: center;
+      padding: 16px 24px;
+      margin-bottom: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .trial-strip-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: var(--mono);
+      font-size: 12px;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+    .trial-strip-item .ti {
+      font-size: 16px;
+    }
+    .trial-strip-divider {
+      width: 1px;
+      height: 20px;
+      background: rgba(255,255,255,0.25);
+    }
+    @media (max-width: 760px) {
+      .trial-strip { gap: 16px; padding: 14px 20px; }
+      .trial-strip-divider { display: none; }
+    }
+</style>
 </head>
 <body>
 
@@ -840,23 +933,33 @@
       <div class="pricing-note">Bez obaveza. Plaćanje na mjesečnoj bazi. Otkažite kad želite.</div>
     </div>
 
+    <div class="trial-strip">
+      <div class="trial-strip-item"><span class="ti">⏱</span> 30 dana besplatno</div>
+      <div class="trial-strip-divider"></div>
+      <div class="trial-strip-item"><span class="ti">🎯</span> 5 tema za istraživanje</div>
+      <div class="trial-strip-divider"></div>
+      <div class="trial-strip-item"><span class="ti">🚫</span> Bez kreditne kartice</div>
+      <div class="trial-strip-divider"></div>
+      <div class="trial-strip-item"><span class="ti">✓</span> Otkaži kad želiš</div>
+    </div>
     <div class="plans">
 
-      <div class="plan reveal">
-        <div class="plan-name">🟢 FREE</div>
+      <div class="plan reveal plan-trial">
+        <div class="trial-badge">30 dana besplatno</div>
+        <div class="plan-name">🟢 FREE — Probni period</div>
         <div class="plan-price">€0</div>
-        <div class="plan-per">/ mj</div>
-        <div class="plan-desc">Za početak, bez obveza</div>
+        <div class="plan-per">/ 30 dana</div>
+        <div class="plan-desc">Istraži bez rizika — bez kreditne kartice</div>
         <ul class="plan-features">
-          <li>Do 3 teme koje te zanimaju</li>
+          <li>Do 5 tema koje te zanimaju</li>
           <li>Email alertovi o novim promjenama</li>
           <li>Pregled novih objava</li>
-          <li class="missing">Bez filtriranja (moguće više nebitnih informacija)</li>
+          <li>Puni pristup 30 dana</li>
         </ul>
-        <a href="#" class="btn btn-ghost" onclick="openModal('register')">Počni besplatno</a>
+        <a href="#" class="btn btn-solid" onclick="openModal('register')">Počni 30-dnevni trial</a>
       </div>
 
-      <div class="plan featured reveal" style="transition-delay:.12s">
+      <div class="plan featured reveal plan-locked" style="position:relative" style="transition-delay:.12s">
         <div class="plan-badge">Najvažniji</div>
         <div class="plan-name">🟡 BASIC (NAJVAŽNIJI)</div>
 
@@ -871,8 +974,9 @@
         </ul>
         <a href="#" class="btn btn-ghost" onclick="selectPlan('basic'); return false;">Odaberi Basic</a>
       </div>
+      <div class="plan-locked-overlay"><span class="lock-icon">🔒</span><span class="lock-label">Dostupno nakon triala</span></div>
 
-      <div class="plan reveal" style="transition-delay:.24s">
+      <div class="plan reveal plan-locked" style="transition-delay:.24s;position:relative">
         <div class="plan-name">🔴 PLUS (VALUE PLAN)</div>
 
         <div class="plan-price">€7,99</div>
@@ -889,19 +993,10 @@
         </ul>
         <a href="#" class="btn btn-ghost" onclick="selectPlan('plus'); return false;">Odaberi Plus</a>
       </div>
+      <div class="plan-locked-overlay"><span class="lock-icon">🔒</span><span class="lock-label">Dostupno nakon triala</span></div>
 
     </div>
-    <div class="conversion-block reveal">
-      <h3>❗ Zašto prijeći na Basic ili Plus?</h3>
-      <ul class="conversion-list">
-        <li>❌ Previše nebitnih informacija u FREE verziji</li>
-        <li>✅ AI filtrira samo ono što je važno</li>
-        <li>✅ Uštedi sate praćenja zakonodavstva</li>
-        <li>✅ Jasno vidiš što se stvarno odnosi na tebe</li>
-      </ul>
-    </div>
-    <p class="usp-oneliner">FREE = sve · BASIC = samo relevantno · PLUS = relevantno + objašnjeno</p>
-    <p style="font-family:var(--mono);font-size:11px;color:var(--mid);text-align:center;margin-top:24px;letter-spacing:.3px;">
+        <p style="font-family:var(--mono);font-size:11px;color:var(--mid);text-align:center;margin-top:24px;letter-spacing:.3px;">
       Cijene su izražene bez PDV-a. Sukladno čl. 90. st. 2. Zakona o porezu na dodanu vrijednost (NN 73/13 i izmjene), PDV nije obračunan.
     </p>
   </div>
