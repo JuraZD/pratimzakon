@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Pretraga arhive – PratimZakon</title>
+  <title>Pretraga arhive â PratimZakon</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --ink: #111111;
+      --ink: #0D0D0D;
       --bone: #F5F4F1;
       --white: #ffffff;
       --mid: #6b6b6b;
@@ -310,18 +310,18 @@
 
 <main>
   <h1>Pretraga arhive</h1>
-  <p class="subtitle" id="searchSubtitle">Pretražite objave Narodnih novina od 01. siječnja 2026. do danas</p>
+  <p class="subtitle" id="searchSubtitle">PretraÅ¾ite objave Narodnih novina od 01. sijeÄnja 2026. do danas</p>
   <p class="subtitle" id="latestIssueLabel" style="margin-top:4px;"></p>
 
   <!-- Gate za ne-Plus korisnike -->
   <div class="gate" id="expertGate" style="display:none">
-    <div style="font-size:32px;margin-bottom:12px;">⊘</div>
+    <div style="font-size:32px;margin-bottom:12px;">â</div>
     <h2>Plus paket</h2>
-    <p>Pretraga arhive dostupna je isključivo korisnicima Plus paketa.</p>
+    <p>Pretraga arhive dostupna je iskljuÄivo korisnicima Plus paketa.</p>
     <a href="dashboard.html" class="btn btn-solid">Nadogradite plan</a>
   </div>
 
-  <!-- Search sučelje -->
+  <!-- Search suÄelje -->
   <div id="searchArea" style="display:none">
     <div class="filters">
       <div class="filters-grid">
@@ -329,7 +329,7 @@
           <label>Pretraga po naslovu</label>
           <input type="text" id="fQ" placeholder='npr. porez dohodak ili zakon radu' onkeydown="if(event.key==='Enter')doSearch(1)">
           <div class="search-hint">
-            Upišite jednu ili više ključnih riječi — pretražuje se naslov dokumenta. Više riječi sužava rezultate (npr. <em>zakon radu</em> pronalazi dokumente koji u naslovu imaju i "zakon" i "radu"). Nije osjetljivo na velika/mala slova.
+            UpiÅ¡ite jednu ili viÅ¡e kljuÄnih rijeÄi â pretraÅ¾uje se naslov dokumenta. ViÅ¡e rijeÄi suÅ¾ava rezultate (npr. <em>zakon radu</em> pronalazi dokumente koji u naslovu imaju i "zakon" i "radu"). Nije osjetljivo na velika/mala slova.
           </div>
         </div>
         <div class="filter-group">
@@ -340,7 +340,7 @@
             <option value="UREDBA">Uredba</option>
             <option value="PRAVILNIK">Pravilnik</option>
             <option value="ODLUKA">Odluka</option>
-            <option value="RJEŠENJE">Rješenje</option>
+            <option value="RJEÅ ENJE">RjeÅ¡enje</option>
             <option value="NAREDBA">Naredba</option>
             <option value="SPORAZUM">Sporazum</option>
           </select>
@@ -349,8 +349,8 @@
           <label>Dio</label>
           <select id="fPart">
             <option value="">SL + MU</option>
-            <option value="SL">Službeni list (SL)</option>
-            <option value="MU">Međunarodni ugovori (MU)</option>
+            <option value="SL">SluÅ¾beni list (SL)</option>
+            <option value="MU">MeÄunarodni ugovori (MU)</option>
           </select>
         </div>
         <div class="filter-group">
@@ -370,8 +370,8 @@
         </div>
       </div>
       <div class="filter-actions">
-        <button class="btn" onclick="clearFilters()">Poništi</button>
-        <button class="btn btn-solid" onclick="doSearch(1)">Pretraži</button>
+        <button class="btn" onclick="clearFilters()">PoniÅ¡ti</button>
+        <button class="btn btn-solid" onclick="doSearch(1)">PretraÅ¾i</button>
       </div>
     </div>
 
@@ -387,7 +387,7 @@
     const today = new Date();
     const formatted = today.toLocaleDateString("hr-HR", { day: "2-digit", month: "long", year: "numeric" });
     document.getElementById("searchSubtitle").textContent =
-      `Pretražite objave Narodnih novina od 01. siječnja 2026. do ${formatted}`;
+      `PretraÅ¾ite objave Narodnih novina od 01. sijeÄnja 2026. do ${formatted}`;
   })();
 
   function getToken() { return localStorage.getItem("token"); }
@@ -466,7 +466,7 @@
     if (dateTo) params.set("date_to", dateTo);
 
     const area = document.getElementById("resultsArea");
-    area.innerHTML = '<div class="loading">Pretražujem...</div>';
+    area.innerHTML = '<div class="loading">PretraÅ¾ujem...</div>';
 
     const res = await authFetch(`/search/?${params}`);
     if (!res) return;
@@ -478,7 +478,7 @@
     }
 
     const data = await res.json();
-    if (!res.ok) { showMessage(data.detail || "Greška."); return; }
+    if (!res.ok) { showMessage(data.detail || "GreÅ¡ka."); return; }
     renderResults(data);
   }
 
@@ -488,7 +488,7 @@
     if (data.total === 0) {
       area.innerHTML = `
         <div class="empty-state">
-          <div class="icon">◎</div>
+          <div class="icon">â</div>
           <p>Nema rezultata za zadane kriterije.</p>
         </div>`;
       return;
@@ -498,7 +498,7 @@
     const to = Math.min(data.page * data.per_page, data.total);
     const totalPages = Math.ceil(data.total / data.per_page);
 
-    let html = `<div class="results-meta">Pronađeno <strong>${data.total}</strong> dokumenata · prikazano ${from}–${to}</div>`;
+    let html = `<div class="results-meta">PronaÄeno <strong>${data.total}</strong> dokumenata Â· prikazano ${from}â${to}</div>`;
 
     for (const doc of data.results) {
       const typeBadge = doc.type
@@ -511,15 +511,15 @@
       if (doc.legal_area) metaParts.push(escHtml(doc.legal_area));
 
       const pdfLink = doc.pdf_url
-        ? `<a href="${escHtml(doc.pdf_url)}" target="_blank" rel="noopener" class="link-pdf">↓ PDF</a>` : "";
+        ? `<a href="${escHtml(doc.pdf_url)}" target="_blank" rel="noopener" class="link-pdf">â PDF</a>` : "";
 
       html += `
         <div class="result-item">
           <div class="result-badges">${typeBadge}${partBadge}</div>
           <div class="result-title">${escHtml(doc.title)}</div>
-          ${metaParts.length ? `<div class="result-meta">${metaParts.join(" · ")}</div>` : ""}
+          ${metaParts.length ? `<div class="result-meta">${metaParts.join(" Â· ")}</div>` : ""}
           <div class="result-links">
-            <a href="${escHtml(doc.url)}" target="_blank" rel="noopener" class="link-html">Otvori dokument →</a>
+            <a href="${escHtml(doc.url)}" target="_blank" rel="noopener" class="link-html">Otvori dokument â</a>
             ${pdfLink}
           </div>
         </div>`;
@@ -527,13 +527,13 @@
 
     if (totalPages > 1) {
       html += '<div class="pagination">';
-      html += `<button class="page-btn" onclick="doSearch(${data.page - 1})" ${data.page <= 1 ? "disabled" : ""}>← Prethodna</button>`;
+      html += `<button class="page-btn" onclick="doSearch(${data.page - 1})" ${data.page <= 1 ? "disabled" : ""}>â Prethodna</button>`;
       const start = Math.max(1, data.page - 2);
       const end = Math.min(totalPages, data.page + 2);
       for (let p = start; p <= end; p++) {
         html += `<button class="page-btn ${p === data.page ? "active" : ""}" onclick="doSearch(${p})">${p}</button>`;
       }
-      html += `<button class="page-btn" onclick="doSearch(${data.page + 1})" ${data.page >= totalPages ? "disabled" : ""}>Sljedeća →</button>`;
+      html += `<button class="page-btn" onclick="doSearch(${data.page + 1})" ${data.page >= totalPages ? "disabled" : ""}>SljedeÄa â</button>`;
       html += '</div>';
     }
 
