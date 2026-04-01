@@ -776,6 +776,8 @@
     }
 
     .beta-badge { font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:.08em; color:var(--white); background:var(--ink); padding:2px 6px; border-radius:3px; margin-left:8px; vertical-align:middle; position:relative; top:-2px; }
+
+    .plan-blurred > * { filter: blur(4px); user-select: none; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -918,7 +920,7 @@
         <a href="#" class="btn btn-solid" onclick="openModal('register')">Počni 30-dnevni trial</a>
       </div>
 
-      <div class="plan featured reveal" style="transition-delay:.12s">
+      <div class="plan featured reveal plan-blurred" style="transition-delay:.12s">
         <div class="plan-badge">Najvažniji</div>
         <div class="plan-name">🟡 BASIC (NAJVAŽNIJI)</div>
 
@@ -935,7 +937,7 @@
       </div>
       
 
-      <div class="plan reveal" style="transition-delay:.24s">
+      <div class="plan reveal plan-blurred" style="transition-delay:.24s">
         <div class="plan-name">🔴 PLUS (VALUE PLAN)</div>
 
         <div class="plan-price">€7,99</div>
