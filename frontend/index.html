@@ -11,13 +11,21 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --ink: #0D0D0D;
-      --paper: #f8f7f4;
-      --white: #ffffff;
-      --bone: #F5F4F1;
-      --mid: #6b6b6b;
-      --rule: rgba(0,0,0,0.12);
-      --red: #C41212;
+      --ink: #1A1816;
+      --paper: #F5F0E8;
+      --white: #FFFDF9;
+      --bone: #EDE8DF;
+      --mid: #7A6E65;
+      --rule: rgba(26,24,22,0.14);
+      --red: #B84E16;
+  --amber: #B84E16;
+  --amber-dark: #A84010;
+  --amber-pale: #DC8C50;
+  --navy: #163458;
+  --navy-pale: #3C5A80;
+  --ivory: #F5F0E8;
+  --stone: #C8C0B4;
+  --stone-light: #E4DDD3;
       --serif: 'Fraunces', Georgia, serif;
       --mono: 'DM Mono', monospace;
       --sans: 'Plus Jakarta Sans', sans-serif;
@@ -111,8 +119,8 @@
     .btn-ghost { background: transparent; color: var(--ink); }
     .btn-ghost:hover { background: var(--bone); }
 
-    .btn-solid { background: var(--ink); color: var(--white); }
-    .btn-solid:hover { background: #2a2a2a; }
+    .btn-solid { background: var(--amber); color: var(--white); border-color: var(--amber); }
+    .btn-solid:hover { background: var(--amber-dark); border-color: var(--amber-dark); }
 
 
     .font-controls {display: flex;gap: 6px;margin-left: 10px;}
@@ -433,7 +441,7 @@
     }
 
     .plan:last-child { border-right: none; }
-    .plan.featured { background: var(--ink); color: var(--white); }
+    .plan.featured { background: var(--navy); color: var(--white); }
 
     .plan-name {
       font-family: var(--mono);
@@ -496,7 +504,7 @@
     .plan.featured .btn-ghost:hover { background: var(--white); color: var(--ink); }
 
     /* ─── FOOTER ─── */
-    footer { background: var(--ink); color: var(--white); }
+    footer { background: var(--navy); color: var(--white); }
 
     .footer-stats {
       display: grid;
@@ -775,7 +783,7 @@
       .trial-strip-divider { display: none; }
     }
 
-    .beta-badge { font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:.08em; color:var(--white); background:var(--ink); padding:2px 6px; border-radius:3px; margin-left:8px; vertical-align:middle; position:relative; top:-2px; }
+    .beta-badge { font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:.08em; color:var(--white); background:var(--navy); padding:2px 6px; border-radius:3px; margin-left:8px; vertical-align:middle; position:relative; top:-2px; }
 
     .plan-blurred > * { filter: blur(4px); user-select: none; pointer-events: none; }
 </style>
