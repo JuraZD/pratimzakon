@@ -740,44 +740,7 @@
       position: relative;
       display: contents;
     }
-    .plan-locked {
-      position: relative;
-    }
-    .plan-locked > * {
-      filter: blur(5px);
-      user-select: none;
-      pointer-events: none;
-    }
-    .plan-locked-overlay {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 2;
-      gap: 8px;
-      background: rgba(255,255,255,0.05);
-    }
-    .plan-locked-overlay .lock-icon {
-      font-size: 28px;
-      line-height: 1;
-    }
-    .plan-locked-overlay .lock-label {
-      font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      color: var(--ink);
-      text-align: center;
-    }
-    .plan-locked.featured > * {
-      filter: blur(5px);
-    }
-    .plan-locked.featured .plan-locked-overlay .lock-label {
-      color: var(--white);
-    }
+    
     .trial-strip {
       background: var(--ink);
       color: var(--white);
@@ -811,6 +774,8 @@
       .trial-strip { gap: 16px; padding: 14px 20px; }
       .trial-strip-divider { display: none; }
     }
+
+    .beta-badge { font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:.08em; color:var(--white); background:var(--ink); padding:2px 6px; border-radius:3px; margin-left:8px; vertical-align:middle; position:relative; top:-2px; }
 </style>
 </head>
 <body>
@@ -822,7 +787,7 @@
 <!-- NAV -->
 <nav>
   <div class="inner">
-    <div class="logo">PratimZakon</div>
+    <div class="logo">PratimZakon<span class="beta-badge">BETA</span></div>
     <div class="nav-links">
       <a href="#" class="btn btn-ghost" onclick="openModal('login')">Prijava</a>
       <a href="#" class="btn btn-solid" onclick="openModal('register')">Registracija</a>
@@ -844,13 +809,7 @@
         <em>— dobiješ ono što je važno za tebe</em>
       </h1>
       <p class="hero-desc">AI filtrira i objašnjava zakonodavstvo — ti dobiješ samo ono što je važno.</p>
-      <div class="hero-actions">
-        <div class="btn-magnetic">
-          <a href="#" id="heroCta" class="btn btn-solid btn-lg" onclick="openModal('register')">Počni besplatno</a>
-        </div>
-        <a href="#pricing" class="btn btn-ghost btn-lg">Pogledajte planove</a>
-      </div>
-    </div>
+          </div>
 
     <div class="hero-right">
       <div class="hero-vertical-label">Monitoring V2.0 · PratimZakon · HR</div>
@@ -959,7 +918,7 @@
         <a href="#" class="btn btn-solid" onclick="openModal('register')">Počni 30-dnevni trial</a>
       </div>
 
-      <div class="plan featured reveal plan-locked" style="position:relative" style="transition-delay:.12s">
+      <div class="plan featured reveal" style="transition-delay:.12s">
         <div class="plan-badge">Najvažniji</div>
         <div class="plan-name">🟡 BASIC (NAJVAŽNIJI)</div>
 
@@ -974,9 +933,9 @@
         </ul>
         <a href="#" class="btn btn-ghost" onclick="selectPlan('basic'); return false;">Odaberi Basic</a>
       </div>
-      <div class="plan-locked-overlay"><span class="lock-icon">🔒</span><span class="lock-label">Dostupno nakon triala</span></div>
+      
 
-      <div class="plan reveal plan-locked" style="transition-delay:.24s;position:relative">
+      <div class="plan reveal" style="transition-delay:.24s">
         <div class="plan-name">🔴 PLUS (VALUE PLAN)</div>
 
         <div class="plan-price">€7,99</div>
@@ -993,7 +952,7 @@
         </ul>
         <a href="#" class="btn btn-ghost" onclick="selectPlan('plus'); return false;">Odaberi Plus</a>
       </div>
-      <div class="plan-locked-overlay"><span class="lock-icon">🔒</span><span class="lock-label">Dostupno nakon triala</span></div>
+      
 
     </div>
         <p style="font-family:var(--mono);font-size:11px;color:var(--mid);text-align:center;margin-top:24px;letter-spacing:.3px;">
