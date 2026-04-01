@@ -95,6 +95,30 @@ WHERE id IN (
 );
 """,
     ),
+    (
+        "one-time: trim keywords 6-10 for jurica.devic@yahoo.com",
+        """
+DELETE FROM keywords
+WHERE id IN (
+    SELECT k.id
+    FROM keywords k
+    INNER JOIN users u ON u.id = k.user_id
+    WHERE u.email = 'jurica.devic@yahoo.com'
+    AND k.id NOT IN (
+        SELECT k2.id
+        FROM keywords k2
+        WHERE k2.user_id = k.user_id
+        ORDER BY k2.id
+        LIMIT 5
+    )
+);
+""",
+    ),
+    (
+        "one-time: set keyword_limit=7 for dalmatiaevents365@gmail.com",
+        "UPDATE users SET keyword_limit = 7 WHERE email = 'dalmatiaevents365@gmail.com'",
+    ),
+
 ]
 
 
