@@ -505,6 +505,12 @@
     .search-module .s-page-btn.active { background:var(--ink); color:var(--white); border-color:var(--ink); }
     .search-module .s-page-btn:disabled { opacity:.4; cursor:default; }
     @media(max-width:600px) { .search-module .filters-grid { grid-template-columns:1fr; } }
+
+    .kw-limit-bar progress { max-width:100%; }
+    .inst-dropdown { position:absolute; top:100%; left:0; right:0; background:var(--white); border:1px solid var(--ink); z-index:100; max-height:200px; overflow-y:auto; }
+    .inst-dropdown .inst-opt { padding:8px 12px; cursor:pointer; font-family:var(--mono); font-size:13px; }
+    .inst-dropdown .inst-opt:hover { background:var(--light); }
+    .filter-group { position:relative; }
 </style>
 </head>
 <body>
@@ -598,16 +604,7 @@
       <p class="activity-value" id="nextNotif">–</p>
     </div>
 
-    <hr class="activity-divider">
-
-    <div class="activity-row">
-      <p class="activity-label">Brze radnje</p>
-      <div class="quick-actions">
-        <button class="btn btn-solid" onclick="document.getElementById('kwInput').focus();document.getElementById('kwInput').scrollIntoView({behavior:'smooth'})">Dodaj ključnu riječ</button>
-        <a href="search.html" class="btn">Pretraži arhivu</a>
-        <a href="stats.html" class="btn" id="statsQuickBtn" style="display:none">Statistike</a>
-      </div>
-    </div>
+    
 
     <hr class="activity-divider">
 
@@ -660,16 +657,17 @@
         </select>
       </div>
       <div class="filter-group">
-        <label>Institucija</label>
-        <input type="text" id="smInstitution" placeholder='npr. "Vlada RH"'>
-      </div>
-      <div class="filter-group">
         <label>Datum od</label>
         <input type="date" id="smDateFrom">
       </div>
       <div class="filter-group">
         <label>Datum do</label>
         <input type="date" id="smDateTo">
+      </div>
+      <div class="filter-group" style="grid-column:1/-1">
+        <label>Institucija</label>
+        <input type="text" id="smInstitution" placeholder='npr. "Vlada RH"' autocomplete="off" oninput="filterInstitutions(this)">
+        <div id="institutionDropdown" class="inst-dropdown" style="display:none"></div>
       </div>
     </div>
 
@@ -1428,7 +1426,7 @@
   async function loadKwModalPage(page) {
     const body = document.getElementById('kwModalBody');
     body.innerHTML = '<div class="kw-modal-loading">Učitavam...</div>';
-    const params = new URLSearchParams({ q: _kwKeyword, per_page: 10, page });
+    const params = new URLSearchParams({ q: _kwKeyword, per_page: 10, page, date_from: (function(){var d=new Date();d.setDate(d.getDate()-30);return d.toISOString().slice(0,10);})() });
     const res = await authFetch('/search/?' + params);
     if (!res) return;
     const data = await res.json();
@@ -1540,6 +1538,18 @@
     area.innerHTML = html;
   }
 
+
+  const _institutions = ["Vlada RH","Ministarstvo financija","Ministarstvo pravosuđa","Ministarstvo unutarnjih poslova","Ministarstvo zdravstva","Ministarstvo gospodarstva i održivog razvoja","Ministarstvo rada i mirovinskoga sustava","Ministarstvo obrane","Ministarstvo kulture i medija","Ministarstvo zaštite okoliša i zelene tranzicije","Ministarstvo poljoprivrede","Ministarstvo turizma i sporta","Ministarstvo mora, prometa i infrastrukture","Ministarstvo regionalnoga razvoja i fondova EU","Ministarstvo znanosti i obrazovanja","Ministarstvo prostornog uređenja, graditeljstva i državne imovine","Hrvatska narodna banka","Državni ured za reviziju","Agencija za tržišno natjecanje (AZTN)","HAKOM","Državno odvjetništvo RH","Vrhovni sud RH","Ustavni sud RH","Hrvatski sabor","Ured predsjednika RH"];
+  function filterInstitutions(inp) {
+    const val = inp.value.toLowerCase();
+    const dd = document.getElementById("institutionDropdown");
+    if (!val) { dd.style.display="none"; return; }
+    const matches = _institutions.filter(i => i.toLowerCase().startsWith(val));
+    if (!matches.length) { dd.style.display="none"; return; }
+    dd.innerHTML = matches.map(m => `<div class="inst-opt" onclick="document.getElementById('smInstitution').value='${m.replace(/'/g,"\\'")}';document.getElementById('institutionDropdown').style.display='none'">${m}</div>`).join("");
+    dd.style.display = "block";
+  }
+  document.addEventListener("click", e => { if (!e.target.closest || !e.target.closest(".filter-group")) { const dd=document.getElementById("institutionDropdown"); if(dd) dd.style.display="none"; } });
 </script>
 </body>
 </html>
