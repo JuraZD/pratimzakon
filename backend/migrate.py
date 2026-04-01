@@ -70,8 +70,31 @@ END $$;
     ),
     ("sync: plan pro→basic", "UPDATE users SET plan = 'basic', plan_type = 'basic' WHERE plan = 'pro'"),
     ("sync: plan expert→plus", "UPDATE users SET plan = 'plus', plan_type = 'plus' WHERE plan = 'expert'"),
-    ("sync: keyword_limit za basic", "UPDATE users SET keyword_limit = 10 WHERE plan = 'basic' AND keyword_limit < 10"),
+    ("sync: keyword_limit za basic", "UPDATE users SET keyword_limit = 5 WHERE plan = 'basic' AND keyword_limit < 5"),
     ("sync: keyword_limit za plus", "UPDATE users SET keyword_limit = 20 WHERE plan = 'plus' AND keyword_limit < 20"),
+    (
+        "fix: cap basic keyword_limit to 5",
+        "UPDATE users SET keyword_limit = 5 WHERE plan = 'basic' AND keyword_limit > 5",
+    ),
+    (
+        "fix: trim basic keywords table to 5 per user",
+        """
+DELETE FROM keywords
+WHERE id IN (
+    SELECT k.id
+    FROM keywords k
+    INNER JOIN users u ON u.id = k.user_id
+    WHERE u.plan = 'basic'
+    AND k.id NOT IN (
+        SELECT k2.id
+        FROM keywords k2
+        WHERE k2.user_id = k.user_id
+        ORDER BY k2.id
+        LIMIT 5
+    )
+);
+""",
+    ),
 ]
 
 
