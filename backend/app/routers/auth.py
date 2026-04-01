@@ -299,7 +299,7 @@ def _send_plan_confirmation_email(user_email: str, plan: str):
             "name": "Basic",
             "price": "4,99 €/mj",
             "features": [
-                "Do <strong>10 ključnih riječi</strong>",
+                "Do <strong>5 ključnih riječi</strong>",
                 "Automatske <strong>email obavijesti</strong> svaki radni dan u 07:00",
                 "Pratimo nova objavljivanja u Narodnim novinama",
             ],
