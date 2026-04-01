@@ -17,7 +17,7 @@ PRICE_PLUS = os.getenv("STRIPE_PRICE_PLUS", "")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost")
 
 PLAN_CONFIG = {
-    "basic": {"price_id": PRICE_BASIC, "keyword_limit": 10},
+    "basic": {"price_id": PRICE_BASIC, "keyword_limit": 5},
     "plus":  {"price_id": PRICE_PLUS,  "keyword_limit": 20},
 }
 
