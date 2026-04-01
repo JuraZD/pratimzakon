@@ -31,6 +31,44 @@ jobs:
         with:
           path: frontend
 
-      - name: Deploy na GitHub Pages
-        id: deployment
+      - name: Deploy na GitHub Pages (attempt 1)
+        id: deploy1
+        continue-on-error: true
         uses: actions/deploy-pages@v4
+
+      - name: Wait before retry (attempt 2)
+        if: steps.deploy1.outcome == 'failure'
+        run: |
+          echo "Attempt 1 failed, waiting 30s before retry..."
+          sleep 30
+
+      - name: Deploy na GitHub Pages (attempt 2)
+        id: deploy2
+        if: steps.deploy1.outcome == 'failure'
+        continue-on-error: true
+        uses: actions/deploy-pages@v4
+
+      - name: Wait before retry (attempt 3)
+        if: steps.deploy1.outcome == 'failure' && steps.deploy2.outcome == 'failure'
+        run: |
+          echo "Attempt 2 failed, waiting 60s before final retry..."
+          sleep 60
+
+      - name: Deploy na GitHub Pages (attempt 3)
+        id: deploy3
+        if: steps.deploy1.outcome == 'failure' && steps.deploy2.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+
+      - name: Check deployment result
+        if: always()
+        run: |
+          if [[ "${{ steps.deploy1.outcome }}" == "success" ]]; then
+            echo "Deployment succeeded on attempt 1."
+          elif [[ "${{ steps.deploy2.outcome }}" == "success" ]]; then
+            echo "Deployment succeeded on attempt 2."
+          elif [[ "${{ steps.deploy3.outcome }}" == "success" ]]; then
+            echo "Deployment succeeded on attempt 3."
+          else
+            echo "All 3 deployment attempts failed."
+            exit 1
+          fi
