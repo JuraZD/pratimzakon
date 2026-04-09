@@ -627,11 +627,83 @@
 
   function savePracenje() { showToast('Kljucne rijeci se automatski spremaju'); }
 
-  async function init() {
-    await loadUser();
-    await loadKeywords();
-  }
+  async function loadMatches() {
+    try {
+        const res = await fetch(API + '/search/matches/recent?limit=5', { headers: authHeaders() });
+        if (!res.ok) return;
+        const matches = await res.json();
 
-  init();
+        const list = document.querySelector('.matches-card .card-body');
+        if (!list) return;
+
+        if (matches.length === 0) {
+            list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:16px 0;">Još nema matcheva — tražilica će ih pronaći pri sljedećem skeniranju.</div>';
+            return;
+        }
+
+        list.innerHTML = matches.map(m => `
+            <div class="match-row">
+                <div class="match-title">${m.document_title}</div>
+                <div class="match-kw">${m.keyword}</div>
+                <div class="match-date">${m.matched_at}</div>
+                <button class="match-btn" onclick="window.location='sazetak.html?id=${m.document_id}'">Vidi sažetak</button>
+            </div>
+        `).join('');
+
+        // Ažuriraj stat karticu
+        const statWeek = document.getElementById('stat-week');
+        if (statWeek) statWeek.textContent = matches.length;
+
+    } catch(e) {
+        console.error('Greška matchevi:', e);
+    }
+}
+
+async function loadActivity() {
+    try {
+        const res = await fetch(API + '/search/activity/recent?limit=10', { headers: authHeaders() });
+        if (!res.ok) return;
+        const activities = await res.json();
+
+        const list = document.querySelector('.activity-list');
+        if (!list) return;
+
+        if (activities.length === 0) {
+            list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0;">Još nema aktivnosti.</div>';
+            return;
+        }
+
+        list.innerHTML = activities.map((a, i) => `
+            <div class="activity-item">
+                <div class="activity-dot-wrap">
+                    <div class="activity-dot ${a.color}"></div>
+                    ${i < activities.length - 1 ? '<div class="activity-line"></div>' : ''}
+                </div>
+                <div class="activity-body">
+                    <div class="activity-text">${a.message}</div>
+                    <div class="activity-time">${a.timestamp}</div>
+                </div>
+            </div>
+        `).join('');
+
+    } catch(e) {
+        console.error('Greška aktivnost:', e);
+    }
+}
+
+async function init() {
+    const user = await loadUser();
+    await loadKeywords();
+    await loadMatches();
+    await loadActivity();
+
+    // Pravi email u email kartici
+    if (user && user.email) {
+        const emailAddr = document.querySelector('.email-addr');
+        if (emailAddr) emailAddr.textContent = user.email;
+    }
+}
+
+init();
 </script>
 </body>
