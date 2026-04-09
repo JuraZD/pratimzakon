@@ -386,8 +386,8 @@
     if (text.includes('Postavke'))      item.onclick = () => showToast('Postavke — uskoro dostupno');
     if (text.includes('Matchevi'))      item.onclick = () => showToast('Matchevi — uskoro dostupno');
     if (text.includes('Email arhiva'))  item.onclick = () => showToast('Email arhiva — uskoro dostupno');
-    if (text.includes('Moje praćenje')) item.onclick = () => showToast('Moje praćenje — uskoro dostupno');
-  });
+    if (text.includes('Moje praćenje')) item.onclick = () => window.location.href = 'moje-pracenje.html';
+    });
 
   function showToast(msg) {
     const t = document.getElementById('toast');
