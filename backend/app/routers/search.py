@@ -155,3 +155,16 @@ def summarize_document(
         raise HTTPException(status_code=500, detail="Nije moguće generirati sažetak.")
 
     return {"document_id": document_id, "summary": summary}
+
+
+@router.get("/document/{document_id}", response_model=DocumentResult)
+def get_document(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Dohvaća jedan dokument po ID-u."""
+    doc = db.query(Document).filter(Document.id == document_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Dokument nije pronađen.")
+    return doc

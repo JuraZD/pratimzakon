@@ -477,6 +477,8 @@
 <div class="toast" id="toast"></div>
 
 <script>
+  const API = 'https://pratimzakon.onrender.com';
+
   function toggleTheme() {
     const isDark = document.documentElement.classList.toggle('dark');
     document.getElementById('theme-toggle').textContent = isDark ? '☾' : '☀';
@@ -495,9 +497,94 @@
     setTimeout(() => t.classList.remove('show'), 2800);
   }
 
-  function openNN() {
-    window.open('https://narodne-novine.nn.hr', '_blank');
+  function getToken() {
+    return localStorage.getItem('pz-token');
   }
+
+  function authHeaders() {
+    return { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' };
+  }
+
+  function getDocId() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('id');
+  }
+
+  function classifyTitle(title) {
+    const t = title.toLowerCase();
+    if (t.includes('izmjen') || t.includes('dopun')) return 'izmjena';
+    if (t.includes('pročišćeni')) return 'procisceni';
+    return 'novi';
+  }
+
+  function badgeHTML(type) {
+    if (type === 'izmjena') return '<span class="doc-badge badge-izmjena">Izmjena propisa</span>';
+    if (type === 'procisceni') return '<span class="doc-badge badge-procisceni">Pročišćeni tekst</span>';
+    return '<span class="doc-badge badge-novi">Novi propis</span>';
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '—';
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('hr-HR', { day: '2-digit', month: 'long', year: 'numeric' });
+  }
+
+  async function loadPage() {
+    const docId = getDocId();
+    if (!docId) { showToast('Nema ID dokumenta u URL-u'); return; }
+    if (!getToken()) { window.location.href = 'index.html'; return; }
+
+    // Dohvati podatke dokumenta
+    try {
+      const res = await fetch(`${API}/search/document/${docId}`, { headers: authHeaders() });
+      if (res.status === 401) { window.location.href = 'index.html'; return; }
+      const doc = await res.json();
+
+      const docClass = classifyTitle(doc.title);
+
+      // Popuni header
+      document.querySelector('.doc-meta').innerHTML =
+        badgeHTML(docClass) +
+        `<span class="doc-nn">NN ${doc.issue_number || '—'}/${doc.published_date ? doc.published_date.substring(0,4) : '—'}</span>` +
+        `<span class="doc-date">${formatDate(doc.published_date)}</span>`;
+
+      document.querySelector('.doc-title').textContent = doc.title;
+
+      // Info sidebar
+      document.querySelectorAll('.info-value')[0].textContent = doc.issue_number ? `${doc.issue_number}/${doc.published_date ? doc.published_date.substring(0,4) : ''}` : '—';
+      document.querySelectorAll('.info-value')[1].textContent = doc.published_date ? formatDate(doc.published_date) : '—';
+      document.querySelectorAll('.info-value')[2].textContent = doc.type ? doc.type.charAt(0).toUpperCase() + doc.type.slice(1) : '—';
+      document.querySelectorAll('.info-value')[3].textContent = doc.institution || '—';
+
+      // NN link
+      document.querySelector('.action-btn:nth-child(2)').onclick = () => window.open(doc.url, '_blank');
+
+    } catch(e) {
+      showToast('Greška pri dohvatu dokumenta');
+    }
+
+    // Dohvati AI sažetak
+    const summaryBody = document.querySelector('.summary-text');
+    summaryBody.innerHTML = '<p style="color:var(--muted)">⟳ Generiram sažetak...</p>';
+
+    try {
+      const res = await fetch(`${API}/search/summarize/${docId}`, { headers: authHeaders() });
+      const data = await res.json();
+
+      if (data.summary) {
+        const paragraphs = data.summary.split('
+
+').filter(p => p.trim());
+        summaryBody.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
+      } else {
+        summaryBody.innerHTML = '<p style="color:var(--muted)">Sažetak nije dostupan.</p>';
+      }
+    } catch(e) {
+      summaryBody.innerHTML = '<p style="color:var(--muted)">Greška pri generiranju sažetka.</p>';
+    }
+  }
+
+  loadPage();
 </script>
 </body>
 </html>
