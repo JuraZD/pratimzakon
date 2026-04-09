@@ -300,7 +300,7 @@
       <div class="topbar-title" id="topbar-greeting">DOBRO JUTRO, <span>JURICA</span></div>
       <div class="topbar-right">
         <div class="badge-live"><div class="badge-live-dot"></div>Tražilica aktivna</div>
-        <button class="btn-secondary" onclick="showToast('Tražilica se pokreće...')">▷ Pokreni tražilicu</button>
+        <button class="btn-secondary" id="btn-scraper" onclick="triggerScraper()">▷ Pokreni tražilicu</button></button>
         <button class="btn-theme" id="theme-toggle" onclick="toggleTheme()" title="Promijeni temu">☀</button>
       </div>
     </div>
@@ -704,6 +704,37 @@ async function init() {
     }
 }
 
+
+async function triggerScraper() {
+    const btn = document.getElementById('btn-scraper');
+    btn.disabled = true;
+    btn.textContent = '⟳ Pokreće se...';
+    try {
+        const res = await fetch(API + '/admin/trigger-scraper', {
+            method: 'POST',
+            headers: authHeaders()
+        });
+        if (res.ok) {
+            showToast('Tražilica pokrenuta — rezultati za nekoliko minuta');
+            setTimeout(() => loadActivity(), 5000);
+        } else {
+            showToast('Greška pri pokretanju tražilice');
+        }
+    } catch(e) {
+        showToast('Greška pri pokretanju tražilice');
+    } finally {
+        setTimeout(() => {
+            btn.disabled = false;
+            btn.textContent = '▷ Pokreni tražilicu';
+        }, 10000);
+    }
+}
+
 init();
+
+
+
+
+
 </script>
 </body>
