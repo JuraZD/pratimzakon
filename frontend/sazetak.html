@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PratimZakon — Sažetak zakona</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:    #1a2744;
+    --navy2:   #243258;
+    --orange:  #b84d1b;
+    --orange2: #d4581f;
+    --cream:   #e8e4da;
+    --cream2:  #f2efe8;
+    --white:   #ffffff;
+    --text:    #1a2744;
+    --muted:   #6b7a99;
+    --border:  rgba(26,39,68,0.12);
+    --border-strong: rgba(26,39,68,0.22);
+    --orange-dim: rgba(184,77,27,0.10);
+    --green:   #2e7d52;
+    --green-dim: rgba(46,125,82,0.12);
+    --amber:   #92620a;
+    --amber-dim: rgba(146,98,10,0.10);
+    --font-display: 'Barlow Condensed', sans-serif;
+    --font-body: 'Barlow', sans-serif;
+    --radius: 4px;
+    --bg:      var(--cream);
+    --surface: var(--white);
+    --surface2: var(--cream2);
+    --card-head: var(--navy);
+  }
+
+  html.dark {
+    --navy:    #c8d4f0;
+    --navy2:   #a8b8e0;
+    --orange:  #e06830;
+    --orange2: #e87840;
+    --cream:   #111827;
+    --cream2:  #1e2837;
+    --white:   #1a2436;
+    --text:    #d0daf0;
+    --muted:   #6b7a99;
+    --border:  rgba(200,212,240,0.10);
+    --border-strong: rgba(200,212,240,0.18);
+    --orange-dim: rgba(224,104,48,0.12);
+    --green:   #4aaf78;
+    --green-dim: rgba(74,175,120,0.12);
+    --amber:   #d4a020;
+    --amber-dim: rgba(212,160,32,0.12);
+    --bg:      #111827;
+    --surface: #1a2436;
+    --surface2: #1e2837;
+    --card-head: #0e1520;
+  }
+
+  html, body { min-height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-body); font-size: 14px; line-height: 1.5; transition: background 0.25s, color 0.25s; }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  /* ─── APP LAYOUT ─── */
+  .app { display: grid; grid-template-columns: 210px 1fr; min-height: 100vh; }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar { background: var(--card-head); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
+
+  .logo { padding: 22px 22px 20px; font-family: var(--font-display); font-weight: 800; font-size: 22px; letter-spacing: 1px; text-transform: uppercase; color: var(--cream2); border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; }
+
+  html.dark .logo { color: #d0daf0; }
+
+  .logo-accent { color: var(--orange2); }
+
+  .logo-dot { width: 7px; height: 7px; background: var(--orange2); border-radius: 50%; margin-left: 7px; animation: blink 2.5s ease-in-out infinite; }
+
+  .nav { flex: 1; padding: 14px 0; }
+
+  .nav-section-label { padding: 10px 22px 6px; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(232,228,218,0.3); }
+
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 22px; cursor: pointer; transition: background 0.15s; color: rgba(232,228,218,0.55); font-size: 13.5px; font-weight: 500; position: relative; }
+
+  .nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(232,228,218,0.9); }
+
+  .nav-item.active { background: rgba(212,88,31,0.15); color: rgba(232,228,218,0.95); }
+
+  .nav-item.active::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--orange2); }
+
+  .nav-icon { font-size: 13px; width: 16px; text-align: center; }
+
+  .nav-divider { height:1px; background:rgba(255,255,255,0.07); margin:10px 22px; }
+
+  .user-card { padding: 16px 22px; border-top: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.15); }
+
+  .user-name { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: rgba(232,228,218,0.9); letter-spacing: 0.5px; margin-bottom: 2px; }
+
+  .user-email { color: rgba(232,228,218,0.4); font-size: 11.5px; margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .user-badge { display: inline-block; padding: 2px 8px; background: rgba(46,125,82,0.2); border: 1px solid rgba(46,125,82,0.35); color: #5aaf80; border-radius: 2px; font-size: 10.5px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+
+  /* ─── MAIN ─── */
+  .main { display: flex; flex-direction: column; min-height: 100vh; overflow: hidden; }
+
+  /* ─── TOPBAR ─── */
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 36px 12px; background: var(--surface); border-bottom: 2px solid var(--navy); position: sticky; top: 0; z-index: 10; flex-shrink: 0; }
+
+  .topbar-left { display: flex; align-items: center; gap: 14px; }
+
+  .btn-back { display: flex; align-items: center; gap: 6px; padding: 6px 14px; background: transparent; border: 1.5px solid var(--border-strong); border-radius: var(--radius); color: var(--text); font-family: var(--font-body); font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all 0.15s; text-transform: uppercase; letter-spacing: 0.3px; text-decoration: none; }
+
+  .btn-back:hover { background: var(--navy); color: var(--surface); border-color: var(--navy); }
+
+  .topbar-crumb { font-family: var(--font-display); font-size: 14px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted); }
+
+  .topbar-crumb span { color: var(--navy); }
+
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+
+  .btn-theme { width: 34px; height: 34px; padding: 0; background: var(--surface2); border: 1.5px solid var(--border-strong); border-radius: var(--radius); color: var(--text); font-size: 15px; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; }
+
+  .btn-theme:hover { background: var(--navy); color: var(--surface); border-color: var(--navy); }
+
+  /* ─── CONTENT ─── */
+  .content { flex: 1; padding: 28px 36px 48px; max-width: 960px; width: 100%; }
+
+  /* ─── DOC HEADER ─── */
+  .doc-header { margin-bottom: 24px; }
+
+  .doc-meta { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+
+  .doc-badge {
+    padding: 4px 10px;
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+
+  .badge-izmjena { background: var(--amber-dim); color: var(--amber); border: 1px solid rgba(146,98,10,0.2); }
+  html.dark .badge-izmjena { border-color: rgba(212,160,32,0.2); }
+
+  .badge-novi { background: var(--green-dim); color: var(--green); border: 1px solid rgba(46,125,82,0.2); }
+  .badge-procisceni { background: var(--orange-dim); color: var(--orange); border: 1px solid rgba(184,77,27,0.2); }
+
+  .doc-nn { font-size: 12px; color: var(--muted); font-weight: 600; letter-spacing: 0.3px; }
+
+  .doc-date { font-size: 12px; color: var(--muted); }
+
+  .doc-title {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.15;
+    color: var(--navy);
+    letter-spacing: -0.3px;
+    margin-bottom: 14px;
+  }
+
+  .doc-kw-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+  .doc-kw-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  .doc-kw-tag { padding: 3px 10px; background: var(--card-head); color: rgba(232,228,218,0.85); border-radius: 2px; font-size: 11px; font-weight: 700; letter-spacing: 0.3px; text-transform: uppercase; }
+
+  /* ─── DIVIDER ─── */
+  .divider { height: 2px; background: var(--border); margin: 20px 0; }
+
+  /* ─── MAIN GRID ─── */
+  .layout { display: grid; grid-template-columns: 1fr 280px; gap: 24px; align-items: start; }
+
+  /* ─── SUMMARY CARD ─── */
+  .summary-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+
+  .summary-head { background: var(--card-head); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; }
+
+  .summary-head-title { font-family: var(--font-display); font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(232,228,218,0.7); }
+
+  .summary-head-badge { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--orange2); font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
+
+  .summary-body { padding: 22px 24px; }
+
+  .situation-context { display: flex; gap: 10px; padding: 12px 14px; background: var(--surface2); border-left: 3px solid var(--orange); border-radius: 0 var(--radius) var(--radius) 0; margin-bottom: 20px; }
+
+  .situation-context-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+
+  .situation-context-text { font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+
+  .situation-context-text strong { color: var(--text); font-weight: 600; }
+
+  .summary-text { font-size: 15px; line-height: 1.75; color: var(--text); margin-bottom: 20px; }
+
+  .summary-text p { margin-bottom: 14px; }
+  .summary-text p:last-child { margin-bottom: 0; }
+
+  .summary-text strong { font-weight: 600; color: var(--navy); }
+
+  /* ─── KEY POINTS ─── */
+  .key-points { border-top: 1px solid var(--border); padding-top: 18px; margin-top: 4px; }
+
+  .key-points-title { font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); margin-bottom: 12px; }
+
+  .key-point { display: flex; gap: 10px; margin-bottom: 10px; }
+
+  .key-point-dot { width: 6px; height: 6px; background: var(--orange); border-radius: 50%; flex-shrink: 0; margin-top: 7px; }
+
+  .key-point-text { font-size: 13.5px; line-height: 1.55; color: var(--text); }
+
+  /* ─── AMENDMENT WARNING ─── */
+  .amendment-box { background: var(--amber-dim); border: 1px solid rgba(146,98,10,0.2); border-left: 3px solid var(--amber); border-radius: 0 var(--radius) var(--radius) 0; padding: 14px 16px; margin-top: 18px; }
+
+  html.dark .amendment-box { border-color: rgba(212,160,32,0.2); border-left-color: var(--amber); }
+
+  .amendment-box-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--amber); margin-bottom: 5px; }
+
+  .amendment-box-text { font-size: 13px; color: var(--text); line-height: 1.55; }
+
+  /* ─── SIDEBAR CARDS ─── */
+  .sidebar-stack { display: flex; flex-direction: column; gap: 14px; }
+
+  .side-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+
+  .side-card-head { background: var(--card-head); padding: 11px 16px; }
+
+  .side-card-title { font-family: var(--font-display); font-size: 11px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(232,228,218,0.65); }
+
+  .side-card-body { padding: 14px 16px; }
+
+  /* Doc info rows */
+  .info-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 7px 0; border-bottom: 1px solid var(--border); gap: 10px; }
+
+  .info-row:last-child { border-bottom: none; }
+
+  .info-label { font-size: 11px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
+
+  .info-value { font-size: 12.5px; color: var(--text); font-weight: 500; text-align: right; }
+
+  /* Action buttons */
+  .action-btn { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 10px 14px; background: transparent; border: 1.5px solid var(--border-strong); border-radius: var(--radius); color: var(--text); font-family: var(--font-body); font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.15s; margin-bottom: 8px; }
+
+  .action-btn:last-child { margin-bottom: 0; }
+
+  .action-btn:hover { background: var(--navy); color: var(--surface); border-color: var(--navy); }
+
+  .action-btn.primary { background: var(--orange); border-color: var(--orange); color: var(--white); }
+
+  .action-btn.primary:hover { background: var(--orange2); border-color: var(--orange2); }
+
+  .action-btn-icon { font-size: 14px; }
+
+  /* Related docs */
+  .related-doc { display: flex; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); cursor: pointer; transition: padding-left 0.15s; }
+
+  .related-doc:last-child { border-bottom: none; }
+
+  .related-doc:hover { padding-left: 4px; }
+
+  .related-doc-dot { width: 5px; height: 5px; background: var(--muted); border-radius: 50%; flex-shrink: 0; margin-top: 6px; }
+
+  .related-doc-title { font-size: 12px; color: var(--text); font-weight: 500; line-height: 1.4; margin-bottom: 2px; }
+
+  .related-doc-date { font-size: 11px; color: var(--muted); }
+
+  /* ─── TOAST ─── */
+  .toast { position: fixed; bottom: 22px; right: 22px; padding: 11px 18px; background: var(--card-head); border-left: 4px solid var(--orange); color: rgba(232,228,218,0.9); font-size: 13px; font-weight: 500; box-shadow: 0 6px 24px rgba(0,0,0,0.2); transform: translateY(70px); opacity: 0; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index: 999; pointer-events: none; border-radius: var(--radius); }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">PRATIM<span class="logo-accent">ZAKON</span><div class="logo-dot"></div></div>
+    <nav class="nav">
+      <div class="nav-section-label">Glavni izbornik</div>
+      <div class="nav-item" onclick="window.location='dashboard.html'"><span class="nav-icon">◈</span> Dashboard</div>
+      <div class="nav-item"><span class="nav-icon">◉</span> Moje praćenje</div>
+      <div class="nav-item active"><span class="nav-icon">◇</span> Matchevi</div>
+      <div class="nav-item"><span class="nav-icon">◎</span> Email arhiva</div>
+      <div class="nav-divider"></div>
+      <div class="nav-section-label">Račun</div>
+      <div class="nav-item"><span class="nav-icon">○</span> Postavke</div>
+      <div class="nav-item"><span class="nav-icon">→</span> Odjava</div>
+    </nav>
+    <div class="user-card">
+      <div class="user-name">Jurica Zdenko</div>
+      <div class="user-email">jurica@email.hr</div>
+      <div class="user-badge">✓ Aktivan</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <div class="topbar-left">
+        <a class="btn-back" href="dashboard.html">← Natrag</a>
+        <div class="topbar-crumb">Matchevi <span>/ Sažetak zakona</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-theme" id="theme-toggle" onclick="toggleTheme()" title="Promijeni temu">☀</button>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- DOC HEADER -->
+      <div class="doc-header">
+        <div class="doc-meta">
+          <span class="doc-badge badge-izmjena">Izmjena propisa</span>
+          <span class="doc-nn">NN 18/2026</span>
+          <span class="doc-date">02. travnja 2026.</span>
+        </div>
+
+        <div class="doc-title">Pravilnik o izmjeni Pravilnika o porezu na dohodak od samostalne djelatnosti</div>
+
+        <div class="doc-kw-row">
+          <span class="doc-kw-label">Pronađeno po ključnoj riječi:</span>
+          <span class="doc-kw-tag">porez</span>
+          <span class="doc-kw-tag">PDV</span>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- LAYOUT: SUMMARY + SIDEBAR -->
+      <div class="layout">
+
+        <!-- SUMMARY CARD -->
+        <div class="summary-card">
+          <div class="summary-head">
+            <div class="summary-head-title">Personalizirani sažetak</div>
+            <div class="summary-head-badge">✦ AI sažetak</div>
+          </div>
+          <div class="summary-body">
+
+            <div class="situation-context">
+              <div class="situation-context-icon">◎</div>
+              <div class="situation-context-text">
+                Sažetak je prilagođen vašoj situaciji: <strong>restoran, 5 zaposlenika, Zagreb, obveznik PDV-a, obrt od 2019.</strong>
+              </div>
+            </div>
+
+            <div class="summary-text">
+              <p>Ovaj pravilnik mijenja način utvrđivanja porezne osnovice za obrtnike koji vode poslovne knjige. Konkretno za vas kao ugostitelja — <strong>uvode se novi pragovi za paušalno oporezivanje</strong> koji se povećavaju s 300.000 na 400.000 kuna godišnjeg prihoda, što znači da imate šire mogućnosti za odabir načina oporezivanja.</p>
+              <p>Budući da ste obveznik PDV-a od 2019. i imate 5 zaposlenika, ove izmjene vas <strong>izravno dotiču u dijelu koji se odnosi na obrasce za prijavu dohotka</strong>. Od 1. srpnja 2026. koristit ćete novi obrazac DOH-Z/N umjesto dosadašnjeg DOH-Z.</p>
+              <p>Za vaš obrt nema obveze retroaktivnih ispravaka — izmjena se primjenjuje <strong>isključivo na prihode ostvarene od 1. srpnja 2026. nadalje.</strong></p>
+            </div>
+
+            <div class="key-points">
+              <div class="key-points-title">Što trebate znati</div>
+              <div class="key-point">
+                <div class="key-point-dot"></div>
+                <div class="key-point-text">Novi obrazac DOH-Z/N obvezan od 1. srpnja 2026. — zamijenite stari DOH-Z</div>
+              </div>
+              <div class="key-point">
+                <div class="key-point-dot"></div>
+                <div class="key-point-text">Prag za paušal raste na 400.000 kn — nije relevantno za vas jer ste PDV obveznik, ali bitno za eventualno restrukturiranje</div>
+              </div>
+              <div class="key-point">
+                <div class="key-point-dot"></div>
+                <div class="key-point-text">Nema retroaktivnih izmjena — svi prihodi do 30.6.2026. se prijavljuju po starom obrascu</div>
+              </div>
+              <div class="key-point">
+                <div class="key-point-dot"></div>
+                <div class="key-point-text">Rok za predaju novog obrasca DOH-Z/N je 28. veljače 2027. za prihode iz 2026.</div>
+              </div>
+            </div>
+
+            <div class="amendment-box">
+              <div class="amendment-box-title">⚠ Izmjena postojećeg propisa</div>
+              <div class="amendment-box-text">Ovaj dokument mijenja Pravilnik o porezu na dohodak od samostalne djelatnosti (NN 132/2022). Za cjeloviti tekst originalnog propisa posjetite Zakon.hr.</div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- SIDEBAR STACK -->
+        <div class="sidebar-stack">
+
+          <!-- Doc info -->
+          <div class="side-card">
+            <div class="side-card-head">
+              <div class="side-card-title">Informacije o dokumentu</div>
+            </div>
+            <div class="side-card-body">
+              <div class="info-row">
+                <div class="info-label">NN broj</div>
+                <div class="info-value">18/2026</div>
+              </div>
+              <div class="info-row">
+                <div class="info-label">Datum objave</div>
+                <div class="info-value">02.04.2026.</div>
+              </div>
+              <div class="info-row">
+                <div class="info-label">Tip dokumenta</div>
+                <div class="info-value">Pravilnik — izmjena</div>
+              </div>
+              <div class="info-row">
+                <div class="info-label">Donijelo</div>
+                <div class="info-value">Ministarstvo financija</div>
+              </div>
+              <div class="info-row">
+                <div class="info-label">Na snazi od</div>
+                <div class="info-value">01.07.2026.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="side-card">
+            <div class="side-card-head">
+              <div class="side-card-title">Akcije</div>
+            </div>
+            <div class="side-card-body">
+              <button class="action-btn primary" onclick="showToast('Email poslan na jurica@email.hr')">
+                <span>Pošalji na email</span>
+                <span class="action-btn-icon">→</span>
+              </button>
+              <button class="action-btn" onclick="openNN()">
+                <span>Puni tekst na NN.hr</span>
+                <span class="action-btn-icon">↗</span>
+              </button>
+              <button class="action-btn" onclick="showToast('Dokument dodan u arhivu')">
+                <span>Spremi u arhivu</span>
+                <span class="action-btn-icon">◎</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Related docs -->
+          <div class="side-card">
+            <div class="side-card-head">
+              <div class="side-card-title">Povezani propisi</div>
+            </div>
+            <div class="side-card-body">
+              <div class="related-doc">
+                <div class="related-doc-dot"></div>
+                <div>
+                  <div class="related-doc-title">Zakon o porezu na dohodak — pročišćeni tekst</div>
+                  <div class="related-doc-date">NN 115/2016 · Porez</div>
+                </div>
+              </div>
+              <div class="related-doc">
+                <div class="related-doc-dot"></div>
+                <div>
+                  <div class="related-doc-title">Pravilnik o porezu na dohodak — original</div>
+                  <div class="related-doc-date">NN 132/2022 · Porez</div>
+                </div>
+              </div>
+              <div class="related-doc">
+                <div class="related-doc-dot"></div>
+                <div>
+                  <div class="related-doc-title">Izmjena Zakona o PDV-u NN 21/2026</div>
+                  <div class="related-doc-date">NN 21/2026 · PDV</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  function toggleTheme() {
+    const isDark = document.documentElement.classList.toggle('dark');
+    document.getElementById('theme-toggle').textContent = isDark ? '☾' : '☀';
+    localStorage.setItem('pz-theme', isDark ? 'dark' : 'light');
+  }
+
+  if (localStorage.getItem('pz-theme') === 'dark') {
+    document.documentElement.classList.add('dark');
+    document.getElementById('theme-toggle').textContent = '☾';
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function openNN() {
+    window.open('https://narodne-novine.nn.hr', '_blank');
+  }
+</script>
+</body>
+</html>

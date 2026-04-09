@@ -5,6 +5,7 @@ from pydantic import BaseModel, EmailStr
 
 # --- Auth ---
 
+
 class UserRegister(BaseModel):
     email: EmailStr
     password: str
@@ -32,6 +33,7 @@ class UserOut(BaseModel):
     plan: str
     include_mu: bool
     plan_type: str
+    situation: Optional[str] = None
     created_at: datetime
 
     model_config = {"from_attributes": True}
@@ -39,11 +41,12 @@ class UserOut(BaseModel):
 
 # --- Keywords ---
 
+
 class KeywordCreate(BaseModel):
     keyword: str
-    doc_type_filter: Optional[str] = None    # "ZAKON,UREDBA" ili None
+    doc_type_filter: Optional[str] = None  # "ZAKON,UREDBA" ili None
     institution_filter: Optional[str] = None
-    part_filter: Optional[str] = None        # "SL" | "MU" | None
+    part_filter: Optional[str] = None  # "SL" | "MU" | None
 
 
 class KeywordOut(BaseModel):
@@ -59,9 +62,11 @@ class KeywordOut(BaseModel):
 class UserSettings(BaseModel):
     include_mu: Optional[bool] = None
     email_notifications_enabled: Optional[bool] = None
+    situation: Optional[str] = None
 
 
 # --- Admin ---
+
 
 class AdminStats(BaseModel):
     total_users: int

@@ -10,6 +10,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import List, Dict
 from sqlalchemy.orm import Session
+from app.ai.matcher import check_document_for_user, generate_summary
 
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
@@ -93,7 +94,9 @@ def _build_email(user, matches: List[Dict], show_pdf: bool = False) -> tuple[str
     }
     plan_name = plan_labels.get(getattr(user, "plan_type", "free"), "Besplatni plan")
     if user.subscription_status == "active" and user.subscription_end:
-        status_text = f"{plan_name} · aktivna do {user.subscription_end.strftime('%d.%m.%Y.')}"
+        status_text = (
+            f"{plan_name} · aktivna do {user.subscription_end.strftime('%d.%m.%Y.')}"
+        )
     else:
         status_text = plan_name
 
@@ -135,24 +138,25 @@ def _build_email(user, matches: List[Dict], show_pdf: bool = False) -> tuple[str
         badges_html = ""
         if m.get("doc_type"):
             badges_html += (
-                f'<span style="font-family:\'Courier New\',monospace;display:inline-block;'
-                f'border:1px solid #111111;padding:1px 8px;font-size:10px;letter-spacing:.5px;'
+                f"<span style=\"font-family:'Courier New',monospace;display:inline-block;"
+                f"border:1px solid #111111;padding:1px 8px;font-size:10px;letter-spacing:.5px;"
                 f'color:#111111;margin-right:6px;">{m["doc_type"]}</span>'
             )
         meta_parts = []
         if m.get("institution"):
             meta_parts.append(m["institution"])
         meta_html = (
-            f'<p style="font-family:\'Courier New\',monospace;margin:4px 0 8px;'
+            f"<p style=\"font-family:'Courier New',monospace;margin:4px 0 8px;"
             f'font-size:11px;color:#6b6b6b;">{" · ".join(meta_parts)}</p>'
-            if meta_parts else ""
+            if meta_parts
+            else ""
         )
 
         pdf_html = ""
         if show_pdf and m.get("document_pdf_url"):
             pdf_html = (
                 f'<a href="{m["document_pdf_url"]}" style="display:inline-block;margin-left:12px;'
-                f'border:1px solid #111111;padding:3px 10px;font-size:11px;color:#111111;'
+                f"border:1px solid #111111;padding:3px 10px;font-size:11px;color:#111111;"
                 f'text-decoration:none;">↓ PDF</a>'
             )
 
@@ -166,13 +170,20 @@ def _build_email(user, matches: List[Dict], show_pdf: bool = False) -> tuple[str
             <p style="margin:6px 0 10px;font-size:14px;font-weight:600;color:#111111;font-family:Georgia,serif;line-height:1.4;">
                 {m['document_title']}
             </p>
+            {f'''<p style="margin:0 0 10px;font-size:13px;color:#444;line-height:1.6;font-family:system-ui,sans-serif;">
+            {m.get("summary", "")}
+            </p>''' if m.get("summary") else ""}
             <a href="{m['document_url']}" style="font-family:'Courier New',monospace;color:#111111;font-size:12px;text-decoration:none;border-bottom:1px solid #111111;">
                 Otvori dokument →
             </a>{pdf_html}
         </div>"""
 
     n = len(matches)
-    doc_word = "novi dokument" if n == 1 else ("nova dokumenta" if n < 5 else "novih dokumenata")
+    doc_word = (
+        "novi dokument"
+        if n == 1
+        else ("nova dokumenta" if n < 5 else "novih dokumenata")
+    )
 
     html = f"""<!DOCTYPE html>
 <html lang="hr">
@@ -206,12 +217,13 @@ def _build_email(user, matches: List[Dict], show_pdf: bool = False) -> tuple[str
     return html, plain
 
 
-def send_keyword_notifications(new_document_ids: List[int], db: Session) -> Dict[str, int]:
+def send_keyword_notifications(
+    new_document_ids: List[int], db: Session
+) -> Dict[str, int]:
     """
-    Pronalazi matcheve između novih dokumenata i korisničkih ključnih riječi.
-    Primjenjuje filtere (tip, institucija, dio) po ključnoj riječi.
+    Pronalazi matcheve između novih dokumenata i korisnika.
+    Koristi AI matcher — tri razine provjere.
     Šalje objedinjeni email po korisniku.
-    Vraća {"sent": N, "failed": N}.
     """
     from app.models import User, Document, Log
 
@@ -219,6 +231,7 @@ def send_keyword_notifications(new_document_ids: List[int], db: Session) -> Dict
         return {"sent": 0, "failed": 0}
 
     documents = db.query(Document).filter(Document.id.in_(new_document_ids)).all()
+
     if not documents:
         return {"sent": 0, "failed": 0}
 
@@ -234,25 +247,36 @@ def send_keyword_notifications(new_document_ids: List[int], db: Session) -> Dict
     sent = failed = 0
 
     for user in users:
-        if not user.keywords:
+        # Preskoči korisnike bez keywords i bez situacije
+        if not user.keywords and not getattr(user, "situation", None):
             continue
 
         plan = getattr(user, "plan_type", "free")
         show_pdf = plan in ("pro", "expert")
+        situation = getattr(user, "situation", "") or ""
 
         matches = []
-        for kw_obj in user.keywords:
-            for doc in documents:
-                if not _keyword_matches_document(kw_obj, doc):
-                    continue
-                matches.append({
-                    "keyword": kw_obj.keyword,
+
+        for doc in documents:
+            is_rel, reason = check_document_for_user(doc, user)
+
+            if not is_rel:
+                continue
+
+            # Generiraj sažetak samo za relevantne dokumente
+            summary = generate_summary(doc, situation)
+
+            matches.append(
+                {
+                    "keyword": reason,
                     "document_title": doc.title,
                     "document_url": doc.url,
                     "document_pdf_url": doc.pdf_url,
                     "doc_type": doc.type or None,
                     "institution": doc.institution or None,
-                })
+                    "summary": summary,
+                }
+            )
 
         if not matches:
             continue
@@ -262,7 +286,13 @@ def send_keyword_notifications(new_document_ids: List[int], db: Session) -> Dict
         success = _send_smtp(user.email, subject, html_body, text_body)
 
         event = "email_sent" if success else "email_failed"
-        db.add(Log(event_type=event, user_id=user.id, detail=f"{len(matches)} matcheva"))
+        db.add(
+            Log(
+                event_type=event,
+                user_id=user.id,
+                detail=f"{len(matches)} matcheva (AI)",
+            )
+        )
 
         if success:
             sent += 1

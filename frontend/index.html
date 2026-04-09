@@ -1,810 +1,713 @@
 <!DOCTYPE html>
 <html lang="hr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>PratimZakon – Pratite Narodne novine bez napora</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Mono:wght@400;500&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --ink: #1A1816;
-      --paper: #F5F0E8;
-      --white: #FFFDF9;
-      --bone: #EDE8DF;
-      --mid: #7A6E65;
-      --rule: rgba(26,24,22,0.14);
-      --red: #B84E16;
-  --amber: #B84E16;
-  --amber-dark: #A84010;
-  --amber-pale: #DC8C50;
-  --navy: #163458;
-  --navy-pale: #3C5A80;
-  --ivory: #F5F0E8;
-  --stone: #C8C0B4;
-  --stone-light: #E4DDD3;
-      --serif: 'Fraunces', Georgia, serif;
-      --mono: 'DM Mono', monospace;
-      --sans: 'Plus Jakarta Sans', sans-serif;
-    }
-
-    html {
-      scroll-behavior: smooth;
-      font-size: clamp(16px, 1.2vw + 0.5rem, 20px);
-    }
-
-    body {
-      font-family: var(--sans);
-      font-size: 1rem;
-      color: var(--ink);
-      background: var(--white);
-      line-height: 1.6;
-      font-weight: 400;
-      -webkit-font-smoothing: antialiased;
-    }
-
-    a { color: inherit; text-decoration: none; }
-
-    /* ─── INNER CONTAINER ─── */
-    .inner {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding-left: 40px;
-      padding-right: 40px;
-    }
-
-    /* ─── FADE IN ─── */
-    .reveal {
-      opacity: 0;
-      transform: translateY(24px);
-      transition: opacity .7s ease, transform .7s ease;
-    }
-    .reveal.visible { opacity: 1; transform: none; }
-
-    .reveal-x {
-      opacity: 0;
-      transform: translateX(-20px);
-      transition: opacity .6s cubic-bezier(0.19, 1, 0.22, 1), transform .6s cubic-bezier(0.19, 1, 0.22, 1);
-    }
-    .reveal-x.visible { opacity: 1; transform: none; }
-
-    /* ─── NAV ─── */
-    nav {
-      border-bottom: 1px solid var(--rule);
-      position: sticky;
-      top: 0;
-      background: rgba(255,255,255,0.95);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      z-index: 50;
-    }
-
-    nav .inner {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding-top: 22px;
-      padding-bottom: 22px;
-    }
-
-    .logo {
-      font-family: var(--serif);
-      font-size: 20px;
-      font-weight: 700;
-      letter-spacing: -.3px;
-    }
-
-    .nav-links {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    
-    .btn {
-      display: inline-block;
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      font-weight: 500;
-      letter-spacing: .4px;
-      padding: 10px 22px;
-      cursor: pointer;
-      border: 1px solid var(--ink);
-      transition: background .2s, color .2s, border-color .2s;
-    }
-
-    .btn-ghost { background: transparent; color: var(--ink); }
-    .btn-ghost:hover { background: var(--bone); }
-
-    .btn-solid { background: var(--amber); color: var(--white); border-color: var(--amber); }
-    .btn-solid:hover { background: var(--amber-dark); border-color: var(--amber-dark); }
-
-
-    .font-controls {display: flex;gap: 6px;margin-left: 10px;}
-    .btn-font {padding: 6px 14px;font-size: 0.75rem;line-height: 1;}
-  
-    /* ─── HERO ─── */
-    .hero {
-      border-bottom: 1px solid var(--rule);
-    }
-
-    .hero .inner {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 0;
-      align-items: stretch;
-      padding-top: 80px;
-      padding-bottom: 0;
-      min-height: 480px;
-    }
-
-    .hero-left {
-      padding-bottom: 72px;
-      padding-right: 48px;
-    }
-
-    .hero-eyebrow {
-      font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 400;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      color: var(--mid);
-      margin-bottom: 24px;
-    }
-
-    .hero h1 {
-      font-family: var(--serif);
-      font-weight: 900;
-      line-height: 1.0;
-      letter-spacing: -2px;
-      margin-bottom: 32px;
-    }
-
-    .h1-display {
-      display: block;
-      font-size: clamp(5rem, 12vw, 14rem);
-      line-height: 0.95;
-    }
-
-    .hero h1 em {
-      display: block;
-      font-size: clamp(1.2rem, 3vw, 2.5rem);
-      font-style: italic;
-      font-weight: 300;
-      color: var(--mid);
-      letter-spacing: -0.5px;
-      margin-top: 12px;
-    }
-
-    .hero-desc {
-      font-size: 1rem;
-      color: var(--mid);
-      line-height: 1.7;
-      max-width: 380px;
-      margin-bottom: 36px;
-    }
-
-    .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-
-    .btn-lg { padding: 14px 32px; font-size: 13px; }
-
-    .btn-magnetic {
-      display: inline-block;
-      transition: transform .3s cubic-bezier(0.19, 1, 0.22, 1);
-    }
-
-    .hero-right {
-      border-left: 1px solid var(--rule);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0 24px;
-      min-width: 64px;
-    }
-
-    .hero-vertical-label {
-      font-family: var(--mono);
-      font-size: 10px;
-      font-weight: 400;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      color: var(--mid);
-      writing-mode: vertical-rl;
-      transform: rotate(180deg);
-      opacity: 0.4;
-      white-space: nowrap;
-    }
-
-    /* ─── TICKER (ostaje full-width) ─── */
-    .ticker-wrap {
-      overflow: hidden;
-      background: var(--ink);
-      color: var(--white);
-      padding: 12px 0;
-      border-bottom: 1px solid var(--rule);
-    }
-
-    .ticker {
-      display: flex;
-      white-space: nowrap;
-      animation: ticker 28s linear infinite;
-    }
-
-    .ticker span {
-      font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 400;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      padding: 0 36px;
-      opacity: .65;
-    }
-
-    .ticker span.sep { opacity: .25; }
-
-    @keyframes ticker {
-      from { transform: translateX(0); }
-      to { transform: translateX(-50%); }
-    }
-
-    /* ─── HOW ─── */
-    .how {
-      background: var(--paper);
-      border-bottom: 1px solid var(--rule);
-    }
-
-    .how .inner {
-      padding-top: 96px;
-      padding-bottom: 96px;
-    }
-
-    .section-label {
-      font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 400;
-      letter-spacing: 2.5px;
-      text-transform: uppercase;
-      color: var(--mid);
-      margin-bottom: 56px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .section-label::before {
-      content: '';
-      display: inline-block;
-      width: 24px;
-      height: 1px;
-      background: var(--mid);
-    }
-
-    .steps-editorial {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .step-editorial {
-      display: grid;
-      grid-template-columns: 80px 1fr;
-      border-bottom: 1px solid var(--rule);
-      padding: 52px 0;
-    }
-
-    .step-editorial:last-child { border-bottom: none; }
-
-    .step-num {
-      font-family: var(--mono);
-      font-size: 12px;
-      font-weight: 400;
-      color: var(--mid);
-      letter-spacing: 1px;
-      padding-top: 6px;
-      opacity: 0.4;
-    }
-
-    .step-content {
-      padding-left: 48px;
-      border-left: 1px solid var(--rule);
-    }
-
-    .step-content h3 {
-      font-family: var(--serif);
-      font-size: clamp(22px, 2.5vw, 30px);
-      font-weight: 700;
-      margin-bottom: 12px;
-      letter-spacing: -.3px;
-      line-height: 1.2;
-    }
-
-    .step-content p { font-size: 0.95rem; color: var(--mid); line-height: 1.75; }
-
-    .kw-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
-
-    .kw-pill {
-      font-size: 12px;
-      font-weight: 400;
-      padding: 4px 12px;
-      border: 1px solid rgba(0,0,0,0.15);
-      letter-spacing: .3px;
-    }
-
-    /* ─── PRICING ─── */
-    .pricing { border-bottom: 1px solid var(--rule); }
-
-    .pricing .inner {
-      padding-top: 96px;
-      padding-bottom: 96px;
-    }
-
-    .pricing-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      margin-bottom: 56px;
-    }
-
-    .pricing-title {
-      font-family: var(--serif);
-      font-size: clamp(32px, 4vw, 52px);
-      font-weight: 900;
-      letter-spacing: -1px;
-      line-height: 1.1;
-    }
-
-    .pricing-note {
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--mid);
-      max-width: 200px;
-      text-align: right;
-      line-height: 1.7;
-    }
-
-    .conversion-block {
-      margin-top: 28px;
-      border: 1px solid var(--rule);
-      background: var(--paper);
-      padding: 24px;
-    }
-
-    .conversion-block h3 {
-      font-family: var(--serif);
-      font-size: clamp(22px, 2.4vw, 30px);
-      line-height: 1.2;
-      letter-spacing: -0.4px;
-      margin-bottom: 14px;
-    }
-
-    .conversion-list {
-      list-style: none;
-      display: grid;
-      gap: 8px;
-      color: var(--mid);
-      font-size: 0.95rem;
-    }
-
-    .usp-oneliner {
-      margin-top: 20px;
-      text-align: center;
-      font-family: var(--mono);
-      font-size: 12px;
-      color: var(--mid);
-      letter-spacing: 0.4px;
-    }
-
-    .plans {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      border: 1px solid var(--rule);
-    }
-
-    @media (max-width: 1280px) {
-    }
-
-    @media (max-width: 1100px) {
-      .plans { grid-template-columns: repeat(2, 1fr); }
-      .plan { border-bottom: 1px solid var(--rule); }
-      .plan:nth-child(2) { border-right: none; }
-      .plan:nth-child(3) { grid-column: 1 / -1; border-right: none; border-bottom: none; }
-      .plan.featured { border-bottom: 1px solid rgba(255,255,255,.15); }
-    }
-
-    @media (max-width: 900px) {
-    }
-
-    .plan {
-      padding: 36px 32px;
-      border-right: 1px solid var(--rule);
-      display: flex;
-      flex-direction: column;
-      position: relative;
-    }
-
-    .plan-badge {
-      position: absolute;
-      top: -13px;
-      right: 28px;
-      background: var(--ink);
-      color: var(--white);
-      font-family: var(--mono);
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      padding: 4px 12px;
-      transform: rotate(3deg);
-    }
-
-    .plan:last-child { border-right: none; }
-    .plan.featured { background: var(--navy); color: var(--white); }
-
-    .plan-name {
-      font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 400;
-      letter-spacing: 2.5px;
-      text-transform: uppercase;
-      opacity: .5;
-      margin-bottom: 20px;
-    }
-
-    .plan-price {
-      font-family: var(--mono);
-      font-size: 48px;
-      font-weight: 500;
-      line-height: 1;
-      letter-spacing: -2px;
-      margin-bottom: 4px;
-    }
-
-    .plan-per { font-family: var(--mono); font-size: 12px; opacity: .5; margin-bottom: 20px; }
-
-    .plan-desc { font-size: 13px; opacity: .55; margin-bottom: 28px; line-height: 1.6; }
-
-    .plan-features { list-style: none; margin-bottom: 32px; flex: 1; }
-
-    .plan-features li {
-      font-size: 0.85rem;
-      padding: 9px 0;
-      border-bottom: 1px solid;
-      border-color: var(--rule);
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .plan.featured .plan-features li { border-color: rgba(255,255,255,.12); }
-
-    .plan-features li::before {
-      content: '→';
-      font-family: var(--mono);
-      font-size: 11px;
-      flex-shrink: 0;
-      opacity: .35;
-    }
-
-    .plan-features li.missing {
-      opacity: 0.3;
-      text-decoration: line-through;
-    }
-
-    .plan-features li.missing::before {
-      content: '–';
-      text-decoration: none;
-    }
-
-    .plan .btn { width: 100%; text-align: center; display: block; }
-
-    .plan.featured .btn-ghost { border-color: var(--white); color: var(--white); }
-    .plan.featured .btn-ghost:hover { background: var(--white); color: var(--ink); }
-
-    /* ─── FOOTER ─── */
-    footer { background: var(--navy); color: var(--white); }
-
-    .footer-stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      border-bottom: 1px solid rgba(255,255,255,0.08);
-    }
-
-    .footer-stat-col {
-      padding: 52px 0;
-      border-right: 1px solid rgba(255,255,255,0.08);
-      padding-right: 40px;
-    }
-
-    .footer-stat-col:last-child { border-right: none; padding-left: 40px; padding-right: 0; }
-    .footer-stat-col:nth-child(2) { padding-left: 40px; }
-
-    .footer-stat-num {
-      font-family: var(--serif);
-      font-size: clamp(36px, 5vw, 56px);
-      font-weight: 700;
-      line-height: 1;
-      margin-bottom: 10px;
-    }
-
-    .footer-stat-label {
-      font-family: var(--mono);
-      font-size: 11px;
-      color: rgba(255,255,255,0.4);
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-
-    .footer-bottom {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-      padding-top: 28px;
-      padding-bottom: 28px;
-    }
-
-    .footer-logo { font-family: var(--serif); font-size: 18px; font-weight: 700; }
-
-    .footer-meta { font-family: var(--mono); font-size: 11px; color: rgba(255,255,255,.4); letter-spacing: .3px; }
-    .footer-meta a { color: rgba(255,255,255,.4); transition: color .15s; }
-    .footer-meta a:hover { color: rgba(255,255,255,.8); }
-
-    /* ─── COOKIE BANNER ─── */
-    .cookie-banner {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: var(--ink);
-      color: var(--white);
-      padding: 18px 40px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 24px;
-      z-index: 200;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      transform: translateY(100%);
-      transition: transform .4s cubic-bezier(0.19, 1, 0.22, 1);
-    }
-
-    .cookie-banner.visible { transform: translateY(0); }
-
-    .cookie-text {
-      font-family: var(--mono);
-      font-size: 12px;
-      color: rgba(255,255,255,0.6);
-      line-height: 1.6;
-    }
-
-    .cookie-btn {
-      font-family: var(--mono);
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      padding: 8px 20px;
-      border: 1px solid rgba(255,255,255,0.3);
-      background: transparent;
-      color: var(--white);
-      cursor: pointer;
-      white-space: nowrap;
-      transition: border-color .2s, background .2s;
-    }
-
-    .cookie-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.6); }
-
-    @media (max-width: 520px) {
-      .cookie-banner { flex-direction: column; align-items: flex-start; padding: 20px; }
-    }
-
-    /* ─── AUTH MODAL ─── */
-    .overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(13,13,13,.6);
-      z-index: 100;
-      align-items: center;
-      justify-content: center;
-      backdrop-filter: blur(4px);
-      padding: 20px;
-    }
-
-    .overlay.active { display: flex; }
-
-    .modal {
-      background: var(--white);
-      padding: 48px;
-      width: 100%;
-      max-width: 400px;
-      position: relative;
-      border: 1px solid rgba(0,0,0,0.15);
-      animation: modalIn .25s ease;
-    }
-
-    @keyframes modalIn {
-      from { opacity: 0; transform: translateY(16px); }
-      to { opacity: 1; transform: none; }
-    }
-
-    .modal h2 {
-      font-family: var(--serif);
-      font-size: 26px;
-      font-weight: 700;
-      margin-bottom: 28px;
-      letter-spacing: -.3px;
-    }
-
-    .modal-close {
-      position: absolute;
-      top: 18px;
-      right: 20px;
-      background: none;
-      border: none;
-      font-size: 22px;
-      cursor: pointer;
-      color: var(--mid);
-      line-height: 1;
-    }
-
-    .modal-close:hover { color: var(--ink); }
-
-    .form-group { margin-bottom: 16px; }
-
-    .form-group label {
-      display: block;
-      font-family: var(--mono);
-      font-size: 10px;
-      font-weight: 400;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      margin-bottom: 7px;
-      color: var(--mid);
-    }
-
-    .form-group input {
-      width: 100%;
-      padding: 11px 14px;
-      border: 1px solid var(--rule);
-      font-family: var(--sans);
-      font-size: 0.9rem;
-      outline: none;
-      transition: border-color .15s;
-      border-radius: 0;
-      background: var(--white);
-    }
-
-    .form-group input:focus { border-color: var(--ink); }
-
-    .form-submit { width: 100%; padding: 13px; font-size: 14px; margin-top: 4px; border-radius: 0; }
-
-    .form-switch { text-align: center; margin-top: 18px; font-size: 13px; color: var(--mid); }
-    .form-switch a { text-decoration: underline; color: var(--ink); }
-
-    .form-error {
-      font-size: 13px; color: #b91c1c; margin-bottom: 14px;
-      padding: 10px 14px; background: #fef2f2; border-left: 2px solid #b91c1c; display: none;
-    }
-
-    .form-success {
-      font-size: 13px; color: #166534; margin-bottom: 14px;
-      padding: 10px 14px; background: #f0fdf4; border-left: 2px solid #166534; display: none;
-    }
-
-    /* ─── RESPONSIVE ─── */
-    @media (max-width: 760px) {
-      .hero .inner { grid-template-columns: 1fr; gap: 0; padding-top: 56px; padding-bottom: 0; min-height: auto; }
-      .hero-left { padding-right: 0; padding-bottom: 48px; }
-      .hero-right { display: none; }
-      .step-editorial { grid-template-columns: 48px 1fr; padding: 36px 0; }
-      .step-content { padding-left: 24px; }
-
-      .plans { grid-template-columns: 1fr; }
-      .plan { border-right: none; border-bottom: 1px solid var(--rule); }
-      .plan:last-child { border-bottom: none; }
-      .plan.featured { border-bottom: 1px solid rgba(255,255,255,.15); }
-      .pricing-header { flex-direction: column; align-items: flex-start; gap: 12px; }
-      .pricing-note { text-align: left; }
-      .footer-stats { grid-template-columns: 1fr; }
-      .footer-stat-col { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 32px 0 !important; }
-      .footer-stat-col:last-child { border-bottom: none; }
-      .footer-bottom { flex-direction: column; align-items: flex-start; gap: 10px; }
-    }
-
-    @media (max-width: 520px) {
-      .inner { padding-left: 20px; padding-right: 20px; }
-      .btn-lg { padding: 12px 22px; font-size: 13px; }
-      .hero h1 { font-size: clamp(34px, 9vw, 42px); }
-
-      nav .inner { flex-direction: column; align-items: flex-start; }
-      .nav-links { margin-top: 8px; gap: 8px; }
-      .font-controls { margin-top: 8px; margin-left: 0; display: flex; gap: 6px; }
-    }
-        
-  
-    /* ─── TRIAL / BLUR PLANS ─── */
-    .trial-badge {
-      display: inline-block;
-      font-family: var(--mono);
-      font-size: 10px;
-      font-weight: 700;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      background: var(--ink);
-      color: var(--white);
-      padding: 4px 12px;
-      margin-bottom: 16px;
-    }
-    .plan-trial {
-      border: 2px solid var(--ink) !important;
-      position: relative;
-    }
-    .plan-locked-wrap {
-      position: relative;
-      display: contents;
-    }
-    
-    .trial-strip {
-      background: var(--ink);
-      color: var(--white);
-      text-align: center;
-      padding: 16px 24px;
-      margin-bottom: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 32px;
-      flex-wrap: wrap;
-    }
-    .trial-strip-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-family: var(--mono);
-      font-size: 12px;
-      letter-spacing: 0.8px;
-      text-transform: uppercase;
-    }
-    .trial-strip-item .ti {
-      font-size: 16px;
-    }
-    .trial-strip-divider {
-      width: 1px;
-      height: 20px;
-      background: rgba(255,255,255,0.25);
-    }
-    @media (max-width: 760px) {
-      .trial-strip { gap: 16px; padding: 14px 20px; }
-      .trial-strip-divider { display: none; }
-    }
-
-    .beta-badge { font-family:var(--mono); font-size:10px; font-weight:600; letter-spacing:.08em; color:var(--white); background:var(--navy); padding:2px 6px; border-radius:3px; margin-left:8px; vertical-align:middle; position:relative; top:-2px; }
-
-    .plan-blurred > * { filter: blur(4px); user-select: none; pointer-events: none; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PratimZakon — Pratite zakone koji su važni za vas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:       #1a2744;
+    --navy2:      #243258;
+    --navy3:      #2d3e6a;
+    --orange:     #b84d1b;
+    --orange2:    #d4581f;
+    --orange-pale:#e8865a;
+    --cream:      #e8e4da;
+    --cream2:     #f2efe8;
+    --white:      #ffffff;
+    --text:       #1a2744;
+    --muted:      #6b7a99;
+    --rule:       rgba(26,39,68,0.12);
+    --rule-strong:rgba(26,39,68,0.20);
+    --green:      #2e7d52;
+    --green-dim:  rgba(46,125,82,0.12);
+    --amber:      #92620a;
+    --font-display:'Barlow Condensed', sans-serif;
+    --font-body:   'Barlow', sans-serif;
+    --radius: 4px;
+    /* dark mode surfaces */
+    --bg:      var(--cream2);
+    --surface: var(--white);
+    --surface2:var(--cream);
+    --card-head:var(--navy);
+  }
+
+  html.dark {
+    --navy:       #c8d4f0;
+    --navy2:      #a8b8e0;
+    --navy3:      #8aa0cc;
+    --orange:     #e06830;
+    --orange2:    #e87840;
+    --cream:      #111827;
+    --cream2:     #0e1520;
+    --white:      #1a2436;
+    --text:       #d0daf0;
+    --muted:      #6b7a99;
+    --rule:       rgba(200,212,240,0.09);
+    --rule-strong:rgba(200,212,240,0.16);
+    --green:      #4aaf78;
+    --green-dim:  rgba(74,175,120,0.12);
+    --amber:      #d4a020;
+    --bg:         #0e1520;
+    --surface:    #1a2436;
+    --surface2:   #111827;
+    --card-head:  #0a0f1a;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.25s, color 0.25s;
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  .inner { max-width: 1100px; margin: 0 auto; padding: 0 40px; }
+
+  /* ─── ANIMATIONS ─── */
+  .reveal { opacity: 0; transform: translateY(20px); transition: opacity .65s ease, transform .65s ease; }
+  .reveal.visible { opacity: 1; transform: none; }
+
+  /* ─── NAV ─── */
+  nav {
+    border-bottom: 1px solid var(--rule);
+    position: sticky; top: 0; z-index: 50;
+    background: var(--surface);
+    transition: background 0.25s;
+  }
+
+  nav .inner {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-top: 18px; padding-bottom: 18px;
+  }
+
+  .nav-logo {
+    font-family: var(--font-display);
+    font-weight: 800; font-size: 20px;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: var(--navy);
+    display: flex; align-items: center; gap: 0;
+  }
+
+  .nav-logo-accent { color: var(--orange); }
+
+  .nav-logo-dot {
+    width: 6px; height: 6px;
+    background: var(--orange);
+    border-radius: 50%; margin-left: 6px;
+    animation: blink 2.5s ease-in-out infinite;
+  }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+
+  .beta-badge {
+    font-family: var(--font-body);
+    font-size: 9px; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase;
+    color: var(--white); background: var(--navy);
+    padding: 2px 6px; border-radius: 2px;
+    margin-left: 8px; vertical-align: middle;
+    position: relative; top: -2px;
+  }
+
+  html.dark .beta-badge { background: var(--navy3); color: var(--cream); }
+
+  .nav-right { display: flex; align-items: center; gap: 8px; }
+
+  .btn {
+    display: inline-block;
+    font-family: var(--font-display);
+    font-size: 13px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 9px 20px; cursor: pointer;
+    border: 1.5px solid var(--navy);
+    border-radius: var(--radius);
+    transition: background .15s, color .15s, border-color .15s;
+  }
+
+  .btn-ghost { background: transparent; color: var(--navy); }
+  .btn-ghost:hover { background: var(--navy); color: var(--surface); }
+
+  .btn-solid { background: var(--orange); color: var(--white); border-color: var(--orange); }
+  .btn-solid:hover { background: var(--orange2); border-color: var(--orange2); }
+
+  .btn-theme {
+    width: 36px; height: 36px; padding: 0;
+    background: var(--surface2); border: 1.5px solid var(--rule-strong);
+    border-radius: var(--radius); color: var(--text);
+    font-size: 15px; cursor: pointer; transition: all .15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  .btn-theme:hover { background: var(--navy); color: var(--surface); border-color: var(--navy); }
+
+  /* ─── HERO ─── */
+  .hero {
+    border-bottom: 1px solid var(--rule);
+    background: var(--surface);
+    overflow: hidden;
+  }
+
+  .hero .inner {
+    display: grid;
+    grid-template-columns: 1fr 440px;
+    gap: 0;
+    padding-top: 72px; padding-bottom: 0;
+    min-height: 520px;
+    align-items: stretch;
+  }
+
+  .hero-left { padding-bottom: 64px; padding-right: 56px; display: flex; flex-direction: column; justify-content: center; }
+
+  .hero-eyebrow {
+    font-family: var(--font-body);
+    font-size: 11px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--orange); margin-bottom: 20px;
+    display: flex; align-items: center; gap: 10px;
+  }
+
+  .hero-eyebrow::before {
+    content: '';
+    display: inline-block;
+    width: 20px; height: 2px;
+    background: var(--orange);
+  }
+
+  .hero-h1 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: clamp(46px, 6vw, 78px);
+    line-height: 0.97;
+    letter-spacing: -0.5px;
+    text-transform: uppercase;
+    color: var(--navy);
+    margin-bottom: 24px;
+  }
+
+  .hero-h1 .line-orange { color: var(--orange); }
+
+  .hero-desc {
+    font-size: 16px; color: var(--muted);
+    line-height: 1.7; max-width: 400px;
+    margin-bottom: 32px;
+  }
+
+  .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+  .btn-lg { padding: 13px 28px; font-size: 14px; }
+
+  /* Hero right — demo preview */
+  .hero-right {
+    border-left: 1px solid var(--rule);
+    background: var(--surface2);
+    display: flex; flex-direction: column;
+    padding: 32px 28px;
+    gap: 10px;
+    overflow: hidden;
+  }
+
+  .hero-right-label {
+    font-family: var(--font-body);
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 8px;
+  }
+
+  .demo-email-card {
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    border-left: 3px solid var(--orange);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    animation: slideIn .6s ease both;
+  }
+
+  .demo-email-card:nth-child(3) { animation-delay: .15s; }
+  .demo-email-card:nth-child(4) { animation-delay: .3s; }
+
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateX(20px); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .demo-card-badge {
+    display: inline-block;
+    padding: 2px 8px; border-radius: 2px;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    margin-bottom: 7px;
+  }
+
+  .badge-orange { background: rgba(184,77,27,0.1); color: var(--orange); }
+  .badge-navy   { background: rgba(26,39,68,0.08); color: var(--muted); }
+
+  html.dark .badge-navy { background: rgba(200,212,240,0.08); }
+
+  .demo-card-title { font-size: 13px; font-weight: 600; color: var(--navy); margin-bottom: 6px; line-height: 1.35; }
+
+  .demo-card-text { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+  .demo-card-text strong { color: var(--text); font-weight: 600; }
+
+  .demo-kw-tag {
+    display: inline-block; padding: 2px 8px;
+    background: var(--card-head); color: rgba(232,228,218,0.8);
+    border-radius: 2px; font-size: 10px; font-weight: 700;
+    letter-spacing: 0.3px; text-transform: uppercase;
+    margin-top: 7px;
+  }
+
+  /* ─── TICKER ─── */
+  .ticker-wrap {
+    overflow: hidden; background: var(--navy);
+    padding: 11px 0; border-bottom: 1px solid var(--rule);
+  }
+
+  .ticker { display: flex; white-space: nowrap; animation: ticker 30s linear infinite; }
+
+  .ticker span {
+    font-family: var(--font-body); font-size: 11px; font-weight: 500;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 0 32px; opacity: .6; color: var(--cream2);
+  }
+
+  html.dark .ticker-wrap { background: var(--card-head); }
+  html.dark .ticker span { color: rgba(200,212,240,0.6); }
+
+  .ticker span.sep { opacity: .2; }
+
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ─── HOW ─── */
+  .how { background: var(--surface2); border-bottom: 1px solid var(--rule); }
+
+  .how .inner { padding-top: 88px; padding-bottom: 88px; }
+
+  .section-label {
+    font-family: var(--font-body); font-size: 10px; font-weight: 600;
+    letter-spacing: 2.5px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 52px;
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .section-label::before {
+    content: ''; display: inline-block;
+    width: 20px; height: 2px; background: var(--orange);
+  }
+
+  .steps { display: flex; flex-direction: column; }
+
+  .step {
+    display: grid; grid-template-columns: 72px 1fr;
+    border-bottom: 1px solid var(--rule);
+    padding: 48px 0;
+    transition: padding-left .2s;
+  }
+
+  .step:last-child { border-bottom: none; }
+  .step:hover { padding-left: 6px; }
+
+  .step-num {
+    font-family: var(--font-display); font-size: 13px; font-weight: 700;
+    color: var(--orange); letter-spacing: 1px;
+    padding-top: 4px; text-transform: uppercase;
+  }
+
+  .step-content { padding-left: 40px; border-left: 2px solid var(--rule-strong); }
+
+  .step-content h3 {
+    font-family: var(--font-display);
+    font-size: clamp(22px, 2.5vw, 30px);
+    font-weight: 800; letter-spacing: -.2px;
+    text-transform: uppercase;
+    color: var(--navy);
+    margin-bottom: 10px; line-height: 1.15;
+  }
+
+  .step-content p { font-size: 15px; color: var(--muted); line-height: 1.7; }
+
+  .kw-pills { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 14px; }
+
+  .kw-pill {
+    padding: 4px 12px; border: 1.5px solid var(--rule-strong);
+    border-radius: 2px; font-size: 12px; font-weight: 500;
+    color: var(--muted); background: var(--surface);
+    transition: all .15s;
+  }
+
+  .kw-pill:hover { border-color: var(--orange); color: var(--orange); }
+
+  /* Step 3 — AI sažetak demo box */
+  .sazetak-demo {
+    margin-top: 18px;
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    border-left: 3px solid var(--orange);
+    border-radius: 0 var(--radius) var(--radius) 0;
+    padding: 16px 18px;
+    max-width: 560px;
+  }
+
+  .sazetak-demo-label {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--orange); margin-bottom: 8px;
+  }
+
+  .sazetak-demo-text { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+
+  .sazetak-demo-text strong { color: var(--text); font-weight: 600; }
+
+  /* ─── PRICING ─── */
+  .pricing { border-bottom: 1px solid var(--rule); background: var(--surface); }
+
+  .pricing .inner { padding-top: 88px; padding-bottom: 88px; }
+
+  .pricing-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; }
+
+  .pricing-title {
+    font-family: var(--font-display);
+    font-size: clamp(36px, 5vw, 60px);
+    font-weight: 800; letter-spacing: -0.5px;
+    text-transform: uppercase; color: var(--navy);
+    line-height: 0.97;
+  }
+
+  .pricing-note {
+    font-size: 13px; color: var(--muted);
+    max-width: 180px; text-align: right; line-height: 1.6;
+  }
+
+  .trial-strip {
+    background: var(--navy); color: var(--cream2);
+    padding: 14px 24px; margin-bottom: 0;
+    display: flex; align-items: center; justify-content: center;
+    gap: 28px; flex-wrap: wrap;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  html.dark .trial-strip { background: var(--card-head); color: rgba(200,212,240,0.7); }
+
+  .trial-item {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11.5px; font-weight: 600;
+    letter-spacing: 0.5px; text-transform: uppercase;
+  }
+
+  .trial-div { width: 1px; height: 16px; background: rgba(255,255,255,0.18); }
+
+  .plans {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    border: 1px solid var(--rule-strong);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    overflow: hidden;
+  }
+
+  .plan {
+    padding: 32px 28px; border-right: 1px solid var(--rule-strong);
+    display: flex; flex-direction: column; position: relative;
+    background: var(--surface);
+  }
+
+  .plan:last-child { border-right: none; }
+
+  .plan.featured {
+    background: var(--navy);
+    border-right-color: rgba(255,255,255,.1);
+  }
+
+  html.dark .plan.featured { background: var(--card-head); }
+
+  .plan-badge {
+    position: absolute; top: -1px; right: 24px;
+    background: var(--orange); color: var(--white);
+    font-family: var(--font-display); font-size: 10px; font-weight: 700;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 4px 12px;
+  }
+
+  .plan-name {
+    font-family: var(--font-body); font-size: 10px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted); margin-bottom: 18px;
+  }
+
+  .plan.featured .plan-name { color: rgba(232,228,218,0.5); }
+
+  .plan-price {
+    font-family: var(--font-display); font-size: 52px; font-weight: 800;
+    line-height: 1; letter-spacing: -1px;
+    color: var(--navy); margin-bottom: 3px;
+  }
+
+  .plan.featured .plan-price { color: var(--cream2); }
+  html.dark .plan.featured .plan-price { color: rgba(200,212,240,0.9); }
+
+  .plan-per { font-size: 12px; color: var(--muted); margin-bottom: 16px; font-weight: 500; }
+  .plan.featured .plan-per { color: rgba(232,228,218,0.45); }
+
+  .plan-desc { font-size: 13px; color: var(--muted); margin-bottom: 22px; line-height: 1.55; }
+  .plan.featured .plan-desc { color: rgba(232,228,218,0.5); }
+
+  .plan-features { list-style: none; margin-bottom: 28px; flex: 1; }
+
+  .plan-features li {
+    font-size: 13.5px; padding: 8px 0;
+    border-bottom: 1px solid var(--rule);
+    display: flex; align-items: flex-start; gap: 9px;
+    color: var(--text); line-height: 1.4;
+  }
+
+  .plan.featured .plan-features li {
+    border-color: rgba(255,255,255,.08);
+    color: rgba(232,228,218,0.8);
+  }
+
+  html.dark .plan.featured .plan-features li { color: rgba(200,212,240,0.75); }
+
+  .plan-features li::before {
+    content: '→'; font-size: 11px; color: var(--orange);
+    flex-shrink: 0; margin-top: 2px;
+  }
+
+  .plan-features li.missing { opacity: 0.3; }
+  .plan-features li.missing::before { content: '–'; color: var(--muted); }
+
+  .plan .btn { width: 100%; text-align: center; display: block; }
+
+  .plan.featured .btn-outline {
+    background: transparent;
+    border: 1.5px solid rgba(255,255,255,0.4);
+    color: var(--cream2);
+  }
+
+  .plan.featured .btn-outline:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.7);
+  }
+
+  .plan-locked { filter: blur(3px); user-select: none; pointer-events: none; }
+
+  /* ─── FOOTER ─── */
+  footer { background: var(--navy); color: var(--cream2); }
+
+  html.dark footer { background: var(--card-head); }
+
+  .footer-stats {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .footer-stat-col {
+    padding: 48px 0; border-right: 1px solid rgba(255,255,255,0.08);
+    padding-right: 40px;
+  }
+
+  .footer-stat-col:last-child { border-right: none; padding-left: 40px; padding-right: 0; }
+  .footer-stat-col:nth-child(2) { padding-left: 40px; }
+
+  .footer-stat-num {
+    font-family: var(--font-display); font-size: clamp(40px, 5vw, 60px);
+    font-weight: 800; line-height: 1; margin-bottom: 8px;
+    letter-spacing: -0.5px;
+  }
+
+  .footer-stat-label {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+  }
+
+  .footer-bottom {
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 14px;
+    padding-top: 24px; padding-bottom: 24px;
+  }
+
+  .footer-logo {
+    font-family: var(--font-display); font-size: 18px;
+    font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+  }
+
+  .footer-logo span { color: var(--orange2); }
+
+  .footer-meta {
+    font-size: 11px; color: rgba(255,255,255,.35);
+    letter-spacing: .3px;
+  }
+
+  .footer-meta a { color: rgba(255,255,255,.35); transition: color .15s; }
+  .footer-meta a:hover { color: rgba(255,255,255,.75); }
+
+  /* ─── COOKIE BANNER ─── */
+  .cookie-banner {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--navy); color: var(--cream2);
+    padding: 16px 40px;
+    display: flex; justify-content: space-between; align-items: center; gap: 20px;
+    z-index: 200; border-top: 1px solid rgba(255,255,255,0.1);
+    transform: translateY(100%);
+    transition: transform .4s cubic-bezier(0.19,1,0.22,1);
+  }
+
+  html.dark .cookie-banner { background: var(--card-head); }
+
+  .cookie-banner.visible { transform: translateY(0); }
+
+  .cookie-text { font-size: 12px; color: rgba(255,255,255,0.55); line-height: 1.6; }
+
+  .cookie-btn {
+    font-family: var(--font-display); font-size: 12px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 8px 20px; border: 1.5px solid rgba(255,255,255,0.3);
+    background: transparent; color: var(--cream2);
+    cursor: pointer; white-space: nowrap; border-radius: var(--radius);
+    transition: all .15s;
+  }
+
+  .cookie-btn:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.6); }
+
+  /* ─── AUTH MODAL ─── */
+  .overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(10,14,24,.65); z-index: 100;
+    align-items: center; justify-content: center;
+    backdrop-filter: blur(4px); padding: 20px;
+  }
+
+  .overlay.active { display: flex; }
+
+  .modal {
+    background: var(--surface); padding: 44px;
+    width: 100%; max-width: 400px;
+    border: 1px solid var(--rule-strong);
+    border-top: 3px solid var(--orange);
+    border-radius: var(--radius);
+    position: relative;
+    animation: modalIn .25s ease;
+  }
+
+  @keyframes modalIn { from { opacity:0; transform: translateY(14px); } to { opacity:1; transform:none; } }
+
+  .modal h2 {
+    font-family: var(--font-display); font-size: 28px; font-weight: 800;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--navy); margin-bottom: 26px;
+  }
+
+  .modal-close {
+    position: absolute; top: 16px; right: 18px;
+    background: none; border: none; font-size: 22px;
+    cursor: pointer; color: var(--muted); line-height: 1;
+    transition: color .15s;
+  }
+
+  .modal-close:hover { color: var(--navy); }
+
+  .form-group { margin-bottom: 14px; }
+
+  .form-group label {
+    display: block; font-size: 10px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    margin-bottom: 6px; color: var(--muted);
+  }
+
+  .form-group input {
+    width: 100%; padding: 10px 13px;
+    border: 1.5px solid var(--rule-strong);
+    border-radius: var(--radius);
+    font-family: var(--font-body); font-size: 14px;
+    outline: none; transition: border-color .15s;
+    background: var(--surface2); color: var(--text);
+  }
+
+  .form-group input:focus { border-color: var(--navy); }
+  .form-group input::placeholder { color: var(--muted); }
+
+  .form-submit { width: 100%; padding: 12px; font-size: 14px; margin-top: 4px; }
+
+  .form-switch { text-align: center; margin-top: 16px; font-size: 13px; color: var(--muted); }
+  .form-switch a { color: var(--orange); font-weight: 600; text-decoration: underline; }
+
+  .form-error {
+    font-size: 13px; color: #b91c1c; margin-bottom: 14px;
+    padding: 10px 14px; background: #fef2f2;
+    border-left: 3px solid #b91c1c; border-radius: var(--radius);
+    display: none;
+  }
+
+  html.dark .form-error { background: rgba(185,28,28,0.1); color: #f87171; }
+
+  .form-success {
+    font-size: 13px; color: var(--green); margin-bottom: 14px;
+    padding: 10px 14px; background: var(--green-dim);
+    border-left: 3px solid var(--green); border-radius: var(--radius);
+    display: none;
+  }
+
+  .verify-prompt {
+    display: none; margin-bottom: 14px; padding: 12px 14px;
+    background: rgba(146,98,10,0.1); border-left: 3px solid var(--amber);
+    border-radius: var(--radius); font-size: 13px; color: var(--amber); line-height: 1.6;
+  }
+
+  .verify-prompt a { color: var(--amber); font-weight: 600; text-decoration: underline; }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    .hero .inner { grid-template-columns: 1fr; padding-top: 56px; min-height: auto; }
+    .hero-left { padding-right: 0; padding-bottom: 48px; }
+    .hero-right { border-left: none; border-top: 1px solid var(--rule); padding: 28px 0; }
+    .plans { grid-template-columns: 1fr; }
+    .plan { border-right: none; border-bottom: 1px solid var(--rule-strong); }
+    .plan:last-child { border-bottom: none; }
+    .pricing-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .pricing-note { text-align: left; }
+    .footer-stats { grid-template-columns: 1fr; }
+    .footer-stat-col { border-right: none; border-bottom: 1px solid rgba(255,255,255,0.08); padding: 30px 0 !important; }
+    .footer-stat-col:last-child { border-bottom: none; }
+  }
+
+  @media (max-width: 560px) {
+    .inner { padding: 0 20px; }
+    .hero-h1 { font-size: clamp(38px, 10vw, 52px); }
+    .step { grid-template-columns: 52px 1fr; }
+    .trial-strip { gap: 14px; }
+    .trial-div { display: none; }
+    .cookie-banner { flex-direction: column; align-items: flex-start; padding: 18px 20px; }
+  }
 </style>
 </head>
 <body>
 
-<div id="deletedBanner" style="display:none;background:#111111;color:#ffffff;text-align:center;padding:14px 16px;font-family:'Courier New',monospace;font-size:12px;letter-spacing:.5px;">
+<div id="deletedBanner" style="display:none;background:#1a2744;color:#e8e4da;text-align:center;padding:13px 16px;font-size:12px;font-weight:600;letter-spacing:.3px;">
   Vaš račun je uspješno obrisan. Žao nam je što odlazite.
 </div>
 
 <!-- NAV -->
 <nav>
   <div class="inner">
-    <div class="logo">PratimZakon<span class="beta-badge">BETA</span></div>
-    <div class="nav-links">
+    <div class="nav-logo">
+      PRATIM<span class="nav-logo-accent">ZAKON</span>
+      <div class="nav-logo-dot"></div>
+      <span class="beta-badge">BETA</span>
+    </div>
+    <div class="nav-right">
+      <button class="btn-theme" id="theme-toggle" onclick="toggleTheme()" title="Promijeni temu">☀</button>
       <a href="#" class="btn btn-ghost" onclick="openModal('login')">Prijava</a>
       <a href="#" class="btn btn-solid" onclick="openModal('register')">Registracija</a>
-    </div>
-    <div class="font-controls">
-      <button class="btn btn-ghost btn-font" onclick="changeFontSize(1)" aria-label="Povećaj font">A+</button>
-      <button class="btn btn-ghost btn-font" onclick="changeFontSize(-1)" aria-label="Smanji font">A–</button>
     </div>
   </div>
 </nav>
@@ -813,21 +716,54 @@
 <section class="hero">
   <div class="inner">
     <div class="hero-left reveal">
-      <div class="hero-eyebrow">Monitoring V2.0 — Narodne novine, svaki radni dan</div>
-      <h1>
-        <span class="h1-display">Ne moraš čitati sve zakone</span>
-        <em>— dobiješ ono što je važno za tebe</em>
+      <div class="hero-eyebrow">Monitoring V2.0 · Narodne novine · svaki radni dan</div>
+      <h1 class="hero-h1">
+        Zakoni koji<br>
+        <span class="line-orange">vrijede za</span><br>
+        tebe —<br>
+        odmah.
       </h1>
-      <p class="hero-desc">AI filtrira i objašnjava zakonodavstvo — ti dobiješ samo ono što je važno.</p>
-          </div>
+      <p class="hero-desc">AI prati Narodne novine, prepoznaje što je relevantno za tvoju situaciju i šalje ti personalizirani sažetak — ne cijeli zakon, nego ono što trebaš znati.</p>
+      <div class="hero-actions">
+        <a href="#" class="btn btn-solid btn-lg" onclick="openModal('register')">Počni besplatno →</a>
+        <a href="#pricing" class="btn btn-ghost btn-lg">Pogledaj planove</a>
+      </div>
+    </div>
 
-    <div class="hero-right">
-      <div class="hero-vertical-label">Monitoring V2.0 · PratimZakon · HR</div>
+    <!-- Demo preview -->
+    <div class="hero-right reveal" style="transition-delay:.2s">
+      <div class="hero-right-label">Primjer email alertа</div>
+
+      <div class="demo-email-card">
+        <div class="demo-card-badge badge-orange">Novi match · PDV</div>
+        <div class="demo-card-title">Pravilnik o izmjeni Pravilnika o porezu na dodanu vrijednost</div>
+        <div class="demo-card-text">
+          <strong>Za vas kao ugostitelja i PDV obveznika:</strong> mijenja se obrazac PDV obrasca od 1. srpnja — novi PDV-S/K zamjenjuje dosadašnji. Nema retroaktivnih izmjena.
+        </div>
+        <div class="demo-kw-tag">PDV</div>
+      </div>
+
+      <div class="demo-email-card">
+        <div class="demo-card-badge badge-navy">Tjedni sažetak · 3 dokumenta</div>
+        <div class="demo-card-title">NN 17/2026 — 3 dokumenta relevantna za vaše praćenje</div>
+        <div class="demo-card-text">
+          Zakon o radu (izmjena), Uredba o minimalnoj plaći, Pravilnik o zaštiti na radu — personalizirani sažeci za vašu situaciju.
+        </div>
+      </div>
+
+      <div class="demo-email-card">
+        <div class="demo-card-badge badge-orange">Izmjena propisa · porez</div>
+        <div class="demo-card-title">Zakon o porezu na dohodak — prag paušala raste na 400.000 kn</div>
+        <div class="demo-card-text">
+          <strong>Relevantno za vaš obrt:</strong> novi prag od 1.7.2026. — vrijedi za vas ako razmatrate promjenu načina oporezivanja.
+        </div>
+        <div class="demo-kw-tag">porez</div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- TICKER (full-width, bez .inner) -->
+<!-- TICKER -->
 <div class="ticker-wrap">
   <div class="ticker">
     <span>PratimZakon</span><span class="sep">·</span>
@@ -838,6 +774,8 @@
     <span>Zakon o trgovačkim društvima</span><span class="sep">·</span>
     <span>Porez na dobit</span><span class="sep">·</span>
     <span>Zakon o zaštiti potrošača</span><span class="sep">·</span>
+    <span>Ugostiteljstvo</span><span class="sep">·</span>
+    <span>Minimalna plaća</span><span class="sep">·</span>
     <span>PratimZakon</span><span class="sep">·</span>
     <span>Zakon o radu</span><span class="sep">·</span>
     <span>PDV izmjene</span><span class="sep">·</span>
@@ -846,44 +784,60 @@
     <span>Zakon o trgovačkim društvima</span><span class="sep">·</span>
     <span>Porez na dobit</span><span class="sep">·</span>
     <span>Zakon o zaštiti potrošača</span><span class="sep">·</span>
+    <span>Ugostiteljstvo</span><span class="sep">·</span>
+    <span>Minimalna plaća</span><span class="sep">·</span>
   </div>
 </div>
 
-<!-- HOW -->
+<!-- HOW IT WORKS -->
 <section class="how">
   <div class="inner">
     <div class="section-label">Kako funkcionira</div>
-    <div class="steps-editorial">
+    <div class="steps">
 
-      <div class="step-editorial reveal-x">
+      <div class="step reveal">
         <div class="step-num">01</div>
         <div class="step-content">
           <h3>Registrirajte se</h3>
-          <p>Kreirajte besplatni račun u manje od minute. Nije potrebna kreditna kartica.</p>
+          <p>Kreirajte besplatni račun u manje od minute. Nije potrebna kreditna kartica. 30 dana na raspolaganju.</p>
         </div>
       </div>
 
-      <div class="step-editorial reveal-x" style="transition-delay:.15s">
+      <div class="step reveal" style="transition-delay:.1s">
         <div class="step-num">02</div>
         <div class="step-content">
-          <h3>Dodajte teme koje te zanimaju</h3>
-          <p>Unesite teme koje te zanimaju — zakon, pravilnik, uredba ili djelatnost.</p>
+          <h3>Opišite svoju situaciju i dodajte ključne riječi</h3>
+          <p>Recite nam tko ste — obrtnik, direktor, računovođa, odvjetnik — i što pratite. Naš AI koristi taj kontekst za personalizirani sažetak koji govori <em>zašto je zakon važan baš za vas</em>.</p>
           <div class="kw-pills">
             <span class="kw-pill">PDV</span>
             <span class="kw-pill">zakon o radu</span>
+            <span class="kw-pill">ugostiteljstvo</span>
             <span class="kw-pill">porez na dobit</span>
             <span class="kw-pill">ovršni zakon</span>
-            <span class="kw-pill">GDPR</span>
-            <span class="kw-pill">poljoprivreda</span>
+            <span class="kw-pill">minimalna plaća</span>
           </div>
         </div>
       </div>
 
-      <div class="step-editorial reveal-x" style="transition-delay:.3s">
+      <div class="step reveal" style="transition-delay:.2s">
         <div class="step-num">03</div>
         <div class="step-content">
-          <h3>Primaj email alert</h3>
-          <p>Ne moraš pratiti sve objave — dobiješ email alert samo kad je važno za tebe.</p>
+          <h3>Primajte personalizirani AI sažetak</h3>
+          <p>Svaki radni dan u 07:00 naša tražilica skenira novi broj Narodnih novina. Kad pronađe match za vaše ključne riječi, AI generira sažetak prilagođen vašoj situaciji — ne opći tekst zakona, nego konkretno što to znači za vas.</p>
+          <div class="sazetak-demo">
+            <div class="sazetak-demo-label">✦ Primjer AI sažetka</div>
+            <div class="sazetak-demo-text">
+              <strong>Za vas kao ugostitelja s 5 zaposlenika:</strong> ukidaju se statistička izvješća OPZ-STAT-1 — za 2025. ih još podnosite do 31.12.2026., ali nakon toga više neće biti obvezni. Ova izmjena vam smanjuje administrativne obveze.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="step reveal" style="transition-delay:.3s">
+        <div class="step-num">04</div>
+        <div class="step-content">
+          <h3>Pratite zakonodavnu osnovu svakog dokumenta</h3>
+          <p>Uz svaki sažetak vidite i cjeloviti zakonodavni kontekst — je li radi o novom propisu, izmjeni ili pročišćenom tekstu, te koji originalni propis mijenja. Jednim klikom do punog teksta na Narodnim novinama.</p>
         </div>
       </div>
 
@@ -891,10 +845,7 @@
   </div>
 </section>
 
-
-
-<!-- PRICING COPY FINAL LOCK: ne mijenjati bez izričite odluke (vidi docs/pricing-copy-lock.md) -->
-
+<!-- PRICING -->
 <section class="pricing" id="pricing">
   <div class="inner">
     <div class="pricing-header reveal">
@@ -903,73 +854,77 @@
     </div>
 
     <div class="trial-strip">
-      <div class="trial-strip-item"><span class="ti">⏱</span> 30 dana besplatno</div>
-      <div class="trial-strip-divider"></div>
-      <div class="trial-strip-item"><span class="ti">🎯</span> 5 tema za istraživanje</div>
-      <div class="trial-strip-divider"></div>
-      <div class="trial-strip-item"><span class="ti">🚫</span> Bez kreditne kartice</div>
-      <div class="trial-strip-divider"></div>
-      <div class="trial-strip-item"><span class="ti">✓</span> Otkaži kad želiš</div>
+      <div class="trial-item">⏱ 30 dana besplatno</div>
+      <div class="trial-div"></div>
+      <div class="trial-item">🎯 5 ključnih riječi</div>
+      <div class="trial-div"></div>
+      <div class="trial-item">🚫 Bez kreditne kartice</div>
+      <div class="trial-div"></div>
+      <div class="trial-item">✓ Otkaži kad želiš</div>
     </div>
+
     <div class="plans">
 
-      <div class="plan reveal plan-trial">
-        <div class="trial-badge">30 dana besplatno</div>
-        <div class="plan-name">🟢 FREE — Probni period</div>
+      <!-- FREE -->
+      <div class="plan reveal">
+        <div class="plan-name">Free · Probni period</div>
         <div class="plan-price">€0</div>
         <div class="plan-per">/ 30 dana</div>
         <div class="plan-desc">Istraži bez rizika — bez kreditne kartice</div>
         <ul class="plan-features">
-          <li>Do 5 tema koje te zanimaju</li>
-          <li>Email alertovi o novim promjenama</li>
+          <li>Do 5 ključnih riječi</li>
+          <li>Email alertovi o novim matchevima</li>
           <li>Pregled novih objava</li>
           <li>Puni pristup 30 dana</li>
+          <li class="missing">Personalizirani AI sažetak</li>
+          <li class="missing">Zakonodavna osnova dokumenta</li>
         </ul>
-        <a href="#" class="btn btn-solid" onclick="openModal('register')">Počni 30-dnevni trial</a>
+        <a href="#" class="btn btn-solid" onclick="openModal('register')">Počni 30-dnevni trial →</a>
       </div>
 
-      <div class="plan featured reveal plan-blurred" style="transition-delay:.12s">
-        <div class="plan-badge">Najvažniji</div>
-        <div class="plan-name">🟡 BASIC (NAJVAŽNIJI)</div>
-
-        <div class="plan-price">€4,99</div>
-        <div class="plan-per">/ mj</div>
-        <div class="plan-desc">Manje buke, više relevantnih informacija</div>
-        <ul class="plan-features">
-          <li>Do 10 tema koje te zanimaju</li>
-          <li>✅ AI filtrirane obavijesti</li>
-          <li>Email alert samo kad je stvarno važno</li>
-          <li>💡 Smanjuje broj nebitnih informacija</li>
+      <!-- BASIC -->
+      <div class="plan featured reveal" style="transition-delay:.1s">
+        <div class="plan-badge">Najpopularniji</div>
+        <div class="plan-name">Basic</div>
+        <div class="plan-price plan-locked">€4,99</div>
+        <div class="plan-per plan-locked">/ mj</div>
+        <div class="plan-desc plan-locked">AI filtrirane obavijesti — manje buke, više relevantnog</div>
+        <ul class="plan-features plan-locked">
+          <li>Do 10 ključnih riječi</li>
+          <li>Personalizirani AI sažetak</li>
+          <li>Email samo kad je stvarno važno</li>
+          <li>Zakonodavna osnova svakog dokumenta</li>
+          <li>Opis situacije za bolji kontekst</li>
+          <li class="missing">Arhiva i pretraga</li>
         </ul>
-        <a href="#" class="btn btn-ghost" onclick="selectPlan('basic'); return false;">Odaberi Basic</a>
+        <a href="#" class="btn btn-outline" onclick="selectPlan('basic'); return false;">Odaberi Basic →</a>
       </div>
-      
 
-      <div class="plan reveal plan-blurred" style="transition-delay:.24s">
-        <div class="plan-name">🔴 PLUS (VALUE PLAN)</div>
-
-        <div class="plan-price">€7,99</div>
-        <div class="plan-per">/ mj</div>
-        <div class="plan-desc">Razumij što se mijenja i zašto je važno</div>
-        <ul class="plan-features">
-          <li>Do 20 tema koje te zanimaju</li>
-          <li>✅ AI procjena relevantnosti i utjecaja</li>
-          <li>✅ Objašnjenje zašto se odnosi na tebe</li>
-          <li>✅ Strukturirani sažetak zakona</li>
-          <li>Pretraga arhive</li>
-          <li>Statistike i analitika</li>
-          <li>💡 Ne samo da vidiš promjenu — nego je razumiješ</li>
+      <!-- PLUS -->
+      <div class="plan reveal" style="transition-delay:.2s">
+        <div class="plan-name">Plus · Value plan</div>
+        <div class="plan-price plan-locked">€7,99</div>
+        <div class="plan-per plan-locked">/ mj</div>
+        <div class="plan-desc plan-locked">Razumij što se mijenja i zašto je važno za tebe</div>
+        <ul class="plan-features plan-locked">
+          <li>Do 20 ključnih riječi</li>
+          <li>Personalizirani AI sažetak s detaljnim kontekstom</li>
+          <li>AI procjena relevantnosti i utjecaja</li>
+          <li>Zakonodavna osnova i povijest izmjena</li>
+          <li>Pretraga arhive svih matcheva</li>
+          <li>Statistike i analitika praćenja</li>
         </ul>
-        <a href="#" class="btn btn-ghost" onclick="selectPlan('plus'); return false;">Odaberi Plus</a>
+        <a href="#" class="btn btn-ghost" onclick="selectPlan('plus'); return false;">Odaberi Plus →</a>
       </div>
-      
 
     </div>
-        <p style="font-family:var(--mono);font-size:11px;color:var(--mid);text-align:center;margin-top:24px;letter-spacing:.3px;">
-      Cijene su izražene bez PDV-a. Sukladno čl. 90. st. 2. Zakona o porezu na dodanu vrijednost (NN 73/13 i izmjene), PDV nije obračunan.
+    <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:20px;letter-spacing:.3px;">
+      Cijene su izražene bez PDV-a. Sukladno čl. 90. st. 2. Zakona o PDV-u (NN 73/13 i izmjene), PDV nije obračunan.
     </p>
   </div>
 </section>
+
+<!-- FOOTER -->
 <footer>
   <div class="inner footer-stats">
     <div class="footer-stat-col">
@@ -986,9 +941,9 @@
     </div>
   </div>
   <div class="inner footer-bottom">
-    <div class="footer-logo">PratimZakon</div>
+    <div class="footer-logo">PRATIM<span>ZAKON</span></div>
     <div class="footer-meta">
-      &copy; 2026 PratimZakon &nbsp;&middot;&nbsp;
+      &copy; 2026 PratimZakon &nbsp;·&nbsp;
       <a href="mailto:info@pratimzakon.hr">info@pratimzakon.hr</a>
     </div>
   </div>
@@ -1017,7 +972,7 @@
         <label>Lozinka</label>
         <input type="password" id="regPassword" placeholder="Najmanje 8 znakova">
       </div>
-      <button class="btn btn-solid form-submit" id="regBtn" onclick="register()">Registriraj se</button>
+      <button class="btn btn-solid form-submit" id="regBtn" onclick="register()">Registriraj se →</button>
       <div class="form-switch">Već imate račun? <a href="#" onclick="showLogin()">Prijavite se</a></div>
     </div>
 
@@ -1025,9 +980,9 @@
       <h2>Prijava</h2>
       <div class="form-error" id="loginError"></div>
       <div class="form-success" id="loginSuccess"></div>
-      <div id="verifyPrompt" style="display:none;margin-bottom:14px;padding:12px 14px;background:#fefce8;border-left:2px solid #ca8a04;font-size:13px;color:#92400e;line-height:1.6;">
+      <div class="verify-prompt" id="verifyPrompt">
         Email adresa nije potvrđena.<br>
-        <a href="#" id="resendLink" onclick="resendVerification(); return false;" style="color:#92400e;font-weight:600;text-decoration:underline;">Pošalji verifikacijski link ponovo</a>
+        <a href="#" id="resendLink" onclick="resendVerification(); return false;">Pošalji verifikacijski link ponovo</a>
       </div>
       <div class="form-group">
         <label>Email adresa</label>
@@ -1037,7 +992,7 @@
         <label>Lozinka</label>
         <input type="password" id="loginPassword" placeholder="Vaša lozinka">
       </div>
-      <button class="btn btn-solid form-submit" id="loginBtn" onclick="login()">Prijavi se</button>
+      <button class="btn btn-solid form-submit" id="loginBtn" onclick="login()">Prijavi se →</button>
       <div class="form-switch">Nemate račun? <a href="#" onclick="showRegister()">Registrirajte se</a></div>
     </div>
   </div>
@@ -1046,11 +1001,25 @@
 <script>
   const API = "https://pratimzakon.onrender.com";
 
-  if (new URLSearchParams(window.location.search).get("deleted") === "1") {
-    const banner = document.getElementById("deletedBanner");
-    if (banner) { banner.style.display = "block"; setTimeout(() => banner.style.display = "none", 6000); }
+  // ─── DARK MODE ───
+  function toggleTheme() {
+    const isDark = document.documentElement.classList.toggle('dark');
+    document.getElementById('theme-toggle').textContent = isDark ? '☾' : '☀';
+    localStorage.setItem('pz-theme', isDark ? 'dark' : 'light');
   }
 
+  if (localStorage.getItem('pz-theme') === 'dark') {
+    document.documentElement.classList.add('dark');
+    document.getElementById('theme-toggle').textContent = '☾';
+  }
+
+  // ─── DELETED BANNER ───
+  if (new URLSearchParams(window.location.search).get("deleted") === "1") {
+    const b = document.getElementById("deletedBanner");
+    if (b) { b.style.display = "block"; setTimeout(() => b.style.display = "none", 6000); }
+  }
+
+  // ─── FETCH WITH RETRY ───
   async function fetchWithRetry(url, options, maxAttempts = 4) {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
@@ -1063,29 +1032,13 @@
     }
   }
 
+  // ─── REVEAL ANIMATIONS ───
   const observer = new IntersectionObserver(entries => {
     entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
   }, { threshold: .08 });
-  document.querySelectorAll('.reveal, .reveal-x').forEach(el => observer.observe(el));
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-  // ─── MAGNETIC CTA ───
-  const heroCta = document.getElementById('heroCta');
-  if (heroCta) {
-    const wrap = heroCta.closest('.btn-magnetic');
-    wrap.addEventListener('mousemove', (e) => {
-      const rect = heroCta.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
-      const dx = (e.clientX - cx) * 0.25;
-      const dy = (e.clientY - cy) * 0.25;
-      heroCta.style.transform = `translate(${dx}px, ${dy}px)`;
-    });
-    wrap.addEventListener('mouseleave', () => {
-      heroCta.style.transform = '';
-    });
-  }
-
-  // ─── ANIMATED COUNTERS ───
+  // ─── COUNTERS ───
   function animateCounter(el) {
     const target = parseFloat(el.dataset.counter);
     const suffix = el.dataset.suffix || '';
@@ -1110,19 +1063,18 @@
       }
     });
   }, { threshold: .6 });
-
   document.querySelectorAll('[data-counter]').forEach(el => counterObserver.observe(el));
 
-  // ─── COOKIE BANNER ───
+  // ─── COOKIE ───
   function acceptCookies() {
     document.getElementById('cookieBanner').classList.remove('visible');
     localStorage.setItem('cookiesAccepted', '1');
   }
-
   if (!localStorage.getItem('cookiesAccepted')) {
     setTimeout(() => document.getElementById('cookieBanner').classList.add('visible'), 1400);
   }
 
+  // ─── MODAL ───
   function openModal(type) {
     document.getElementById("authOverlay").classList.add("active");
     type === "login" ? showLogin() : showRegister();
@@ -1136,19 +1088,23 @@
     okEl.textContent = `Odabrali ste ${labels[plan]} plan — registrirajte se za nastavak.`;
     okEl.style.display = "block";
   }
+
   function closeModal(e) {
     if (!e || e.target === document.getElementById("authOverlay"))
       document.getElementById("authOverlay").classList.remove("active");
   }
+
   function showLogin() {
     document.getElementById("registerForm").style.display = "none";
     document.getElementById("loginForm").style.display = "block";
   }
+
   function showRegister() {
     document.getElementById("loginForm").style.display = "none";
     document.getElementById("registerForm").style.display = "block";
   }
 
+  // ─── REGISTER ───
   async function register() {
     const email = document.getElementById("regEmail").value;
     const password = document.getElementById("regPassword").value;
@@ -1192,10 +1148,11 @@
       errEl.textContent = "Server nije dostupan. Provjerite internetsku vezu i pokušajte ponovo.";
       errEl.style.display = "block";
     } finally {
-      btn.disabled = false; btn.textContent = "Registriraj se";
+      btn.disabled = false; btn.textContent = "Registriraj se →";
     }
   }
 
+  // ─── LOGIN ───
   async function login() {
     const email = document.getElementById("loginEmail").value;
     const password = document.getElementById("loginPassword").value;
@@ -1223,19 +1180,20 @@
         window.location.href = "dashboard.html";
       } else if (res.status === 403) {
         document.getElementById("verifyPrompt").style.display = "block";
-        btn.disabled = false; btn.textContent = "Prijavi se";
+        btn.disabled = false; btn.textContent = "Prijavi se →";
       } else {
         errEl.textContent = data.detail || "Pogrešan email ili lozinka.";
         errEl.style.display = "block";
-        btn.disabled = false; btn.textContent = "Prijavi se";
+        btn.disabled = false; btn.textContent = "Prijavi se →";
       }
     } catch (e) {
       errEl.textContent = "Server nije dostupan. Provjerite internetsku vezu i pokušajte ponovo.";
       errEl.style.display = "block";
-      btn.disabled = false; btn.textContent = "Prijavi se";
+      btn.disabled = false; btn.textContent = "Prijavi se →";
     }
   }
 
+  // ─── RESEND VERIFICATION ───
   async function resendVerification() {
     const email = document.getElementById("loginEmail").value;
     const link = document.getElementById("resendLink");
@@ -1256,43 +1214,20 @@
       okEl.style.display = "block";
     } catch (e) {
       link.textContent = "Pošalji verifikacijski link ponovo";
-      document.getElementById("loginError").textContent = "Server nije dostupan. Pokušajte ponovo.";
+      document.getElementById("loginError").textContent = "Server nije dostupan.";
       document.getElementById("loginError").style.display = "block";
     }
   }
 
+  // ─── ALREADY LOGGED IN ───
   if (localStorage.getItem("token")) {
     const loginBtn = document.querySelector('[onclick="openModal(\'login\')"]');
-    if (loginBtn) { loginBtn.textContent = "Dashboard"; loginBtn.href = "dashboard.html"; loginBtn.removeAttribute("onclick"); }
+    if (loginBtn) {
+      loginBtn.textContent = "Dashboard";
+      loginBtn.href = "dashboard.html";
+      loginBtn.removeAttribute("onclick");
+    }
   }
 </script>
-<script>
-let currentSize = 100;
-const MIN_FONT_SIZE = 80;
-const MAX_FONT_SIZE = 140;
-const FONT_STEP = 10;
-
-function applyFontSize(size) {
-  const parsed = Number(size);
-  if (!Number.isFinite(parsed)) return;
-  currentSize = Math.min(MAX_FONT_SIZE, Math.max(MIN_FONT_SIZE, parsed));
-  document.documentElement.style.fontSize = `${currentSize}%`;
-  localStorage.setItem("fontSize", String(currentSize));
-}
-
-function changeFontSize(step) {
-  const parsedStep = Number(step);
-  if (!Number.isFinite(parsedStep)) return;
-  applyFontSize(currentSize + parsedStep * FONT_STEP);
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const savedSize = Number(localStorage.getItem("fontSize"));
-  if (Number.isFinite(savedSize)) {
-    applyFontSize(savedSize);
-  }
-});
-</script>
- 
 </body>
 </html>
