@@ -509,42 +509,33 @@
 <div class="toast" id="toast"></div>
 
 <script>
+  const API = 'https://pratimzakon.onrender.com';
+
   function toggleTheme() {
     const isDark = document.documentElement.classList.toggle('dark');
     document.getElementById('theme-toggle').textContent = isDark ? '☾' : '☀';
     localStorage.setItem('pz-theme', isDark ? 'dark' : 'light');
   }
-
-  // Primijeni temu iz localStorage pri učitavanju
   if (localStorage.getItem('pz-theme') === 'dark') {
     document.documentElement.classList.add('dark');
     document.getElementById('theme-toggle').textContent = '☾';
   }
 
-  function toggleTag(el) { el.classList.toggle('active'); updateKwCount(); }
+  function getToken() { return localStorage.getItem('token'); }
+  function authHeaders() { return { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' }; }
 
-  function addTag() {
-    const input = document.getElementById('new-kw');
-    const val = input.value.trim();
-    if (!val) return;
-    const tag = document.createElement('div');
-    tag.className = 'tag active';
-    tag.innerHTML = `${val} <span class="tag-remove">×</span>`;
-    tag.onclick = function() { toggleTag(this); };
-    document.getElementById('tag-list').appendChild(tag);
-    input.value = '';
-    updateKwCount();
-    showToast(`Dodana ključna riječ: "${val}"`);
+  function logout() {
+    localStorage.removeItem('token');
+    window.location.href = 'index.html';
   }
 
-  function clearTags() { document.getElementById('tag-list').innerHTML = ''; updateKwCount(); showToast('Sve ključne riječi obrisane'); }
-
-  function updateKwCount() { document.getElementById('stat-kw').textContent = document.querySelectorAll('.tag.active').length; }
-
-  function savePracenje() {
-    const kws = [...document.querySelectorAll('.tag.active')].map(t => t.textContent.replace('×','').trim());
-    showToast(`Praćenje spremljeno — ${kws.length} ključnih riječi aktivno`);
-  }
+  document.querySelectorAll('.nav-item').forEach(item => {
+    const text = item.textContent.trim();
+    if (text.includes('Odjava')) item.onclick = logout;
+    if (text.includes('Postavke')) item.onclick = () => showToast('Postavke — uskoro dostupno');
+    if (text.includes('Matchevi')) item.onclick = () => showToast('Matchevi — uskoro dostupno');
+    if (text.includes('Email arhiva')) item.onclick = () => showToast('Email arhiva — uskoro dostupno');
+  });
 
   function showToast(msg) {
     const t = document.getElementById('toast');
@@ -553,9 +544,94 @@
     setTimeout(() => t.classList.remove('show'), 2800);
   }
 
-  const h = new Date().getHours();
-  const g = h < 12 ? 'DOBRO JUTRO' : h < 18 ? 'DOBAR DAN' : 'DOBRA VEČER';
-  document.getElementById('topbar-greeting').innerHTML = `${g}, <span>JURICA</span>`;
+  async function loadUser() {
+    if (!getToken()) { window.location.href = 'index.html'; return; }
+    try {
+      const res = await fetch(API + '/auth/me', { headers: authHeaders() });
+      if (res.status === 401) { logout(); return; }
+      const user = await res.json();
+      const namePart = user.email.split('@')[0];
+      document.querySelector('.user-name').textContent = namePart;
+      document.querySelector('.user-email').textContent = user.email;
+      const badge = document.querySelector('.user-badge');
+      if (badge) badge.textContent = user.plan === 'free' ? 'BETA' : user.plan.toUpperCase();
+      const h = new Date().getHours();
+      const g = h < 12 ? 'DOBRO JUTRO' : h < 18 ? 'DOBAR DAN' : 'DOBRA VEČER';
+      const el = document.getElementById('topbar-greeting');
+      if (el) el.innerHTML = g + ', <span>' + namePart.toUpperCase() + '</span>';
+      return user;
+    } catch(e) { showToast('Greška pri dohvatu podataka'); }
+  }
+
+  async function loadKeywords() {
+    try {
+      const res = await fetch(API + '/keywords/', { headers: authHeaders() });
+      const data = await res.json();
+      const list = document.getElementById('tag-list');
+      if (!list) return;
+      list.innerHTML = '';
+      data.forEach(kw => {
+        const tag = document.createElement('div');
+        tag.className = 'tag active';
+        tag.innerHTML = kw.keyword + ' <span class="tag-remove">×</span>';
+        tag.onclick = function() { deleteKeyword(kw.id, tag); };
+        list.appendChild(tag);
+      });
+      updateKwCount();
+    } catch(e) { showToast('Greška pri dohvatu ključnih riječi'); }
+  }
+
+  async function deleteKeyword(id, el) {
+    try {
+      await fetch(API + '/keywords/' + id, { method: 'DELETE', headers: authHeaders() });
+      el.remove();
+      updateKwCount();
+      showToast('Ključna riječ obrisana');
+    } catch(e) { showToast('Greška pri brisanju'); }
+  }
+
+  async function addTag() {
+    const input = document.getElementById('new-kw');
+    const val = input.value.trim();
+    if (!val) return;
+    const current = document.querySelectorAll('.tag').length;
+    try {
+      const userRes = await fetch(API + '/auth/me', { headers: authHeaders() });
+      const user = await userRes.json();
+      if (current >= user.keyword_limit) {
+        showToast('Dostigli ste limit od ' + user.keyword_limit + ' kljucnih rijeci');
+        return;
+      }
+      const res = await fetch(API + '/keywords/', {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ keyword: val, doc_type_filter: null, institution_filter: null, part_filter: null })
+      });
+      if (!res.ok) { showToast('Greška pri dodavanju'); return; }
+      const kw = await res.json();
+      const tag = document.createElement('div');
+      tag.className = 'tag active';
+      tag.innerHTML = kw.keyword + ' <span class="tag-remove">×</span>';
+      tag.onclick = function() { deleteKeyword(kw.id, tag); };
+      document.getElementById('tag-list').appendChild(tag);
+      input.value = '';
+      updateKwCount();
+      showToast('Dodana kljucna rijec: ' + val);
+    } catch(e) { showToast('Greška pri dodavanju'); }
+  }
+
+  function updateKwCount() {
+    const el = document.getElementById('stat-kw');
+    if (el) el.textContent = document.querySelectorAll('.tag').length;
+  }
+
+  function savePracenje() { showToast('Kljucne rijeci se automatski spremaju'); }
+
+  async function init() {
+    await loadUser();
+    await loadKeywords();
+  }
+
+  init();
 </script>
 </body>
-</html>
