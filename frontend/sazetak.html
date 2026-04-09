@@ -291,9 +291,9 @@
       <div class="nav-item"><span class="nav-icon">→</span> Odjava</div>
     </nav>
     <div class="user-card">
-      <div class="user-name">Jurica Zdenko</div>
-      <div class="user-email">jurica@email.hr</div>
-      <div class="user-badge">✓ Aktivan</div>
+      <div class="user-name" id="sidebar-name">—</div>
+      <div class="user-email" id="sidebar-email">—</div>
+      <div class="user-badge" id="sidebar-badge">BETA</div>
     </div>
   </aside>
 
@@ -423,8 +423,7 @@
               <div class="side-card-title">Akcije</div>
             </div>
             <div class="side-card-body">
-              <button class="action-btn primary" onclick="showToast('Email poslan na jurica@email.hr')">
-                <span>Pošalji na email</span>
+              <button class="action-btn primary" id = "btn-email-action"></button>                <span>Pošalji na email</span>
                 <span class="action-btn-icon">→</span>
               </button>
               <button class="action-btn" onclick="openNN()">
@@ -498,7 +497,7 @@
   }
 
   function getToken() {
-    return localStorage.getItem('pz-token');
+    return localStorage.getItem("token");
   }
 
   function authHeaders() {
@@ -533,6 +532,21 @@
     const docId = getDocId();
     if (!docId) { showToast('Nema ID dokumenta u URL-u'); return; }
     if (!getToken()) { window.location.href = 'index.html'; return; }
+
+    // Dohvati korisnika
+    try {
+        const userRes = await fetch(API + '/auth/me', { headers: authHeaders() });
+        if (userRes.status === 401) { window.location.href = 'index.html'; return; }
+        const user = await userRes.json();
+        const namePart = user.email.split('@')[0];
+        document.getElementById('sidebar-name').textContent = namePart;
+        document.getElementById('sidebar-email').textContent = user.email;
+        document.getElementById('sidebar-badge').textContent = user.plan === 'free' ? 'BETA' : user.plan.toUpperCase();
+
+        // Pravi email u gumbu
+        document.querySelector('.action-btn.primary').onclick =
+            () => showToast('Email poslan na ' + user.email);
+    } catch(e) { showToast('Greška pri dohvatu korisnika'); }
 
     // Dohvati podatke dokumenta
     try {
