@@ -133,3 +133,25 @@ def get_institutions(
         .all()
     )
     return [row[0] for row in results if row[0]]
+
+
+@router.get("/summarize/{document_id}")
+def summarize_document(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Generira AI sažetak dokumenta personaliziran za korisnika."""
+    from ..ai.matcher import generate_summary
+
+    doc = db.query(Document).filter(Document.id == document_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Dokument nije pronađen.")
+
+    situation = getattr(current_user, "situation", "") or ""
+    summary = generate_summary(doc, situation)
+
+    if not summary:
+        raise HTTPException(status_code=500, detail="Nije moguće generirati sažetak.")
+
+    return {"document_id": document_id, "summary": summary}
