@@ -472,7 +472,7 @@ def cancel_subscription(current_user: User = Depends(get_current_user), db: Sess
     # Odmah spusti na besplatni plan u bazi
     current_user.plan = "free"
     current_user.plan_type = "free"
-    current_user.keyword_limit = 3
+    current_user.keyword_limit = 5
     current_user.email_notifications_enabled = False
     current_user.subscription_status = "free"
     current_user.stripe_subscription_id = None
@@ -508,7 +508,7 @@ def downgrade_to_free(current_user: User = Depends(get_current_user), db: Sessio
     # Spusti plan na besplatni — email obavijesti ostaju aktivne
     current_user.plan = "free"
     current_user.plan_type = "free"
-    current_user.keyword_limit = 3
+    current_user.keyword_limit = 5
     current_user.subscription_status = "free"
     current_user.stripe_subscription_id = None
     db.add(Log(event_type="subscription_cancelled", user_id=current_user.id, detail=f"{current_user.email} [downgrade-to-free]"))

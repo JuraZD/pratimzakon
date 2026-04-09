@@ -24,7 +24,7 @@ class User(Base):
     email_notifications_enabled = Column(Boolean, default=True)
     subscription_status = Column(String, default="free")  # free | active | expired
     subscription_end = Column(Date, nullable=True)
-    keyword_limit = Column(Integer, default=3)
+    keyword_limit = Column(Integer, default=5)
     plan = Column(String, default="free")  # free | pro | expert
     include_mu = Column(Boolean, default=False)  # uključi međunarodne ugovore (MU)
     plan_type = Column(String, default="free")  # free | pro | expert
