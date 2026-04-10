@@ -126,6 +126,13 @@
   .card-head-action:hover { opacity:0.7; }
   .card-body { padding:13px 16px; flex:1; overflow:hidden; display:flex; flex-direction:column; }
 
+  /* ── KEYWORD LIMIT BAR ── */
+  .limit-track { height:3px; background:var(--border-strong); border-radius:2px; margin-bottom:4px; }
+  .limit-fill { height:100%; background:var(--green); border-radius:2px; transition:width 0.4s ease; }
+  .limit-fill.warn { background:var(--orange); }
+  .limit-fill.full { background:#c0392b; }
+  .limit-label { font-size:calc(10px * var(--font-scale)); color:var(--muted); margin-bottom:8px; }
+
   /* ── KEYWORDS ── */
   .keywords-card { grid-column:1; grid-row:2; }
   .tag-list { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:11px; }
@@ -194,6 +201,13 @@
 
   .empty-msg { color:var(--muted); font-size:calc(13px * var(--font-scale)); padding:12px 0; }
 
+  /* ── PAGINATION ── */
+  .pagination { display:flex; gap:4px; justify-content:center; margin-top:10px; }
+  .page-btn { padding:4px 10px; border:1.5px solid var(--border-strong); background:var(--surface2); color:var(--muted); font-family:var(--font-body); font-size:calc(11px * var(--font-scale)); cursor:pointer; border-radius:var(--radius); transition:all 0.15s; font-weight:600; }
+  .page-btn:hover { border-color:var(--navy); color:var(--navy); }
+  .page-btn.active { background:var(--navy); color:var(--cream); border-color:var(--navy); }
+  .page-btn:disabled { opacity:0.3; cursor:not-allowed; }
+
   /* ── TOAST ── */
   .toast { position:fixed; bottom:22px; right:22px; padding:11px 18px; background:var(--navy); border-left:4px solid var(--orange); color:var(--cream); font-size:calc(13px * var(--font-scale)); font-weight:500; box-shadow:0 6px 24px rgba(0,0,0,0.2); transform:translateY(70px); opacity:0; transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index:999; pointer-events:none; border-radius:var(--radius); }
   .toast.show { transform:translateY(0); opacity:1; }
@@ -207,7 +221,6 @@
     <nav class="nav">
       <div class="nav-section-label">Glavni izbornik</div>
       <div class="nav-item active"><span class="nav-icon">◈</span> Dashboard</div>
-      <div class="nav-item"><span class="nav-icon">◉</span> Moje praćenje</div>
       <div class="nav-item"><span class="nav-icon">◇</span> Matchevi</div>
       <div class="nav-item"><span class="nav-icon">◎</span> Email arhiva</div>
       <div class="nav-divider"></div>
@@ -288,6 +301,8 @@
         </div>
         <div class="card-body">
           <div class="tag-list" id="tag-list"></div>
+          <div class="limit-track"><div class="limit-fill" id="limit-fill" style="width:0%"></div></div>
+          <div class="limit-label" id="limit-label">0 / — ključnih riječi</div>
           <div class="tag-input-wrap">
             <input class="tag-input" id="new-kw" type="text" placeholder="Dodaj ključnu riječ..." onkeydown="if(event.key==='Enter') addTag()">
             <button class="btn-add" onclick="addTag()">+ Dodaj</button>
@@ -318,11 +333,12 @@
 
       <div class="card matches-card">
         <div class="card-head">
-          <div class="card-title">Zadnji matchevi</div>
-          <div class="card-head-action">Vidi sve →</div>
+          <div class="card-title">Matchevi</div>
+          <div class="card-head-action" id="match-count"></div>
         </div>
-        <div class="card-body" style="padding-top:8px;padding-bottom:6px;" id="matches-body">
-          <div class="empty-msg">Učitavanje...</div>
+        <div class="card-body" style="padding-top:8px;padding-bottom:6px;">
+          <div id="matches-body"><div class="empty-msg">Učitavanje...</div></div>
+          <div id="matches-pag"></div>
         </div>
       </div>
 
@@ -345,6 +361,10 @@
 
 <script>
   const API = 'https://pratimzakon.onrender.com';
+  let userKwLimit = 5;
+  let allMatches = [];
+  let currentPage = 1;
+  const PER_PAGE = 20;
 
   // ── TEMA ──────────────────────────────────────────────────────────────────
   function toggleTheme() {
@@ -379,6 +399,7 @@
   function getToken() { return localStorage.getItem('token'); }
   function authHeaders() { return { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' }; }
   function logout() { localStorage.removeItem('token'); window.location.href = 'index.html'; }
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   document.querySelectorAll('.nav-item').forEach(item => {
     const text = item.textContent.trim();
@@ -386,7 +407,6 @@
     if (text.includes('Postavke'))      item.onclick = () => showToast('Postavke — uskoro dostupno');
     if (text.includes('Matchevi'))      item.onclick = () => showToast('Matchevi — uskoro dostupno');
     if (text.includes('Email arhiva'))  item.onclick = () => showToast('Email arhiva — uskoro dostupno');
-    if (text.includes('Moje praćenje')) item.onclick = () => window.location.href = 'moje-pracenje.html';
     });
 
   function showToast(msg) {
@@ -408,6 +428,7 @@
       document.getElementById('sidebar-email').textContent = user.email;
       document.getElementById('sidebar-badge').textContent = user.plan === 'free' ? 'BETA' : user.plan.toUpperCase();
       document.getElementById('email-addr').textContent = user.email;
+      userKwLimit = user.keyword_limit || 5;
       const h = new Date().getHours();
       const g = h < 12 ? 'DOBRO JUTRO' : h < 18 ? 'DOBAR DAN' : 'DOBRA VEČER';
       document.getElementById('topbar-greeting').innerHTML = g + ', <span>' + namePart.toUpperCase() + '</span>';
@@ -474,36 +495,78 @@
 
   function clearTags() { showToast('Koristite × na svakoj ključnoj riječi za brisanje'); }
   function updateKwCount() {
+    const count = document.querySelectorAll('.tag').length;
     const el = document.getElementById('stat-kw');
-    if (el) el.textContent = document.querySelectorAll('.tag').length;
+    if (el) el.textContent = count;
+    const fill = document.getElementById('limit-fill');
+    if (fill && userKwLimit) {
+      const pct = Math.min((count / userKwLimit) * 100, 100);
+      fill.style.width = pct + '%';
+      fill.className = 'limit-fill' + (pct >= 100 ? ' full' : pct >= 75 ? ' warn' : '');
+      const lbl = document.getElementById('limit-label');
+      if (lbl) lbl.textContent = count + ' / ' + userKwLimit + ' ključnih riječi';
+    }
   }
-  function savePracenje() { showToast('Ključne riječi se automatski spremaju'); }
+  async function savePracenje() {
+    const sit = document.getElementById('situation').value.trim();
+    try {
+      const res = await fetch(API + '/keywords/situation', {
+        method: 'POST', headers: authHeaders(),
+        body: JSON.stringify({ situation: sit })
+      });
+      showToast(res.ok ? 'Situacija uspješno spremljena!' : 'Greška pri spremanju');
+    } catch(e) {
+      showToast('Greška pri spremanju');
+    }
+  }
 
   // ── LOAD MATCHES ──────────────────────────────────────────────────────────
   async function loadMatches() {
     try {
-      const res = await fetch(API + '/search/matches/recent?limit=5', { headers: authHeaders() });
+      const res = await fetch(API + '/search/matches/recent?limit=100', { headers: authHeaders() });
       if (!res.ok) return;
-      const matches = await res.json();
+      allMatches = await res.json();
       const list = document.getElementById('matches-body');
       if (!list) return;
-      if (matches.length === 0) {
+      if (allMatches.length === 0) {
         list.innerHTML = '<div class="empty-msg">Još nema matcheva — tražilica će ih pronaći pri sljedećem skeniranju.</div>';
+        document.getElementById('match-count').textContent = '';
         document.getElementById('stat-week').textContent = '0';
         document.getElementById('stat-last-match').textContent = '—';
         return;
       }
-      list.innerHTML = matches.map(m => `
-        <div class="match-row">
-          <div class="match-title">${m.document_title}</div>
-          <div class="match-kw">${m.keyword}</div>
-          <div class="match-date">${m.matched_at}</div>
-          <button class="match-btn" onclick="window.location='sazetak.html?id=${m.document_id}'">Vidi sažetak</button>
-        </div>
-      `).join('');
-      document.getElementById('stat-week').textContent = matches.length;
-      document.getElementById('stat-last-match').textContent = matches[0].matched_at;
+      document.getElementById('stat-week').textContent = allMatches.length;
+      document.getElementById('match-count').textContent = allMatches.length + ' ukupno';
+      document.getElementById('stat-last-match').textContent = (allMatches[0].matched_at || '').split(' ')[0] || '—';
+      renderMatchPage(1);
     } catch(e) { console.error('Greška matchevi:', e); }
+  }
+
+  function renderMatchPage(page) {
+    currentPage = page;
+    const list = document.getElementById('matches-body');
+    if (!list || !allMatches.length) return;
+    const totalPages = Math.ceil(allMatches.length / PER_PAGE);
+    const slice = allMatches.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+    list.innerHTML = slice.map(m => `
+      <div class="match-row">
+        <div class="match-title">${esc(m.document_title)}</div>
+        <div class="match-kw">${esc(m.keyword)}</div>
+        <div class="match-date">${esc((m.matched_at || '').split(' ')[0])}</div>
+        <button class="match-btn" onclick="window.location='sazetak.html?id=${esc(m.document_id)}'">Vidi sažetak</button>
+      </div>
+    `).join('');
+    const pag = document.getElementById('matches-pag');
+    if (totalPages > 1) {
+      let h = '<div class="pagination">';
+      h += `<button class="page-btn" onclick="renderMatchPage(${page - 1})" ${page <= 1 ? 'disabled' : ''}>←</button>`;
+      for (let p = Math.max(1, page - 2); p <= Math.min(totalPages, page + 2); p++)
+        h += `<button class="page-btn ${p === page ? 'active' : ''}" onclick="renderMatchPage(${p})">${p}</button>`;
+      h += `<button class="page-btn" onclick="renderMatchPage(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>→</button></div>`;
+      pag.innerHTML = h;
+    } else {
+      pag.innerHTML = '';
+    }
   }
 
   // ── LOAD ACTIVITY ─────────────────────────────────────────────────────────
@@ -518,11 +581,11 @@
       if (emailList) {
         emailList.innerHTML = emails.length === 0
           ? '<div class="empty-msg">Još nema poslanih emailova — pokreni tražilicu za prve rezultate.</div>'
-          : emails.slice(0, 3).map(e => `
+          : emails.map(e => `
               <div class="email-row">
-                <div class="email-row-date">${e.timestamp.split(' ')[0]}</div>
+                <div class="email-row-date">${esc(e.timestamp.split(' ')[0])}</div>
                 <div class="email-row-content">
-                  <div class="email-row-title">${e.message.replace('Email poslan — ', '')}</div>
+                  <div class="email-row-title">${esc(e.message.replace('Email poslan — ', ''))}</div>
                   <div class="email-row-sub">Email notifikacija</div>
                 </div>
               </div>`).join('');
@@ -536,12 +599,12 @@
           : activities.map((a, i) => `
               <div class="activity-item">
                 <div class="activity-dot-wrap">
-                  <div class="activity-dot ${a.color}"></div>
+                  <div class="activity-dot ${esc(a.color)}"></div>
                   ${i < activities.length - 1 ? '<div class="activity-line"></div>' : ''}
                 </div>
                 <div class="activity-body">
-                  <div class="activity-text">${a.message}</div>
-                  <div class="activity-time">${a.timestamp}</div>
+                  <div class="activity-text">${esc(a.message)}</div>
+                  <div class="activity-time">${esc(a.timestamp)}</div>
                 </div>
               </div>`).join('');
       }
