@@ -147,20 +147,3 @@ def trigger_scraper(
     thread.start()
 
     return {"status": "ok", "message": "Tražilica pokrenuta u pozadini."}
-
-@router.post("/trigger-scraper")
-def trigger_scraper(
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
-):
-    """Ručno pokretanje tražilice — dostupno svim korisnicima."""
-    def run_in_background():
-        try:
-            run_check()
-        except Exception as e:
-            logging.error(f"Scraper greška: {e}")
-
-    thread = threading.Thread(target=run_in_background, daemon=True)
-    thread.start()
-
-    return {"status": "ok", "message": "Tražilica pokrenuta u pozadini."}

@@ -208,6 +208,19 @@
   .page-btn.active { background:var(--navy); color:var(--cream); border-color:var(--navy); }
   .page-btn:disabled { opacity:0.3; cursor:not-allowed; }
 
+  /* ── NN STATUS BADGE ── */
+  .nn-status-badge { display:flex; align-items:center; gap:8px; padding:5px 12px; background:var(--green-dim); border:1px solid rgba(46,125,82,0.25); border-radius:var(--radius); cursor:default; }
+  .nn-status-badge.stale { background:rgba(212,88,31,0.08); border-color:rgba(212,88,31,0.2); }
+  .nn-status-badge.old   { background:rgba(192,57,43,0.08); border-color:rgba(192,57,43,0.2); }
+  .nn-status-dot { width:7px; height:7px; border-radius:50%; background:var(--green); flex-shrink:0; animation:blink 2s ease-in-out infinite; }
+  .nn-status-badge.stale .nn-status-dot { background:var(--orange2); }
+  .nn-status-badge.old   .nn-status-dot { background:#c0392b; animation:none; }
+  .nn-status-text { display:flex; flex-direction:column; line-height:1.25; }
+  .nn-status-label { font-size:calc(11.5px * var(--font-scale)); font-weight:700; color:var(--green); letter-spacing:0.4px; text-transform:uppercase; }
+  .nn-status-badge.stale .nn-status-label { color:var(--orange2); }
+  .nn-status-badge.old   .nn-status-label { color:#c0392b; }
+  .nn-status-sub { font-size:calc(10px * var(--font-scale)); color:var(--muted); font-weight:500; }
+
   /* ── TOAST ── */
   .toast { position:fixed; bottom:22px; right:22px; padding:11px 18px; background:var(--navy); border-left:4px solid var(--orange); color:var(--cream); font-size:calc(13px * var(--font-scale)); font-weight:500; box-shadow:0 6px 24px rgba(0,0,0,0.2); transform:translateY(70px); opacity:0; transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index:999; pointer-events:none; border-radius:var(--radius); }
   .toast.show { transform:translateY(0); opacity:1; }
@@ -241,7 +254,13 @@
     <div class="topbar">
       <div class="topbar-title" id="topbar-greeting">DOBRODOŠLI</div>
       <div class="topbar-right">
-        <div class="badge-live"><div class="badge-live-dot"></div>Tražilica aktivna</div>
+        <div class="nn-status-badge" id="nn-status-badge" title="">
+          <div class="nn-status-dot" id="nn-status-dot"></div>
+          <div class="nn-status-text">
+            <div class="nn-status-label" id="nn-status-label">NN —/—</div>
+            <div class="nn-status-sub" id="nn-status-sub">Učitavanje...</div>
+          </div>
+        </div>
         <button class="btn-secondary" id="btn-scraper" onclick="triggerScraper()">▷ Pokreni tražilicu</button>
         <div class="font-controls" title="Veličina teksta">
           <button class="font-btn" onclick="changeFontSize(-1)" title="Smanji tekst">A−</button>
@@ -713,12 +732,65 @@
     }
   }
 
+  // ── NN STATUS ─────────────────────────────────────────────────────────────
+  function getNextScanLabel() {
+    // Cron: 0 6 * * 1-5 (UTC) = radnim danom u 06:00 UTC (07:00 CET / 08:00 CEST)
+    const now = new Date();
+    const next = new Date(now);
+    next.setUTCHours(6, 0, 0, 0);
+    if (now.getUTCHours() >= 6) next.setUTCDate(next.getUTCDate() + 1);
+    while (next.getUTCDay() === 0 || next.getUTCDay() === 6) {
+      next.setUTCDate(next.getUTCDate() + 1);
+    }
+    const diffMs = next - now;
+    const diffH = Math.floor(diffMs / 3600000);
+    if (diffH < 24) return 'Sljedeće za ' + diffH + 'h';
+    return 'Sljedeće za ' + Math.floor(diffH / 24) + 'd';
+  }
+
+  async function loadNNStatus() {
+    const badge = document.getElementById('nn-status-badge');
+    const label = document.getElementById('nn-status-label');
+    const sub   = document.getElementById('nn-status-sub');
+    if (!badge) return;
+    try {
+      const res = await fetch(API + '/search/latest-issue', { headers: authHeaders() });
+      if (!res.ok) { sub.textContent = 'Greška dohvata'; return; }
+      const data = await res.json();
+      if (!data.label) { label.textContent = 'NN —/—'; sub.textContent = 'Nema podataka'; return; }
+
+      label.textContent = data.label;
+      badge.title = 'Zadnje skeniranje: ' + (data.published_date || '?');
+
+      const pubDate = data.published_date ? new Date(data.published_date) : null;
+      const daysDiff = pubDate ? Math.floor((new Date() - pubDate) / 86400000) : null;
+      const nextLabel = getNextScanLabel();
+
+      if (daysDiff === null) {
+        badge.className = 'nn-status-badge';
+        sub.textContent = nextLabel;
+      } else if (daysDiff <= 3) {
+        badge.className = 'nn-status-badge';
+        sub.textContent = 'Ažurno · ' + nextLabel;
+      } else if (daysDiff <= 7) {
+        badge.className = 'nn-status-badge stale';
+        sub.textContent = daysDiff + ' dana · ' + nextLabel;
+      } else {
+        badge.className = 'nn-status-badge old';
+        sub.textContent = daysDiff + ' dana bez ažuriranja';
+      }
+    } catch(e) {
+      sub.textContent = 'Nije dostupno';
+    }
+  }
+
   // ── INIT ──────────────────────────────────────────────────────────────────
   async function init() {
     await loadUser();
     await loadKeywords();
     await loadMatches();
     await loadActivity();
+    loadNNStatus();
   }
 
   init();
