@@ -138,25 +138,80 @@ def trigger_user_scan(
     """
     Skenira SVE postojeće dokumente u bazi za ključne riječi trenutnog korisnika.
     Sprema keyword_match logove bez slanja emaila.
-    Email ide samo za nove NN objave od trenutka registracije (via trigger-scraper / cron).
+    Namjerno ne importa notifier.py kako bi se izbjegla ovisnost o Anthropic SDK-u.
     """
-    from ..email.notifier import scan_documents_for_user
     from ..database import SessionLocal
+    from ..models import Document, Keyword, Log as ScanLog
 
     user_id = current_user.id
+
+    # Hrvatski stemmer — kopija iz notifier.py, bez AI importa
+    _SUFFIXES = sorted(
+        ["icama", "stvima", "stvo", "stva", "stvu", "stvom",
+         "nika", "nice", "nici", "niku",
+         "ama", "ima", "ski", "ska", "sko",
+         "ni", "na", "no", "ne", "om", "og",
+         "a", "e", "i", "o", "u"],
+        key=len, reverse=True,
+    )
+
+    def _stem(kw: str) -> str:
+        s = kw.strip().lower()
+        if len(s) <= 6:
+            return s
+        for suf in _SUFFIXES:
+            if s.endswith(suf) and (len(s) - len(suf)) >= 4:
+                return s[:-len(suf)]
+        return s
 
     def run_in_background():
         try:
             bg_db = SessionLocal()
             try:
-                count = scan_documents_for_user(user_id, bg_db)
-                logging.info(f"Korisnik {user_id}: pronađeno {count} novih podudaranja u arhivi")
+                keywords = bg_db.query(Keyword).filter(Keyword.user_id == user_id).all()
+                if not keywords:
+                    logging.info(f"Korisnik {user_id}: nema ključnih riječi za skeniranje")
+                    return
+
+                existing = {
+                    (p.get("keyword", "").lower(), p.get("doc_id", ""))
+                    for row in bg_db.query(ScanLog.detail)
+                        .filter(ScanLog.user_id == user_id, ScanLog.event_type == "keyword_match")
+                        .all()
+                    for p in [dict(x.split(":", 1) for x in (row[0] or "").split("|") if ":" in x)]
+                }
+
+                new_count = 0
+                for kw in keywords:
+                    term = _stem(kw.keyword)
+                    query = bg_db.query(Document).filter(Document.title.ilike(f"%{term}%"))
+                    if kw.part_filter:
+                        query = query.filter(Document.part == kw.part_filter.upper())
+                    if kw.institution_filter:
+                        query = query.filter(Document.institution.ilike(f"%{kw.institution_filter}%"))
+
+                    docs = query.all()
+                    logging.info(f"Korisnik {user_id} keyword='{kw.keyword}' (stem='{term}'): {len(docs)} dokumenata")
+
+                    for doc in docs:
+                        pair = (kw.keyword.lower(), str(doc.id))
+                        if pair in existing:
+                            continue
+                        detail = f"keyword:{kw.keyword}|doc_id:{doc.id}|title:{doc.title[:100]}"
+                        bg_db.add(ScanLog(event_type="keyword_match", user_id=user_id, detail=detail))
+                        existing.add(pair)
+                        new_count += 1
+
+                if new_count > 0:
+                    bg_db.commit()
+                logging.info(f"Korisnik {user_id}: {new_count} novih podudaranja spremljeno")
+
             finally:
                 bg_db.close()
         except Exception as e:
-            logging.error(f"Greška pri skeniranju za korisnika {user_id}: {e}")
+            logging.error(f"Greška pri skeniranju za korisnika {user_id}: {e}", exc_info=True)
 
     thread = threading.Thread(target=run_in_background, daemon=True)
     thread.start()
 
-    return {"status": "ok", "message": "Skeniranje arhive u tijeku. Rezultati će biti vidljivi za nekoliko trenutaka."}
+    return {"status": "ok", "message": "Skeniranje u tijeku."}
