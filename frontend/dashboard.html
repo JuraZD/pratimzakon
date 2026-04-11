@@ -877,11 +877,17 @@
       const res = await fetch(API + '/search/latest-issue', { headers: authHeaders() });
       if (!res.ok) throw new Error('status ' + res.status);
       const data = await res.json();
-      const val = data.label || (data.published_date ? data.published_date : null);
-      document.getElementById('db-latest-issue').textContent = val || 'Nema podataka u bazi';
+      const el = document.getElementById('db-latest-issue');
+      const count = data.total_docs ? data.total_docs.toLocaleString('hr') + ' dokumenata' : '';
+      if (data.label) {
+        el.textContent = data.label + (count ? ' · ' + count : '');
+      } else if (count) {
+        el.textContent = count + ' u bazi';
+      } else {
+        el.textContent = 'Baza se puni...';
+      }
     } catch(e) {
       if (retries > 0) {
-        // Poslužitelj se budi — pokušaj ponovo za 20 sekundi
         setTimeout(() => loadLatestIssue(retries - 1), 20000);
       } else {
         document.getElementById('db-latest-issue').textContent = 'Nije dostupno';

@@ -107,7 +107,9 @@ def get_latest_issue(
     current_user: User = Depends(get_current_user),
 ):
     """Vraća broj i datum posljednjeg broja Narodnih novina u bazi."""
-    # Pokušaj s issue_number
+    total_docs = db.query(func.count(Document.id)).scalar() or 0
+
+    # 1. Pokušaj s issue_number + published_date
     result = (
         db.query(Document.issue_number, Document.published_date)
         .filter(Document.issue_number.isnot(None))
@@ -117,29 +119,46 @@ def get_latest_issue(
     if result:
         issue_number, published_date = result
         year = published_date.year if published_date else None
-        label = f"NN {issue_number}/{year}" if issue_number and year else None
+        label = f"NN {issue_number}/{year}" if issue_number and year else f"NN {issue_number}"
         return {
             "issue_number": issue_number,
             "published_date": str(published_date) if published_date else None,
             "label": label,
+            "total_docs": total_docs,
         }
 
-    # Fallback: dohvati samo po published_date (bez issue_number)
-    fallback = (
+    # 2. Fallback: samo published_date
+    r2 = (
         db.query(Document.published_date)
         .filter(Document.published_date.isnot(None))
         .order_by(Document.published_date.desc())
         .first()
     )
-    if fallback:
-        published_date = fallback[0]
+    if r2:
         return {
             "issue_number": None,
-            "published_date": str(published_date),
-            "label": None,
+            "published_date": str(r2[0]),
+            "label": str(r2[0]),
+            "total_docs": total_docs,
         }
 
-    return {"issue_number": None, "published_date": None, "label": None}
+    # 3. Fallback: date_document
+    r3 = (
+        db.query(Document.date_document)
+        .filter(Document.date_document.isnot(None))
+        .order_by(Document.date_document.desc())
+        .first()
+    )
+    if r3:
+        return {
+            "issue_number": None,
+            "published_date": str(r3[0]),
+            "label": str(r3[0]),
+            "total_docs": total_docs,
+        }
+
+    # 4. Posljednji fallback: samo broj dokumenata
+    return {"issue_number": None, "published_date": None, "label": None, "total_docs": total_docs}
 
 
 @router.get("/institutions")
