@@ -10,6 +10,7 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
+    --font-scale: 1;
     --navy:       #1a2744;
     --navy2:      #243258;
     --navy3:      #2d3e6a;
@@ -62,7 +63,7 @@
 
   body {
     font-family: var(--font-body);
-    font-size: 15px;
+    font-size: calc(15px * var(--font-scale));
     color: var(--text);
     background: var(--bg);
     line-height: 1.6;
@@ -150,6 +151,21 @@
   }
 
   .btn-theme:hover { background: var(--navy); color: var(--surface); border-color: var(--navy); }
+
+  /* ─── FONT SIZE CONTROLS ─── */
+  .font-controls {
+    display: flex; align-items: center; gap: 2px;
+    padding: 3px 6px; background: var(--surface2);
+    border: 1.5px solid var(--rule-strong); border-radius: var(--radius);
+  }
+  .font-btn {
+    width: 26px; height: 26px; background: transparent; border: none;
+    cursor: pointer; color: var(--text); font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 2px; transition: background .15s; line-height: 1;
+  }
+  .font-btn:hover { background: var(--navy); color: var(--surface); }
+  @media (max-width: 400px) { .font-controls { display: none; } }
 
   /* ─── HERO ─── */
   .hero {
@@ -687,8 +703,9 @@
     .trial-strip { gap: 14px; }
     .trial-div { display: none; }
     .cookie-banner { flex-direction: column; align-items: flex-start; padding: 18px 20px; }
-    /* Nav: hide "Prijava" on small screens, keep only Register + theme */
-    .btn-ghost { display: none; }
+    /* Compact nav buttons on small screens */
+    .btn-ghost { padding: 7px 12px; font-size: 11px; }
+    .btn-solid { padding: 7px 12px; font-size: 11px; }
     nav .inner { padding-top: 14px; padding-bottom: 14px; }
   }
 
@@ -715,6 +732,10 @@
       <span class="beta-badge">BETA</span>
     </div>
     <div class="nav-right">
+      <div class="font-controls" title="Veličina teksta">
+        <button class="font-btn" id="font-minus" title="Smanji tekst">A−</button>
+        <button class="font-btn" id="font-plus" title="Povećaj tekst">A+</button>
+      </div>
       <button class="btn-theme" id="theme-toggle" onclick="toggleTheme()" title="Promijeni temu">☀</button>
       <a href="#" class="btn btn-ghost" onclick="openModal('login')">Prijava</a>
       <a href="#" class="btn btn-solid" onclick="openModal('register')">Registracija</a>
@@ -1010,6 +1031,17 @@
 
 <script>
   const API = "https://pratimzakon.onrender.com";
+
+  // ─── FONT SIZE ───
+  const FONT_STEPS = [0.80, 0.88, 0.95, 1.00, 1.08, 1.16, 1.25];
+  let fontIdx = parseInt(localStorage.getItem('pz-font-idx') || '3');
+  function applyFontSize() {
+    document.documentElement.style.setProperty('--font-scale', FONT_STEPS[fontIdx]);
+    localStorage.setItem('pz-font-idx', fontIdx);
+  }
+  applyFontSize();
+  document.getElementById('font-minus').onclick = () => { fontIdx = Math.max(0, fontIdx - 1); applyFontSize(); };
+  document.getElementById('font-plus').onclick  = () => { fontIdx = Math.min(FONT_STEPS.length - 1, fontIdx + 1); applyFontSize(); };
 
   // ─── DARK MODE ───
   function toggleTheme() {
