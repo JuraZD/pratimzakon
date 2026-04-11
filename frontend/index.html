@@ -165,7 +165,25 @@
     border-radius: 2px; transition: background .15s; line-height: 1;
   }
   .font-btn:hover { background: var(--navy); color: var(--surface); }
-  @media (max-width: 400px) { .font-controls { display: none; } }
+  /* On mobile, hide nav font controls and show floating FAB instead */
+  @media (max-width: 560px) { .font-controls { display: none; } }
+
+  /* ─── FLOATING FONT FAB (mobile only) ─── */
+  .font-fab {
+    position: fixed; bottom: 80px; right: 16px;
+    display: none; flex-direction: column; gap: 6px; z-index: 150;
+  }
+  .font-fab-btn {
+    width: 42px; height: 42px;
+    background: var(--navy); color: var(--cream2);
+    border: none; border-radius: 50%;
+    font-family: var(--font-display); font-size: 15px; font-weight: 800;
+    cursor: pointer; transition: background .15s, transform .15s;
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
+  }
+  .font-fab-btn:hover { background: var(--orange); transform: scale(1.1); }
+  @media (max-width: 560px) { .font-fab { display: flex; } }
 
   /* ─── HERO ─── */
   .hero {
@@ -657,6 +675,20 @@
   .form-switch { text-align: center; margin-top: 16px; font-size: 13px; color: var(--muted); }
   .form-switch a { color: var(--orange); font-weight: 600; text-decoration: underline; }
 
+  /* ─── PASSWORD TOGGLE ─── */
+  .pw-wrap { position: relative; }
+  .pw-wrap input { width: 100%; padding-right: 58px; }
+  .pw-toggle {
+    position: absolute; right: 0; top: 0; bottom: 0;
+    background: none; border: none; border-left: 1.5px solid var(--rule-strong);
+    cursor: pointer; color: var(--muted);
+    font-family: var(--font-body); font-size: 11px; font-weight: 700;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    padding: 0 12px; transition: color .15s, background .15s;
+    border-radius: 0 var(--radius) var(--radius) 0;
+  }
+  .pw-toggle:hover { color: var(--navy); background: var(--surface2); }
+
   .form-error {
     font-size: 13px; color: #b91c1c; margin-bottom: 14px;
     padding: 10px 14px; background: #fef2f2;
@@ -1001,7 +1033,10 @@
       </div>
       <div class="form-group">
         <label>Lozinka</label>
-        <input type="password" id="regPassword" placeholder="Najmanje 8 znakova">
+        <div class="pw-wrap">
+          <input type="password" id="regPassword" placeholder="Najmanje 8 znakova">
+          <button type="button" class="pw-toggle" onclick="togglePw('regPassword',this)">Vidi</button>
+        </div>
       </div>
       <button class="btn btn-solid form-submit" id="regBtn" onclick="register()">Registriraj se →</button>
       <div class="form-switch">Već imate račun? <a href="#" onclick="showLogin()">Prijavite se</a></div>
@@ -1021,7 +1056,10 @@
       </div>
       <div class="form-group">
         <label>Lozinka</label>
-        <input type="password" id="loginPassword" placeholder="Vaša lozinka">
+        <div class="pw-wrap">
+          <input type="password" id="loginPassword" placeholder="Vaša lozinka">
+          <button type="button" class="pw-toggle" onclick="togglePw('loginPassword',this)">Vidi</button>
+        </div>
       </div>
       <button class="btn btn-solid form-submit" id="loginBtn" onclick="login()">Prijavi se →</button>
       <div class="form-switch">Nemate račun? <a href="#" onclick="showRegister()">Registrirajte se</a></div>
@@ -1031,6 +1069,14 @@
 
 <script>
   const API = "https://pratimzakon.onrender.com";
+
+  // ─── PASSWORD TOGGLE ───
+  function togglePw(id, btn) {
+    const input = document.getElementById(id);
+    const show = input.type === 'password';
+    input.type = show ? 'text' : 'password';
+    btn.textContent = show ? 'Sakrij' : 'Vidi';
+  }
 
   // ─── FONT SIZE ───
   const FONT_STEPS = [0.80, 0.88, 0.95, 1.00, 1.08, 1.16, 1.25];
@@ -1271,5 +1317,11 @@
     }
   }
 </script>
+
+<!-- Floating font size controls (mobile only) -->
+<div class="font-fab" aria-label="Veličina teksta">
+  <button class="font-fab-btn" onclick="document.getElementById('font-plus').click()" title="Povećaj tekst">A+</button>
+  <button class="font-fab-btn" onclick="document.getElementById('font-minus').click()" title="Smanji tekst">A−</button>
+</div>
 </body>
 </html>
