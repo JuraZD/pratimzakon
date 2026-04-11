@@ -737,11 +737,11 @@
 
   // ── PROGRESS BAR ──────────────────────────────────────────────────────────
   const SCRAPER_STEPS = [
-    { pct: 10, msg: 'Spajanje na Narodne novine...', step: 'Korak 1/5' },
-    { pct: 25, msg: 'Dohvat popisa novih dokumenata...', step: 'Korak 2/5' },
-    { pct: 50, msg: 'Analiza dokumenata...', step: 'Korak 3/5' },
-    { pct: 72, msg: 'Provjera ključnih riječi...', step: 'Korak 4/5' },
-    { pct: 90, msg: 'Slanje notifikacija...', step: 'Korak 5/5' },
+    { pct: 10, msg: 'Pokretanje skeniranja arhive...', step: 'Korak 1/5' },
+    { pct: 25, msg: 'Pretraživanje baze dokumenata...', step: 'Korak 2/5' },
+    { pct: 50, msg: 'Uspoređivanje s ključnim riječima...', step: 'Korak 3/5' },
+    { pct: 72, msg: 'Bilježenje pronalazaka...', step: 'Korak 4/5' },
+    { pct: 90, msg: 'Završna provjera...', step: 'Korak 5/5' },
   ];
 
   let scraperPolling = null;
@@ -818,12 +818,14 @@
       });
 
       if (res.ok) {
-        // Osvježi podatke nakon 15 sekundi (skeniranje arhive je brže od full scrape)
+        // Osvježi matcheve u više navrata — skeniranje može trajati dulje
+        setTimeout(() => { loadMatches(); }, 10000);
+        setTimeout(() => { loadMatches(); }, 30000);
         setTimeout(() => {
           loadActivity();
           loadMatches();
           finishScraperPanel(true);
-        }, 15000);
+        }, 60000);
       } else {
         finishScraperPanel(false);
       }

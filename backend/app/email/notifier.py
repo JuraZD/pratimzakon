@@ -220,6 +220,7 @@ def _build_email(user, matches: List[Dict], show_pdf: bool = False) -> tuple[str
 def scan_documents_for_user(user_id: int, db: Session) -> int:
     """
     Skenira SVE dokumente u bazi za ključne riječi jednog korisnika.
+    Koristi SQL ILIKE pretragu — brzo i efikasno za velike baze.
     Sprema keyword_match logove bez slanja emaila.
     Preskače već postojeće matcheve (ne duplikira).
     Vraća broj novih podudaranja.
@@ -227,39 +228,77 @@ def scan_documents_for_user(user_id: int, db: Session) -> int:
     from app.models import User, Document, Log
 
     user = db.query(User).filter(User.id == user_id).first()
-    if not user or not user.keywords:
+    if not user:
+        logging.warning(f"scan_documents_for_user: korisnik {user_id} nije pronađen")
         return 0
 
-    # Dohvati detalje već postojećih matcheva za korisnika (doc_id + keyword)
+    # Eagerly učitaj keywords unutar iste sesije
+    keywords = list(user.keywords)
+    if not keywords:
+        logging.info(f"scan_documents_for_user({user_id}): nema ključnih riječi")
+        return 0
+
+    # Dohvati skup (kw_text, doc_id) koji već postoje — izbjegni duplikate
     existing_rows = (
         db.query(Log.detail)
         .filter(Log.user_id == user_id, Log.event_type == "keyword_match")
         .all()
     )
-    existing_details = {r[0] for r in existing_rows if r[0]}
-
-    documents = db.query(Document).all()
+    # Izvuci (keyword, doc_id) parove iz detalja
+    existing_pairs: set = set()
+    for (detail,) in existing_rows:
+        if not detail:
+            continue
+        parts = dict(p.split(":", 1) for p in detail.split("|") if ":" in p)
+        kw_text = parts.get("keyword", "")
+        doc_id = parts.get("doc_id", "")
+        if kw_text and doc_id:
+            existing_pairs.add((kw_text.lower(), doc_id))
 
     new_count = 0
-    for doc in documents:
-        for kw in user.keywords:
-            if _keyword_matches_document(kw, doc):
-                detail = f"keyword:{kw.keyword}|doc_id:{doc.id}|title:{doc.title[:100]}"
-                if detail not in existing_details:
-                    db.add(
-                        Log(
-                            event_type="keyword_match",
-                            user_id=user_id,
-                            detail=detail,
-                        )
-                    )
-                    existing_details.add(detail)
-                    new_count += 1
+
+    for kw in keywords:
+        # SQL ILIKE — baza pretražuje, ne Python
+        query = db.query(Document).filter(Document.title.ilike(f"%{kw.keyword}%"))
+
+        if kw.part_filter:
+            query = query.filter(Document.part == kw.part_filter.upper())
+
+        if kw.doc_type_filter:
+            from sqlalchemy import or_ as sql_or
+            types = [t.strip().upper() for t in kw.doc_type_filter.split(",")]
+            query = query.filter(sql_or(*[Document.type.ilike(t) for t in types]))
+
+        if kw.institution_filter:
+            query = query.filter(
+                Document.institution.ilike(f"%{kw.institution_filter}%")
+            )
+
+        docs = query.all()
+        logging.info(
+            f"scan_documents_for_user({user_id}): keyword='{kw.keyword}' "
+            f"→ {len(docs)} dokumenata u bazi"
+        )
+
+        for doc in docs:
+            pair = (kw.keyword.lower(), str(doc.id))
+            if pair in existing_pairs:
+                continue
+            detail = f"keyword:{kw.keyword}|doc_id:{doc.id}|title:{doc.title[:100]}"
+            db.add(
+                Log(
+                    event_type="keyword_match",
+                    user_id=user_id,
+                    detail=detail,
+                )
+            )
+            existing_pairs.add(pair)
+            new_count += 1
 
     if new_count > 0:
         db.commit()
 
-    logging.info(f"scan_documents_for_user({user_id}): {new_count} novih podudaranja")
+    logging.info(f"scan_documents_for_user({user_id}): {new_count} novih podudaranja ukupno")
     return new_count
 
 
