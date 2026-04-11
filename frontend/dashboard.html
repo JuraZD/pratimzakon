@@ -471,6 +471,8 @@
   const API = 'https://pratimzakon.onrender.com';
   let userKwLimit = 5;
   let allMatches = [];
+  let matchPage = 1;
+  const MATCH_PER_PAGE = 10;
 
   // ── TEMA ──────────────────────────────────────────────────────────────────
   function toggleTheme() {
@@ -670,21 +672,30 @@
     } catch(e) { console.error('Greška matchevi:', e); }
   }
 
-  function renderMatchesByKeyword(matches) {
+  function renderMatchesByKeyword(matches, page) {
+    page = page || 1;
+    matchPage = page;
     const list = document.getElementById('matches-body');
     const pag = document.getElementById('matches-pag');
-    if (pag) pag.innerHTML = '';
+
     if (!matches.length) {
       list.innerHTML = '<div class="empty-msg">Još nema matcheva — pokreni tražilicu za prve rezultate.</div>';
+      if (pag) pag.innerHTML = '';
       return;
     }
-    // Group by keyword (preserve insertion order = most recent first)
+
+    // Stranica od 10 matcheva (sortirani najnoviji prvi)
+    const totalPages = Math.ceil(matches.length / MATCH_PER_PAGE);
+    const slice = matches.slice((page - 1) * MATCH_PER_PAGE, page * MATCH_PER_PAGE);
+
+    // Grupiraj slice po ključnoj riječi (redoslijed = najnoviji match)
     const groups = {};
-    matches.forEach(m => {
+    slice.forEach(m => {
       const kw = m.keyword || '—';
       if (!groups[kw]) groups[kw] = [];
       groups[kw].push(m);
     });
+
     const kwCount = n => n === 1 ? '1 dokument' : n < 5 ? n + ' dokumenta' : n + ' dokumenata';
     let html = '<div class="kw-groups">';
     for (const [kw, docs] of Object.entries(groups)) {
@@ -706,6 +717,26 @@
     }
     html += '</div>';
     list.innerHTML = html;
+
+    // Paginacija — prikaži samo ako ima više od 10 matcheva
+    if (pag) {
+      if (totalPages > 1) {
+        let h = '<div class="pagination">';
+        h += `<button class="pag-btn" onclick="renderMatchesByKeyword(allMatches,${page-1})" ${page<=1?'disabled':''}>←</button>`;
+        const start = Math.max(1, page - 2);
+        const end = Math.min(totalPages, page + 2);
+        if (start > 1) h += '<span class="pag-ellipsis">…</span>';
+        for (let p = start; p <= end; p++)
+          h += `<button class="pag-btn${p===page?' active':''}" onclick="renderMatchesByKeyword(allMatches,${p})">${p}</button>`;
+        if (end < totalPages) h += '<span class="pag-ellipsis">…</span>';
+        h += `<button class="pag-btn" onclick="renderMatchesByKeyword(allMatches,${page+1})" ${page>=totalPages?'disabled':''}>→</button>`;
+        h += `<span style="font-size:calc(10.5px * var(--font-scale));color:var(--muted);margin-left:4px;">${(page-1)*MATCH_PER_PAGE+1}–${Math.min(page*MATCH_PER_PAGE,matches.length)} / ${matches.length}</span>`;
+        h += '</div>';
+        pag.innerHTML = h;
+      } else {
+        pag.innerHTML = '';
+      }
+    }
   }
 
   // ── LOAD ACTIVITY ─────────────────────────────────────────────────────────
