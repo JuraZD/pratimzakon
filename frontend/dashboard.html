@@ -64,6 +64,12 @@
     .stats-row { display: grid; grid-template-columns: repeat(2,1fr); gap: 8px; margin-bottom: 10px; }
     .keywords-card, .email-card, .matches-card, .activity-card { width: 100%; margin-bottom: 10px; }
     .activity-card { height: auto; min-height: 220px; }
+    /* Allow cards to expand to full content height — no clipping on mobile */
+    .card { overflow: visible; }
+    .card-body { overflow: visible; flex: none; height: auto; }
+    /* Matches list: allow full height scroll */
+    .match-row { grid-template-columns: 1fr auto; gap: 8px; flex-wrap: wrap; }
+    .match-date { display: none; }
   }
   @media (max-width: 420px) {
     .stat-value { font-size: calc(28px * var(--font-scale)) !important; }
