@@ -168,22 +168,29 @@
   /* On mobile, hide nav font controls and show floating FAB instead */
   @media (max-width: 560px) { .font-controls { display: none; } }
 
-  /* ─── FLOATING FONT FAB (mobile only) ─── */
+  /* ─── FLOATING FONT FAB (mobile only, always on top) ─── */
   .font-fab {
-    position: fixed; bottom: 80px; right: 16px;
-    display: none; flex-direction: column; gap: 6px; z-index: 150;
+    position: fixed; bottom: 90px; left: 16px;
+    display: none; flex-direction: row; gap: 8px; z-index: 9000;
+    background: var(--navy); border-radius: 24px;
+    padding: 6px 10px; box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+    align-items: center;
+  }
+  .font-fab-label {
+    font-size: 9px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: rgba(232,228,218,0.5);
+    white-space: nowrap;
   }
   .font-fab-btn {
-    width: 42px; height: 42px;
-    background: var(--navy); color: var(--cream2);
-    border: none; border-radius: 50%;
-    font-family: var(--font-display); font-size: 15px; font-weight: 800;
-    cursor: pointer; transition: background .15s, transform .15s;
+    width: 36px; height: 36px;
+    background: rgba(255,255,255,0.1); color: var(--cream2);
+    border: 1.5px solid rgba(255,255,255,0.2); border-radius: 50%;
+    font-family: var(--font-display); font-size: 14px; font-weight: 800;
+    cursor: pointer; transition: background .15s;
     display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 3px 10px rgba(0,0,0,0.25);
   }
-  .font-fab-btn:hover { background: var(--orange); transform: scale(1.1); }
-  @media (max-width: 560px) { .font-fab { display: flex; } }
+  .font-fab-btn:active { background: var(--orange); border-color: var(--orange); }
+  @media (max-width: 768px) { .font-fab { display: flex; } }
 
   /* ─── HERO ─── */
   .hero {
@@ -1320,8 +1327,9 @@
 
 <!-- Floating font size controls (mobile only) -->
 <div class="font-fab" aria-label="Veličina teksta">
-  <button class="font-fab-btn" onclick="document.getElementById('font-plus').click()" title="Povećaj tekst">A+</button>
-  <button class="font-fab-btn" onclick="document.getElementById('font-minus').click()" title="Smanji tekst">A−</button>
+  <span class="font-fab-label">Tekst</span>
+  <button class="font-fab-btn" onclick="document.getElementById('font-minus').click()" title="Smanji tekst" aria-label="Smanji tekst">A−</button>
+  <button class="font-fab-btn" onclick="document.getElementById('font-plus').click()" title="Povećaj tekst" aria-label="Povećaj tekst">A+</button>
 </div>
 </body>
 </html>
