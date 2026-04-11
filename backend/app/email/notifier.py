@@ -20,6 +20,46 @@ SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 FROM_EMAIL = os.getenv("FROM_EMAIL", SMTP_USERNAME)
 FROM_NAME = os.getenv("FROM_NAME", "PratimZakon")
 
+# ── JEDNOSTAVNO STEMMANJE ZA HRVATSKI ─────────────────────────────────────────
+# Nastavci sortirani od dužih prema kraćima (greedy matching).
+# Koristi se za pretragu: "poljoprivreda" → "poljoprivred"
+# pa se pronalaze "poljoprivrednik", "poljoprivredni", "poljoprivredno" itd.
+_HR_SUFFIXES = sorted(
+    [
+        # Duge deklinacije/derivacije
+        "icama", "nošću", "stvima", "stvom",
+        "nika", "nice", "nici", "niku",
+        "ama", "ima", "ski", "ska", "sko",
+        "ni", "na", "no", "ne",
+        "om", "og",
+        "a", "e", "i", "u",
+    ],
+    key=len,
+    reverse=True,
+)
+_MIN_STEM_LEN = 4   # stem mora imati barem toliko znakova
+_MIN_KW_LEN   = 6   # kratke riječi (PDV, zakon...) ne stemamo
+
+
+def _stem_keyword(keyword: str) -> str:
+    """
+    Jednostavni stemmer za hrvatski jezik.
+    Uklanja tipični nastavak samo za riječi dulje od _MIN_KW_LEN znakova.
+    Primjeri:
+      'poljoprivreda' → 'poljoprivred'
+      'zdravstvo'     → 'zdravstv'
+      'osiguranje'    → 'osiguranJ' wait... 'osiguranj'
+      'porez'         → 'porez'   (≤5 znakova, bez promjene)
+      'PDV'           → 'PDV'     (≤5 znakova, bez promjene)
+    """
+    kw = keyword.strip().lower()
+    if len(kw) <= _MIN_KW_LEN:
+        return kw
+    for suffix in _HR_SUFFIXES:
+        if kw.endswith(suffix) and (len(kw) - len(suffix)) >= _MIN_STEM_LEN:
+            return kw[: -len(suffix)]
+    return kw
+
 
 def _send_smtp(to_email: str, subject: str, html_body: str, text_body: str) -> bool:
     """Šalje email putem SMTP-a. Vraća True ako je uspješno."""
@@ -44,10 +84,12 @@ def _send_smtp(to_email: str, subject: str, html_body: str, text_body: str) -> b
 def _keyword_matches_document(kw_obj, doc) -> bool:
     """
     Provjerava odgovara li keyword filtrima za dani dokument.
+    Koristi stem ključne riječi — 'poljoprivreda' pronalazi i
+    'poljoprivrednik', 'poljoprivredno' itd.
     Ako filter nije postavljen (None), prolazi sve.
     """
-    # Provjera teksta
-    if kw_obj.keyword.lower() not in doc.title.lower():
+    stem = _stem_keyword(kw_obj.keyword)
+    if stem not in doc.title.lower():
         return False
 
     # Filter po dijelu (SL/MU)
@@ -258,8 +300,10 @@ def scan_documents_for_user(user_id: int, db: Session) -> int:
     new_count = 0
 
     for kw in keywords:
+        # Stem ključne riječi za pretragu: 'poljoprivreda' → 'poljoprivred'
+        search_term = _stem_keyword(kw.keyword)
         # SQL ILIKE — baza pretražuje, ne Python
-        query = db.query(Document).filter(Document.title.ilike(f"%{kw.keyword}%"))
+        query = db.query(Document).filter(Document.title.ilike(f"%{search_term}%"))
 
         if kw.part_filter:
             query = query.filter(Document.part == kw.part_filter.upper())
