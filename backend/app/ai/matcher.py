@@ -205,7 +205,7 @@ RAZLOG: -""",
         return False, ""
 
 
-def generate_summary(doc, situation: str) -> str:
+def generate_summary(doc, situation: str, keyword: str = None) -> str:
     """
     Generira personalizirani sažetak dokumenta.
     Poziva se SAMO ako je dokument već prošao matching.
@@ -214,7 +214,8 @@ def generate_summary(doc, situation: str) -> str:
         # Dohvati tekst dokumenta
         doc_text = fetch_doc_text(doc.url) if doc.url else ""
 
-        situation_str = situation if situation else "općenito"
+        situation_str = situation if situation else "nije opisana"
+        kw_str = f"\nKljučna riječ koja je okidala ovaj match: {keyword}" if keyword else ""
         doc_class = classify_document(doc.title)
         doc_context = _build_doc_context(doc)
 
@@ -238,10 +239,10 @@ def generate_summary(doc, situation: str) -> str:
             messages=[
                 {
                     "role": "user",
-                    "content": f"""Ti si hrvatski pravni stručnjak koji objašnjava 
+                    "content": f"""Ti si hrvatski pravni stručnjak koji objašnjava
 zakone običnim ljudima na jednostavnom hrvatskom jeziku.
 
-Korisnikova situacija: {situation_str}
+Korisnikova situacija: {situation_str}{kw_str}
 
 {task}
 

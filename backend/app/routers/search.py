@@ -187,6 +187,7 @@ def get_institutions(
 @router.get("/summarize/{document_id}")
 def summarize_document(
     document_id: int,
+    keyword: Optional[str] = Query(None, description="Ključna riječ koja je okidala match"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -198,7 +199,7 @@ def summarize_document(
         raise HTTPException(status_code=404, detail="Dokument nije pronađen.")
 
     situation = getattr(current_user, "situation", "") or ""
-    summary = generate_summary(doc, situation)
+    summary = generate_summary(doc, situation, keyword=keyword)
 
     if not summary:
         raise HTTPException(status_code=500, detail="Nije moguće generirati sažetak.")

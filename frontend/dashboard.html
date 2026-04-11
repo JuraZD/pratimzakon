@@ -735,10 +735,10 @@
         <div>`;
       docs.forEach(m => {
         const date = (m.matched_at || '').split(' ')[0];
-        html += `<div class="kw-doc-row" onclick="window.location='sazetak.html?id=${esc(m.document_id)}'">
+        html += `<div class="kw-doc-row" onclick="window.location='sazetak.html?id=${esc(m.document_id)}&kw=${encodeURIComponent(m.keyword)}'">
           <div class="kw-doc-title" title="${esc(m.document_title)}">${esc(m.document_title)}</div>
           <div class="kw-doc-date">${esc(date)}</div>
-          <button class="kw-doc-btn" onclick="event.stopPropagation();window.location='sazetak.html?id=${esc(m.document_id)}'">Otvori</button>
+          <button class="kw-doc-btn" onclick="event.stopPropagation();window.location='sazetak.html?id=${esc(m.document_id)}&kw=${encodeURIComponent(m.keyword)}'">Otvori</button>
         </div>`;
       });
       html += '</div></div>';
@@ -889,7 +889,7 @@
       html += `<div class="feed-day-label">${dl}</div>`;
       days[dl].forEach(m => {
         const type = docTypeFromTitle(m.document_title);
-        html += `<div class="feed-item" onclick="window.location='sazetak.html?id=${esc(m.document_id)}'">
+        html += `<div class="feed-item" onclick="window.location='sazetak.html?id=${esc(m.document_id)}&kw=${encodeURIComponent(m.keyword)}'">
           <span class="feed-type-badge feed-type-${type.cls}">${type.label}</span>
           <div class="feed-body">
             <div class="feed-title" title="${esc(m.document_title)}">${esc(m.document_title)}</div>

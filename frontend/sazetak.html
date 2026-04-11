@@ -568,9 +568,16 @@
   }
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobNav(); });
 
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
   function getDocId() {
     const params = new URLSearchParams(window.location.search);
     return params.get('id');
+  }
+
+  function getKeyword() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get('kw') || '';
   }
 
   function classifyTitle(title) {
@@ -614,6 +621,16 @@
         // Pravi email u gumbu
         document.querySelector('.action-btn.primary').onclick =
             () => showToast('Email poslan na ' + user.email);
+
+        // Situacija korisnika — ažuriraj prikaz
+        const sitEl = document.querySelector('.situation-context-text');
+        if (sitEl) {
+          if (user.situation) {
+            sitEl.innerHTML = 'Sažetak je prilagođen vašoj situaciji: <strong>' + esc(user.situation) + '</strong>';
+          } else {
+            sitEl.innerHTML = 'Niste opisali svoju situaciju — <a href="dashboard.html" style="color:var(--orange)">dodajte je</a> za personaliziraniji sažetak.';
+          }
+        }
     } catch(e) { showToast('Greška pri dohvatu korisnika'); }
 
     // Dohvati podatke dokumenta
@@ -631,6 +648,34 @@
         `<span class="doc-date">${formatDate(doc.published_date)}</span>`;
 
       document.querySelector('.doc-title').textContent = doc.title;
+
+      // Ključna riječ iz URL-a
+      const kw = getKeyword();
+      const kwRow = document.querySelector('.doc-kw-row');
+      if (kwRow) {
+        if (kw) {
+          kwRow.innerHTML = '<span class="doc-kw-label">Pronađeno po ključnoj riječi:</span>'
+            + '<span class="doc-kw-tag">' + esc(kw) + '</span>';
+        } else {
+          kwRow.style.display = 'none';
+        }
+      }
+
+      // Ukloni hardkodirane ključne točke — bit će punjene iz AI sažetka
+      const kpEl = document.querySelector('.key-points');
+      if (kpEl) kpEl.innerHTML = '';
+
+      // Amendment box — prikaži samo za izmjene
+      const amendEl = document.querySelector('.amendment-box');
+      if (amendEl) {
+        if (classifyTitle(doc.title) === 'izmjena') {
+          amendEl.style.display = '';
+          amendEl.querySelector('.amendment-box-text').textContent =
+            'Ovaj dokument mijenja postojeći propis. Za cjeloviti tekst originalnog propisa posjetite Zakon.hr.';
+        } else {
+          amendEl.style.display = 'none';
+        }
+      }
 
       // Info sidebar
       document.querySelectorAll('.info-value')[0].textContent = doc.issue_number ? `${doc.issue_number}/${doc.published_date ? doc.published_date.substring(0,4) : ''}` : '—';
@@ -650,14 +695,28 @@
     summaryBody.innerHTML = '<p style="color:var(--muted)">⟳ Generiram sažetak...</p>';
 
     try {
-      const res = await fetch(`${API}/search/summarize/${docId}`, { headers: authHeaders() });
+      const kw = getKeyword();
+      const url = `${API}/search/summarize/${docId}` + (kw ? `?keyword=${encodeURIComponent(kw)}` : '');
+      const res = await fetch(url, { headers: authHeaders() });
       const data = await res.json();
 
       if (data.summary) {
-        const paragraphs = data.summary.split('
-
-').filter(p => p.trim());
-        summaryBody.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
+        // Razdvoji paragraphe i bullet točke (redovi koji počinju s - ili •)
+        const lines = data.summary.split('\n').filter(l => l.trim());
+        let html = '';
+        let inBullets = false;
+        lines.forEach(line => {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('- ') || trimmed.startsWith('• ')) {
+            if (!inBullets) { html += '<ul style="margin:8px 0 8px 16px;line-height:1.6;">'; inBullets = true; }
+            html += `<li style="margin-bottom:4px;">${esc(trimmed.replace(/^[-•]\s*/, ''))}</li>`;
+          } else {
+            if (inBullets) { html += '</ul>'; inBullets = false; }
+            html += `<p>${esc(trimmed)}</p>`;
+          }
+        });
+        if (inBullets) html += '</ul>';
+        summaryBody.innerHTML = html;
       } else {
         summaryBody.innerHTML = '<p style="color:var(--muted)">Sažetak nije dostupan.</p>';
       }
