@@ -687,6 +687,16 @@
     .trial-strip { gap: 14px; }
     .trial-div { display: none; }
     .cookie-banner { flex-direction: column; align-items: flex-start; padding: 18px 20px; }
+    /* Nav: hide "Prijava" on small screens, keep only Register + theme */
+    .btn-ghost { display: none; }
+    nav .inner { padding-top: 14px; padding-bottom: 14px; }
+  }
+
+  @media (max-width: 400px) {
+    .inner { padding: 0 16px; }
+    .nav-logo { font-size: 17px; }
+    .beta-badge { display: none; }
+    .btn-lg { padding: 11px 20px; font-size: 13px; }
   }
 </style>
 </head>

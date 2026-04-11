@@ -271,6 +271,34 @@
   /* ─── SCROLLBAR ─── */
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+  /* ─── MOBILE HAMBURGER ─── */
+  .mob-hamburger { display: none; align-items: center; justify-content: center; width: 36px; height: 36px; background: var(--surface2); border: 1.5px solid var(--border-strong); border-radius: var(--radius); color: var(--text); font-size: 20px; cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
+  .mob-hamburger:hover { background: var(--navy); color: var(--surface); border-color: var(--navy); }
+  .mob-drawer-overlay { display: none; position: fixed; inset: 0; z-index: 300; }
+  .mob-drawer-overlay.open { display: block; }
+  .mob-drawer-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.55); }
+  .mob-drawer { position: absolute; left: 0; top: 0; bottom: 0; width: 260px; background: var(--card-head); display: flex; flex-direction: column; overflow: hidden; transform: translateX(-100%); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1); }
+  .mob-drawer-overlay.open .mob-drawer { transform: translateX(0); }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .main { overflow: visible; min-height: 100vh; }
+    .topbar { padding: 10px 14px; }
+    .topbar-crumb { display: none; }
+    .mob-hamburger { display: flex; }
+    .content { padding: 18px 14px 40px; }
+    .layout { grid-template-columns: 1fr; }
+    .sidebar-stack { margin-top: 0; }
+    .doc-title { font-size: 24px; }
+  }
+  @media (max-width: 400px) {
+    .topbar { padding: 8px 12px; }
+    .content { padding: 14px 12px 32px; }
+    .doc-title { font-size: 20px; }
+  }
 </style>
 </head>
 <body>
@@ -302,6 +330,7 @@
 
     <!-- TOPBAR -->
     <div class="topbar">
+      <button class="mob-hamburger" onclick="openMobNav()" aria-label="Izbornik">☰</button>
       <div class="topbar-left">
         <a class="btn-back" href="dashboard.html">← Natrag</a>
         <div class="topbar-crumb">Matchevi <span>/ Sažetak zakona</span></div>
@@ -473,6 +502,28 @@
   </div>
 </div>
 
+<!-- MOBILE NAVIGATION DRAWER -->
+<div class="mob-drawer-overlay" id="mob-drawer-overlay">
+  <div class="mob-drawer-bg" onclick="closeMobNav()"></div>
+  <div class="mob-drawer">
+    <div class="logo">PRATIM<span class="logo-accent">ZAKON</span><div class="logo-dot"></div></div>
+    <nav class="nav">
+      <div class="nav-section-label">Glavni izbornik</div>
+      <div class="nav-item" onclick="closeMobNav();window.location.href='dashboard.html'"><span class="nav-icon">◈</span> Dashboard</div>
+      <div class="nav-item active"><span class="nav-icon">◇</span> Sažetak zakona</div>
+      <div class="nav-divider"></div>
+      <div class="nav-section-label">Račun</div>
+      <div class="nav-item" onclick="closeMobNav()"><span class="nav-icon">○</span> Postavke</div>
+      <div class="nav-item" onclick="logout()"><span class="nav-icon">→</span> Odjava</div>
+    </nav>
+    <div class="user-card">
+      <div class="user-name" id="mob-user-name">—</div>
+      <div class="user-email" id="mob-user-email">—</div>
+      <div class="user-badge" id="mob-user-badge">BETA</div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -503,6 +554,19 @@
   function authHeaders() {
     return { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' };
   }
+
+  function logout() { localStorage.removeItem('token'); window.location.href = 'index.html'; }
+
+  // ── MOBILE NAVIGATION ────────────────────────────────────────────────────
+  function openMobNav() {
+    document.getElementById('mob-drawer-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMobNav() {
+    document.getElementById('mob-drawer-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobNav(); });
 
   function getDocId() {
     const params = new URLSearchParams(window.location.search);
@@ -541,7 +605,11 @@
         const namePart = user.email.split('@')[0];
         document.getElementById('sidebar-name').textContent = namePart;
         document.getElementById('sidebar-email').textContent = user.email;
-        document.getElementById('sidebar-badge').textContent = user.plan === 'free' ? 'BETA' : user.plan.toUpperCase();
+        const planLabel = user.plan === 'free' ? 'BETA' : user.plan.toUpperCase();
+        document.getElementById('sidebar-badge').textContent = planLabel;
+        document.getElementById('mob-user-name').textContent = namePart;
+        document.getElementById('mob-user-email').textContent = user.email;
+        document.getElementById('mob-user-badge').textContent = planLabel;
 
         // Pravi email u gumbu
         document.querySelector('.action-btn.primary').onclick =
