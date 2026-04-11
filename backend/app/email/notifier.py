@@ -21,24 +21,21 @@ FROM_EMAIL = os.getenv("FROM_EMAIL", SMTP_USERNAME)
 FROM_NAME = os.getenv("FROM_NAME", "PratimZakon")
 
 # ── JEDNOSTAVNO STEMMANJE ZA HRVATSKI ─────────────────────────────────────────
-# Nastavci sortirani od dužih prema kraćima (greedy matching).
-# Koristi se za pretragu: "poljoprivreda" → "poljoprivred"
-# pa se pronalaze "poljoprivrednik", "poljoprivredni", "poljoprivredno" itd.
 _HR_SUFFIXES = sorted(
     [
-        # Duge deklinacije/derivacije
-        "icama", "nošću", "stvima", "stvom",
+        "icama", "stvima", "stvima",
+        "stvo", "stva", "stvu", "stvom",
         "nika", "nice", "nici", "niku",
         "ama", "ima", "ski", "ska", "sko",
         "ni", "na", "no", "ne",
         "om", "og",
-        "a", "e", "i", "u",
+        "a", "e", "i", "o", "u",
     ],
     key=len,
     reverse=True,
 )
-_MIN_STEM_LEN = 4   # stem mora imati barem toliko znakova
-_MIN_KW_LEN   = 6   # kratke riječi (PDV, zakon...) ne stemamo
+_MIN_STEM_LEN = 4
+_MIN_KW_LEN   = 6
 
 
 def _stem_keyword(keyword: str) -> str:
