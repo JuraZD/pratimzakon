@@ -287,6 +287,7 @@ def get_recent_activity(
     EVENT_MAP = {
         "keyword_match": ("Match pronađen", "a-green"),
         "email_sent": ("Email poslan", "a-navy"),
+        "situation_updated": ("Ažurirana situacija", "a-navy"),
         "scrape": ("Tražilica završila", "a-green"),
         "scrape_error": ("Tražilica — greška", "a-red"),
         "signup": ("Registracija", "a-navy"),

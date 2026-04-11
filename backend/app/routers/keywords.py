@@ -6,7 +6,7 @@ from sqlalchemy import func, or_
 from typing import List, Optional
 
 from ..database import get_db
-from ..models import User, Keyword, Document
+from ..models import User, Keyword, Document, Log
 from ..schemas import KeywordCreate, KeywordOut
 from ..auth import get_current_user
 from .search import DocumentResult, SearchResponse
@@ -68,8 +68,12 @@ def save_situation(
     current_user: User = Depends(get_current_user),
 ):
     """Sprema korisnikovu situaciju za personalizirane AI sažetke."""
-    current_user.situation = data.situation.strip() if data.situation else None
+    new_sit = data.situation.strip() if data.situation else None
+    current_user.situation = new_sit
     db.add(current_user)
+    # Log promjene — detail sadrži novi tekst situacije
+    detail = f"title:{new_sit[:150]}" if new_sit else "title:(obrisano)"
+    db.add(Log(event_type="situation_updated", user_id=current_user.id, detail=detail))
     db.commit()
     return {"message": "Situacija uspješno spremljena"}
 

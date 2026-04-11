@@ -198,6 +198,14 @@
   .btn-save { width:100%; padding:10px; background:var(--orange); border:none; border-radius:var(--radius); color:var(--white); font-family:var(--font-display); font-size:calc(14px * var(--font-scale)); font-weight:800; cursor:pointer; transition:all 0.15s; letter-spacing:1.5px; text-transform:uppercase; }
   .btn-save:hover { background:var(--orange2); transform:translateY(-1px); }
 
+  /* ── SITUATION HISTORY ── */
+  .sit-history { margin-top:8px; }
+  .sit-history-label { font-size:calc(9.5px * var(--font-scale)); color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; margin-bottom:4px; }
+  .sit-history-row { display:flex; gap:8px; padding:4px 0; border-bottom:1px solid var(--border); font-size:calc(11px * var(--font-scale)); color:var(--muted); line-height:1.45; }
+  .sit-history-row:last-child { border-bottom:none; }
+  .sit-history-time { white-space:nowrap; flex-shrink:0; font-weight:600; color:var(--navy3); }
+  .sit-history-text { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
+
   /* ── EMAIL ── */
   .email-card { grid-column:2; grid-row:2; }
   .email-status { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--green-dim); border:1px solid rgba(46,125,82,0.2); border-radius:var(--radius); margin-bottom:11px; }
@@ -408,6 +416,7 @@
           <div class="situation-label">Moja situacija — za personalizirani sažetak</div>
           <textarea class="situation-textarea" id="situation" placeholder="Npr: Vodim restoran s 5 zaposlenika u Zagrebu..."></textarea>
           <button class="btn-save" onclick="savePracenje()">Spremi praćenje</button>
+          <div id="situation-history"></div>
         </div>
       </div>
 
@@ -589,6 +598,9 @@
       document.getElementById('mob-user-email').textContent = user.email;
       document.getElementById('mob-user-badge').textContent = planLabel;
       userKwLimit = user.keyword_limit || 5;
+      // Predpuni situaciju iz baze
+      const sitEl = document.getElementById('situation');
+      if (sitEl && user.situation) sitEl.value = user.situation;
       const h = new Date().getHours();
       const g = h < 12 ? 'DOBRO JUTRO' : h < 18 ? 'DOBAR DAN' : 'DOBRA VEČER';
       document.getElementById('topbar-greeting').innerHTML = g + ', <span>' + namePart.toUpperCase() + '</span>';
@@ -789,6 +801,26 @@
                 </div>
               </div>`).join('');
         document.getElementById('stat-emails').textContent = emails.length;
+      }
+
+      // Historija promjena situacije — ispod textarea
+      const sitChanges = activities.filter(a => a.event_type === 'situation_updated');
+      const histEl = document.getElementById('situation-history');
+      if (histEl) {
+        if (sitChanges.length) {
+          let h = '<div class="sit-history"><div class="sit-history-label">Prethodne promjene</div>';
+          sitChanges.slice(0, 5).forEach(s => {
+            const text = s.message.replace('Ažurirana situacija — ', '') || '(prazno)';
+            h += `<div class="sit-history-row">
+              <span class="sit-history-time">${esc(s.timestamp)}</span>
+              <span class="sit-history-text" title="${esc(text)}">${esc(text)}</span>
+            </div>`;
+          });
+          h += '</div>';
+          histEl.innerHTML = h;
+        } else {
+          histEl.innerHTML = '';
+        }
       }
     } catch(e) { console.error('Greška aktivnost:', e); }
 
