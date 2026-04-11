@@ -94,10 +94,7 @@
   .user-badge { display:inline-block; padding:2px 8px; background:rgba(46,125,82,0.2); border:1px solid rgba(46,125,82,0.35); color:#5aaf80; border-radius:2px; font-size:calc(10.5px * var(--font-scale)); font-weight:600; letter-spacing:0.5px; text-transform:uppercase; }
 
   /* ── MAIN ── */
-  .main { display:grid; grid-template-rows:auto auto 1fr; overflow:hidden; background:var(--bg); }
-  @media (min-width: 769px) {
-    .main { overflow:hidden; }
-  }
+  .main { display:grid; grid-template-rows:auto auto auto 1fr; overflow:hidden; background:var(--bg); }
 
   /* ── TOPBAR ── */
   .topbar { display:flex; align-items:center; justify-content:space-between; padding:16px 28px 14px; background:var(--surface); border-bottom:2px solid var(--navy); }
@@ -106,6 +103,18 @@
   .topbar-right { display:flex; align-items:center; gap:8px; }
   .badge-live { display:flex; align-items:center; gap:7px; padding:5px 12px; background:var(--green-dim); border:1px solid rgba(46,125,82,0.25); border-radius:var(--radius); font-size:calc(11.5px * var(--font-scale)); color:var(--green); font-weight:600; letter-spacing:0.3px; text-transform:uppercase; }
   .badge-live-dot { width:6px; height:6px; background:var(--green); border-radius:50%; animation:blink 2s ease-in-out infinite; }
+  /* ── DB STATUS BAR ── */
+  .db-statusbar { display:flex; align-items:center; justify-content:space-between; padding:7px 28px; background:var(--surface2); border-bottom:1px solid var(--border); font-size:calc(11.5px * var(--font-scale)); flex-shrink:0; flex-wrap:wrap; gap:6px; }
+  .db-statusbar-label { color:var(--muted); font-weight:500; letter-spacing:0.2px; }
+  .db-statusbar-value { color:var(--navy); font-weight:700; letter-spacing:0.3px; }
+  .db-statusbar-dot { width:6px; height:6px; background:var(--green); border-radius:50%; display:inline-block; margin-right:6px; animation:blink 3s ease-in-out infinite; }
+  .db-scraper-btn { display:none; }
+  @media (max-width: 768px) {
+    .db-statusbar { padding: 6px 12px; font-size: calc(11px * var(--font-scale)); }
+    /* Show scraper trigger in statusbar on mobile (since topbar btn is hidden) */
+    .db-scraper-btn { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; background:transparent; border:1.5px solid var(--navy); border-radius:var(--radius); color:var(--navy); font-family:var(--font-body); font-size:calc(11px * var(--font-scale)); font-weight:600; cursor:pointer; transition:all 0.15s; text-transform:uppercase; letter-spacing:0.3px; }
+    .db-scraper-btn:hover { background:var(--navy); color:var(--cream); }
+  }
   .btn-secondary { padding:7px 16px; background:transparent; border:1.5px solid var(--navy); border-radius:var(--radius); color:var(--navy); font-family:var(--font-body); font-size:calc(12.5px * var(--font-scale)); font-weight:600; cursor:pointer; transition:all 0.15s; text-transform:uppercase; letter-spacing:0.4px; }
   .btn-secondary:hover { background:var(--navy); color:var(--cream); }
   .btn-secondary:disabled { opacity:0.5; cursor:not-allowed; }
@@ -280,6 +289,16 @@
       </div>
     </div>
 
+    <!-- DB STATUS BAR -->
+    <div class="db-statusbar">
+      <div>
+        <span class="db-statusbar-dot"></span>
+        <span class="db-statusbar-label">Zadnji broj NN u bazi: </span>
+        <span class="db-statusbar-value" id="db-latest-issue">Učitavam...</span>
+      </div>
+      <button class="db-scraper-btn" onclick="triggerScraper()">▷ Pokreni tražilicu</button>
+    </div>
+
     <!-- PROGRESS PANEL -->
     <div class="scraper-panel" id="scraper-panel">
       <div class="scraper-panel-inner">
@@ -404,6 +423,12 @@
       <div class="user-name" id="mob-user-name">—</div>
       <div class="user-email" id="mob-user-email">—</div>
       <div class="user-badge" id="mob-user-badge">BETA</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+        <span style="font-size:10px;color:rgba(232,228,218,0.4);text-transform:uppercase;letter-spacing:1px;font-weight:600;">Veličina teksta</span>
+        <button class="font-btn" style="color:rgba(232,228,218,0.7);background:rgba(255,255,255,0.06);border:none;width:28px;height:28px;border-radius:2px;cursor:pointer;font-size:13px;font-weight:700;" onclick="changeFontSize(-1)">A−</button>
+        <span id="mob-font-label" style="font-size:10px;color:rgba(232,228,218,0.4);min-width:28px;text-align:center;"></span>
+        <button class="font-btn" style="color:rgba(232,228,218,0.7);background:rgba(255,255,255,0.06);border:none;width:28px;height:28px;border-radius:2px;cursor:pointer;font-size:13px;font-weight:700;" onclick="changeFontSize(1)">A+</button>
+      </div>
     </div>
   </div>
 </div>
@@ -436,6 +461,8 @@
   function applyFontSize() {
     document.documentElement.style.setProperty('--font-scale', FONT_STEPS[fontIdx]);
     document.getElementById('font-label').textContent = FONT_LABELS[fontIdx];
+    const mobLbl = document.getElementById('mob-font-label');
+    if (mobLbl) mobLbl.textContent = FONT_LABELS[fontIdx];
     localStorage.setItem('pz-font-idx', fontIdx);
   }
 
@@ -590,8 +617,11 @@
   // ── LOAD MATCHES ──────────────────────────────────────────────────────────
   async function loadMatches() {
     try {
-      const res = await fetch(API + '/search/matches/recent?limit=100', { headers: authHeaders() });
-      if (!res.ok) return;
+      const res = await fetch(API + '/search/matches/recent?limit=20', { headers: authHeaders() });
+      if (!res.ok) {
+        document.getElementById('matches-body').innerHTML = '<div class="empty-msg">Nije moguće dohvatiti matcheve — pokušaj ponovno.</div>';
+        return;
+      }
       allMatches = await res.json();
       const list = document.getElementById('matches-body');
       if (!list) return;
@@ -640,7 +670,11 @@
   async function loadActivity() {
     try {
       const res = await fetch(API + '/search/activity/recent?limit=50', { headers: authHeaders() });
-      if (!res.ok) return;
+      if (!res.ok) {
+        const el = document.getElementById('activity-list');
+        if (el) el.innerHTML = '<div class="empty-msg">Nije moguće dohvatiti aktivnost.</div>';
+        return;
+      }
       const activities = await res.json();
 
       const emails = activities.filter(a => a.event_type === 'email_sent');
@@ -780,9 +814,22 @@
     }
   }
 
+  // ── ZADNJI BROJ NN ────────────────────────────────────────────────────────
+  async function loadLatestIssue() {
+    try {
+      const res = await fetch(API + '/search/latest-issue', { headers: authHeaders() });
+      if (!res.ok) { document.getElementById('db-latest-issue').textContent = 'Nije dostupno'; return; }
+      const data = await res.json();
+      document.getElementById('db-latest-issue').textContent = data.label || (data.nn_number ? 'NN ' + data.nn_number + (data.published_date ? ' · ' + data.published_date : '') : 'Nema podataka');
+    } catch(e) {
+      document.getElementById('db-latest-issue').textContent = 'Nije dostupno';
+    }
+  }
+
   // ── INIT ──────────────────────────────────────────────────────────────────
   async function init() {
     await loadUser();
+    loadLatestIssue();
     await loadKeywords();
     await loadMatches();
     await loadActivity();
