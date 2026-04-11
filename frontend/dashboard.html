@@ -267,6 +267,32 @@
   .kw-doc-btn { padding:3px 9px; background:transparent; border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--navy); font-family:var(--font-body); font-size:calc(10.5px * var(--font-scale)); cursor:pointer; transition:all 0.15s; white-space:nowrap; font-weight:600; flex-shrink:0; }
   .kw-doc-btn:hover { background:var(--orange); border-color:var(--orange); color:var(--white); }
   .matches-card .card-body { overflow-y:auto; }
+
+  /* ── KEYWORD STATUS (activity panel top) ── */
+  .act-section-label { font-size:calc(10px * var(--font-scale)); font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+  .kw-status-list { margin-bottom:2px; }
+  .kw-status-row { display:flex; align-items:center; gap:6px; padding:5px 0; border-bottom:1px solid var(--border); }
+  .kw-status-row:last-child { border-bottom:none; }
+  .kw-status-name { flex:1; font-size:calc(12px * var(--font-scale)); font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .kw-status-name.inactive { color:var(--muted); font-weight:400; }
+  .kw-status-date { font-size:calc(10px * var(--font-scale)); color:var(--muted); white-space:nowrap; flex-shrink:0; }
+  .kw-status-count { padding:1px 7px; background:var(--navy); color:var(--cream); border-radius:10px; font-size:calc(10px * var(--font-scale)); font-weight:700; white-space:nowrap; flex-shrink:0; }
+  .kw-status-count.zero { background:var(--surface2); color:var(--muted); border:1px solid var(--border-strong); }
+  .act-divider { height:1px; background:var(--border); margin:10px 0; }
+
+  /* ── ACTIVITY FEED (activity panel bottom) ── */
+  .feed-day-label { font-size:calc(10px * var(--font-scale)); font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); padding:8px 0 5px; }
+  .feed-item { display:flex; align-items:flex-start; gap:8px; padding:7px 0; border-bottom:1px solid var(--border); cursor:pointer; transition:opacity 0.12s; }
+  .feed-item:last-child { border-bottom:none; }
+  .feed-item:hover { opacity:0.8; }
+  .feed-type-badge { padding:2px 6px; border-radius:2px; font-size:calc(9.5px * var(--font-scale)); font-weight:700; letter-spacing:0.4px; white-space:nowrap; flex-shrink:0; margin-top:1px; }
+  .feed-type-zakon     { background:var(--green-dim); color:var(--green); }
+  .feed-type-uredba    { background:var(--orange-dim); color:var(--orange); }
+  .feed-type-pravilnik { background:rgba(26,39,68,0.08); color:var(--navy3); }
+  .feed-type-other     { background:var(--surface2); color:var(--muted); }
+  .feed-body { flex:1; min-width:0; }
+  .feed-title { font-size:calc(12px * var(--font-scale)); color:var(--text); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.4; }
+  .feed-kw { font-size:calc(10.5px * var(--font-scale)); color:var(--muted); margin-top:1px; }
   @media (max-width:768px) { .kw-group { flex:1 1 100%; } }
 
   /* ── TOAST ── */
@@ -419,9 +445,8 @@
           <div class="card-title">Aktivnost</div>
         </div>
         <div class="card-body" style="padding:10px 16px;overflow-y:auto;">
-          <div class="activity-list" id="activity-list">
-            <div class="empty-msg">Učitavanje...</div>
-          </div>
+          <div id="kw-status-section"></div>
+          <div id="activity-list"></div>
         </div>
       </div>
 
@@ -471,6 +496,7 @@
   const API = 'https://pratimzakon.onrender.com';
   let userKwLimit = 5;
   let allMatches = [];
+  let allKeywords = [];
   let matchPage = 1;
   const MATCH_PER_PAGE = 10;
 
@@ -575,6 +601,7 @@
     try {
       const res = await fetch(API + '/keywords/', { headers: authHeaders() });
       const data = await res.json();
+      allKeywords = data;
       const list = document.getElementById('tag-list');
       if (!list) return;
       list.innerHTML = '';
@@ -669,6 +696,7 @@
       document.getElementById('match-count').textContent = allMatches.length > 0 ? allMatches.length + ' ukupno' : '';
       document.getElementById('stat-last-match').textContent = allMatches.length > 0 ? (allMatches[0].matched_at || '').split(' ')[0] || '—' : '—';
       renderMatchesByKeyword(allMatches);
+      renderActivityPanel();
     } catch(e) { console.error('Greška matchevi:', e); }
   }
 
@@ -743,13 +771,10 @@
   async function loadActivity() {
     try {
       const res = await fetch(API + '/search/activity/recent?limit=50', { headers: authHeaders() });
-      if (!res.ok) {
-        const el = document.getElementById('activity-list');
-        if (el) el.innerHTML = '<div class="empty-msg">Nije moguće dohvatiti aktivnost.</div>';
-        return;
-      }
+      if (!res.ok) return;
       const activities = await res.json();
 
+      // Email kartica — samo email_sent eventi
       const emails = activities.filter(a => a.event_type === 'email_sent');
       const emailList = document.getElementById('email-list');
       if (emailList) {
@@ -765,24 +790,116 @@
               </div>`).join('');
         document.getElementById('stat-emails').textContent = emails.length;
       }
-
-      const actList = document.getElementById('activity-list');
-      if (actList) {
-        actList.innerHTML = activities.length === 0
-          ? '<div class="empty-msg">Još nema aktivnosti.</div>'
-          : activities.map((a, i) => `
-              <div class="activity-item">
-                <div class="activity-dot-wrap">
-                  <div class="activity-dot ${esc(a.color)}"></div>
-                  ${i < activities.length - 1 ? '<div class="activity-line"></div>' : ''}
-                </div>
-                <div class="activity-body">
-                  <div class="activity-text">${esc(a.message)}</div>
-                  <div class="activity-time">${esc(a.timestamp)}</div>
-                </div>
-              </div>`).join('');
-      }
     } catch(e) { console.error('Greška aktivnost:', e); }
+
+    // Aktivnost panel renderira se iz allMatches + allKeywords
+    renderActivityPanel();
+  }
+
+  // ── ACTIVITY PANEL ────────────────────────────────────────────────────────
+  function parseMatchDate(s) {
+    if (!s || s === '—') return null;
+    const m = s.match(/(\d{2})\.(\d{2})\.(\d{4})/);
+    return m ? new Date(+m[3], +m[2] - 1, +m[1]) : null;
+  }
+
+  function dayLabel(d) {
+    if (!d) return 'Starije';
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+    const weekAgo = new Date(today); weekAgo.setDate(today.getDate() - 7);
+    const t = new Date(d); t.setHours(0, 0, 0, 0);
+    if (t.getTime() === today.getTime()) return 'Danas';
+    if (t.getTime() === yesterday.getTime()) return 'Jučer';
+    if (t >= weekAgo) return 'Ovaj tjedan';
+    return 'Starije';
+  }
+
+  function docTypeFromTitle(title) {
+    const t = (title || '').toLowerCase();
+    if (/^zakon/.test(t))      return { label: 'ZAKON',      cls: 'zakon' };
+    if (/^uredba/.test(t))     return { label: 'UREDBA',     cls: 'uredba' };
+    if (/^pravilnik/.test(t))  return { label: 'PRAVILNIK',  cls: 'pravilnik' };
+    if (/^odluka/.test(t))     return { label: 'ODLUKA',     cls: 'pravilnik' };
+    if (/^naredba/.test(t))    return { label: 'NAREDBA',    cls: 'other' };
+    if (/^rješenje/.test(t))   return { label: 'RJEŠENJE',   cls: 'other' };
+    if (/^obavijest/.test(t))  return { label: 'OBAVIJEST',  cls: 'other' };
+    return { label: 'DOKUMENT', cls: 'other' };
+  }
+
+  function renderActivityPanel() {
+    // ── Gornji dio: status svake ključne riječi ──
+    const kwSection = document.getElementById('kw-status-section');
+    if (kwSection) {
+      if (!allKeywords.length) {
+        kwSection.innerHTML = '';
+      } else {
+        // Izračunaj statistiku iz allMatches
+        const stats = {};
+        allKeywords.forEach(kw => { stats[kw.keyword] = { count: 0, lastDate: null }; });
+        allMatches.forEach(m => {
+          const kw = m.keyword;
+          if (!stats[kw]) return;
+          stats[kw].count++;
+          const d = parseMatchDate(m.matched_at);
+          if (!stats[kw].lastDate || (d && d > stats[kw].lastDate)) stats[kw].lastDate = d;
+        });
+
+        let html = '<div class="act-section-label">Status praćenja</div><div class="kw-status-list">';
+        allKeywords.forEach(kw => {
+          const s = stats[kw.keyword] || { count: 0, lastDate: null };
+          const inactive = s.count === 0;
+          const dateStr = s.lastDate
+            ? s.lastDate.toLocaleDateString('hr', { day: '2-digit', month: '2-digit' })
+            : '—';
+          html += `<div class="kw-status-row">
+            <span class="kw-status-name${inactive ? ' inactive' : ''}" title="${esc(kw.keyword)}">${esc(kw.keyword)}</span>
+            <span class="kw-status-date">${dateStr}</span>
+            <span class="kw-status-count${s.count === 0 ? ' zero' : ''}">${s.count}</span>
+          </div>`;
+        });
+        html += '</div><div class="act-divider"></div>';
+        kwSection.innerHTML = html;
+      }
+    }
+
+    // ── Donji dio: feed po danu ──
+    const feedEl = document.getElementById('activity-list');
+    if (!feedEl) return;
+
+    if (!allMatches.length) {
+      feedEl.innerHTML = '<div class="empty-msg">Još nema aktivnosti — pokreni tražilicu.</div>';
+      return;
+    }
+
+    // Grupiraj po danu (najnoviji prvi, max 50)
+    const days = {};
+    const DAY_ORDER = ['Danas', 'Jučer', 'Ovaj tjedan', 'Starije'];
+    allMatches.slice(0, 50).forEach(m => {
+      const label = dayLabel(parseMatchDate(m.matched_at));
+      if (!days[label]) days[label] = [];
+      days[label].push(m);
+    });
+
+    let html = '<div class="act-section-label">Nedavne novosti</div>';
+    let anyDay = false;
+    DAY_ORDER.forEach(dl => {
+      if (!days[dl]) return;
+      anyDay = true;
+      html += `<div class="feed-day-label">${dl}</div>`;
+      days[dl].forEach(m => {
+        const type = docTypeFromTitle(m.document_title);
+        html += `<div class="feed-item" onclick="window.location='sazetak.html?id=${esc(m.document_id)}'">
+          <span class="feed-type-badge feed-type-${type.cls}">${type.label}</span>
+          <div class="feed-body">
+            <div class="feed-title" title="${esc(m.document_title)}">${esc(m.document_title)}</div>
+            <div class="feed-kw">${esc(m.keyword)}</div>
+          </div>
+        </div>`;
+      });
+    });
+    if (!anyDay) html += '<div class="empty-msg">Još nema aktivnosti.</div>';
+    feedEl.innerHTML = html;
   }
 
   // ── PROGRESS BAR ──────────────────────────────────────────────────────────
