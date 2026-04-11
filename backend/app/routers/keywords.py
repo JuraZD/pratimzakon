@@ -1,8 +1,9 @@
 from datetime import date, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
-from typing import List
+from typing import List, Optional
 
 from ..database import get_db
 from ..models import User, Keyword, Document
@@ -54,6 +55,23 @@ def add_keyword(
     db.commit()
     db.refresh(kw)
     return kw
+
+
+class SituationUpdate(BaseModel):
+    situation: Optional[str] = ""
+
+
+@router.post("/situation")
+def save_situation(
+    data: SituationUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Sprema korisnikovu situaciju za personalizirane AI sažetke."""
+    current_user.situation = data.situation.strip() if data.situation else None
+    db.add(current_user)
+    db.commit()
+    return {"message": "Situacija uspješno spremljena"}
 
 
 @router.get("/activity")
