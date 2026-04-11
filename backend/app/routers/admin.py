@@ -135,7 +135,7 @@ def trigger_scraper(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Ručno pokretanje tražilice — dostupno svim korisnicima."""
+    """Ručno pokretanje tražilice — dohvaća nove NN objave za sve korisnike."""
 
     def run_in_background():
         try:
@@ -148,19 +148,34 @@ def trigger_scraper(
 
     return {"status": "ok", "message": "Tražilica pokrenuta u pozadini."}
 
-@router.post("/trigger-scraper")
-def trigger_scraper(
+
+@router.post("/trigger-user-scan")
+def trigger_user_scan(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Ručno pokretanje tražilice — dostupno svim korisnicima."""
+    """
+    Skenira SVE postojeće dokumente u bazi za ključne riječi trenutnog korisnika.
+    Sprema keyword_match logove bez slanja emaila.
+    Email ide samo za nove NN objave od trenutka registracije (via trigger-scraper / cron).
+    """
+    from ..email.notifier import scan_documents_for_user
+    from ..database import SessionLocal
+
+    user_id = current_user.id
+
     def run_in_background():
         try:
-            run_check()
+            bg_db = SessionLocal()
+            try:
+                count = scan_documents_for_user(user_id, bg_db)
+                logging.info(f"Korisnik {user_id}: pronađeno {count} novih podudaranja u arhivi")
+            finally:
+                bg_db.close()
         except Exception as e:
-            logging.error(f"Scraper greška: {e}")
+            logging.error(f"Greška pri skeniranju za korisnika {user_id}: {e}")
 
     thread = threading.Thread(target=run_in_background, daemon=True)
     thread.start()
 
-    return {"status": "ok", "message": "Tražilica pokrenuta u pozadini."}
+    return {"status": "ok", "message": "Skeniranje arhive u tijeku. Rezultati će biti vidljivi za nekoliko trenutaka."}

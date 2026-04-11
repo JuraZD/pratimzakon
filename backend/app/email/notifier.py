@@ -217,6 +217,52 @@ def _build_email(user, matches: List[Dict], show_pdf: bool = False) -> tuple[str
     return html, plain
 
 
+def scan_documents_for_user(user_id: int, db: Session) -> int:
+    """
+    Skenira SVE dokumente u bazi za ključne riječi jednog korisnika.
+    Sprema keyword_match logove bez slanja emaila.
+    Preskače već postojeće matcheve (ne duplikira).
+    Vraća broj novih podudaranja.
+    """
+    from app.models import User, Document, Log
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.keywords:
+        return 0
+
+    # Dohvati detalje već postojećih matcheva za korisnika (doc_id + keyword)
+    existing_rows = (
+        db.query(Log.detail)
+        .filter(Log.user_id == user_id, Log.event_type == "keyword_match")
+        .all()
+    )
+    existing_details = {r[0] for r in existing_rows if r[0]}
+
+    documents = db.query(Document).all()
+
+    new_count = 0
+    for doc in documents:
+        for kw in user.keywords:
+            if _keyword_matches_document(kw, doc):
+                detail = f"keyword:{kw.keyword}|doc_id:{doc.id}|title:{doc.title[:100]}"
+                if detail not in existing_details:
+                    db.add(
+                        Log(
+                            event_type="keyword_match",
+                            user_id=user_id,
+                            detail=detail,
+                        )
+                    )
+                    existing_details.add(detail)
+                    new_count += 1
+
+    if new_count > 0:
+        db.commit()
+
+    logging.info(f"scan_documents_for_user({user_id}): {new_count} novih podudaranja")
+    return new_count
+
+
 def send_keyword_notifications(
     new_document_ids: List[int], db: Session
 ) -> Dict[str, int]:

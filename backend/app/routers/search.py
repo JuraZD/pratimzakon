@@ -107,23 +107,39 @@ def get_latest_issue(
     current_user: User = Depends(get_current_user),
 ):
     """Vraća broj i datum posljednjeg broja Narodnih novina u bazi."""
+    # Pokušaj s issue_number
     result = (
         db.query(Document.issue_number, Document.published_date)
         .filter(Document.issue_number.isnot(None))
         .order_by(Document.published_date.desc(), Document.issue_number.desc())
         .first()
     )
-    if not result:
-        return {"issue_number": None, "published_date": None, "label": None}
+    if result:
+        issue_number, published_date = result
+        year = published_date.year if published_date else None
+        label = f"NN {issue_number}/{year}" if issue_number and year else None
+        return {
+            "issue_number": issue_number,
+            "published_date": str(published_date) if published_date else None,
+            "label": label,
+        }
 
-    issue_number, published_date = result
-    year = published_date.year if published_date else None
-    label = f"NN {issue_number}/{year}" if issue_number and year else None
-    return {
-        "issue_number": issue_number,
-        "published_date": str(published_date) if published_date else None,
-        "label": label,
-    }
+    # Fallback: dohvati samo po published_date (bez issue_number)
+    fallback = (
+        db.query(Document.published_date)
+        .filter(Document.published_date.isnot(None))
+        .order_by(Document.published_date.desc())
+        .first()
+    )
+    if fallback:
+        published_date = fallback[0]
+        return {
+            "issue_number": None,
+            "published_date": str(published_date),
+            "label": None,
+        }
+
+    return {"issue_number": None, "published_date": None, "label": None}
 
 
 @router.get("/institutions")

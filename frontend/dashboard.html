@@ -813,17 +813,17 @@
     }, 8000);
 
     try {
-      const res = await fetch(API + '/admin/trigger-scraper', {
+      const res = await fetch(API + '/admin/trigger-user-scan', {
         method: 'POST', headers: authHeaders()
       });
 
       if (res.ok) {
-        // Osvježi podatke nakon 30 sekundi
+        // Osvježi podatke nakon 15 sekundi (skeniranje arhive je brže od full scrape)
         setTimeout(() => {
           loadActivity();
           loadMatches();
           finishScraperPanel(true);
-        }, 30000);
+        }, 15000);
       } else {
         finishScraperPanel(false);
       }
@@ -843,7 +843,7 @@
       const res = await fetch(API + '/search/latest-issue', { headers: authHeaders() });
       if (!res.ok) { document.getElementById('db-latest-issue').textContent = 'Nije dostupno'; return; }
       const data = await res.json();
-      document.getElementById('db-latest-issue').textContent = data.label || (data.nn_number ? 'NN ' + data.nn_number + (data.published_date ? ' · ' + data.published_date : '') : 'Nema podataka');
+      document.getElementById('db-latest-issue').textContent = data.label || (data.published_date ? 'Objavljeno: ' + data.published_date : 'Nema podataka');
     } catch(e) {
       document.getElementById('db-latest-issue').textContent = 'Nije dostupno';
     }
