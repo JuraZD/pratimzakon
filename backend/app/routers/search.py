@@ -272,7 +272,7 @@ class ActivityItem(BaseModel):
 
 @router.get("/activity/recent", response_model=List[ActivityItem])
 def get_recent_activity(
-    limit: int = Query(10, ge=1, le=50),
+    limit: int = Query(50, ge=1, le=300),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -286,8 +286,11 @@ def get_recent_activity(
     )
     EVENT_MAP = {
         "keyword_match": ("Match pronađen", "a-green"),
+        "keyword_change": ("Promjena praćenja", "a-orange"),
         "email_sent": ("Email poslan", "a-navy"),
-        "situation_updated": ("Ažurirana situacija", "a-navy"),
+        "situation_updated": ("Situacija ažurirana", "a-navy"),
+        "pref_digest": ("Digest postavka", "a-navy"),
+        "archived": ("Arhivirano", "a-navy"),
         "scrape": ("Tražilica završila", "a-green"),
         "scrape_error": ("Tražilica — greška", "a-red"),
         "signup": ("Registracija", "a-navy"),
@@ -298,8 +301,24 @@ def get_recent_activity(
         label, color = EVENT_MAP.get(r.event_type, (r.event_type, "a-navy"))
         detail = r.detail or ""
         parts = dict(p.split(":", 1) for p in detail.split("|") if ":" in p)
-        title = parts.get("title", "")
-        message = f"{label} — {title}" if title else label
+        # Special formatting for keyword_change
+        if r.event_type == "keyword_change":
+            action = parts.get("action", "")
+            kw = parts.get("keyword", "")
+            if action == "added":
+                message = f"Dodano praćenje: {kw}"
+                color = "a-green"
+            elif action == "removed":
+                message = f"Uklonjeno praćenje: {kw}"
+                color = "a-orange"
+            else:
+                message = label
+        elif r.event_type == "pref_digest":
+            enabled = "1" in detail
+            message = "Tjedni sažetak uključen" if enabled else "Tjedni sažetak isključen"
+        else:
+            title = parts.get("title", "")
+            message = f"{label} — {title}" if title else label
         results.append(
             ActivityItem(
                 id=r.id,

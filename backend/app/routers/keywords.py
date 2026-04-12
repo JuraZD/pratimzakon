@@ -53,6 +53,8 @@ def add_keyword(
         part_filter=data.part_filter or None,
     )
     db.add(kw)
+    db.add(Log(event_type="keyword_change", user_id=current_user.id,
+               detail=f"action:added|keyword:{keyword[:100]}"))
     db.commit()
     db.refresh(kw)
     return kw
@@ -182,6 +184,8 @@ def delete_keyword(
 
     if not kw:
         raise HTTPException(status_code=404, detail="KljuÄna rijeÄ nije pronaÄena")
+    db.add(Log(event_type="keyword_change", user_id=current_user.id,
+               detail=f"action:removed|keyword:{kw.keyword[:100]}"))
     db.delete(kw)
     db.commit()
 
