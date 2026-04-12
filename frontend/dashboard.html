@@ -37,7 +37,7 @@
   @media (max-width: 1024px) { :root { --font-scale: 0.88; } }
   @media (max-width: 768px)  { :root { --font-scale: 0.82; } }
 
-  .app { display:grid; grid-template-columns:220px 1fr; height:100vh; overflow:hidden; }
+  .app { display:grid; grid-template-columns:210px 1fr; height:100vh; overflow:hidden; }
 
   /* ── MOBILE DRAWER ── */
   .mob-hamburger { display:none; align-items:center; justify-content:center; width:36px; height:36px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-size:20px; cursor:pointer; transition:all 0.15s; flex-shrink:0; }
@@ -77,9 +77,19 @@
     .stat-value { font-size: calc(28px * var(--font-scale)) !important; }
     .topbar { padding: 8px 12px; }
   }
+  /* ── TABLET (769–1280px): 2 stupca, aktivnost ide na dno ── */
+  @media (max-width: 1280px) and (min-width: 769px) {
+    .app { grid-template-columns: 190px 1fr; }
+    .dashboard { grid-template-columns: 1fr 1fr !important; padding: 14px 20px !important; }
+    .stats-row { grid-column: 1/3 !important; }
+    .keywords-card { grid-column: 1 !important; grid-row: 2 !important; }
+    .email-card { grid-column: 2 !important; grid-row: 2 !important; }
+    .matches-card { grid-column: 1/3 !important; grid-row: 3 !important; }
+    .search-card { grid-column: 1/3 !important; grid-row: 4 !important; }
+    .activity-card { grid-column: 1/3 !important; grid-row: 5 !important; height: 380px !important; }
+  }
   @media (max-width: 1024px) and (min-width: 769px) {
-    .app { grid-template-columns: 180px 1fr; }
-    .dashboard { grid-template-columns: 1.618fr 1fr 0.618fr !important; }
+    .app { grid-template-columns: 170px 1fr; }
   }
 
   /* ── SIDEBAR ── */
@@ -105,14 +115,14 @@
   .main { display:grid; grid-template-rows:auto auto auto 1fr; overflow:hidden; background:var(--bg); }
 
   /* ── TOPBAR ── */
-  .topbar { display:flex; align-items:center; justify-content:space-between; padding:13px 34px; background:var(--surface); border-bottom:2px solid var(--navy); }
+  .topbar { display:flex; align-items:center; justify-content:space-between; padding:14px 24px; background:var(--surface); border-bottom:2px solid var(--navy); }
   .topbar-title { font-family:var(--font-display); font-size:calc(26px * var(--font-scale)); font-weight:800; letter-spacing:0.5px; text-transform:uppercase; color:var(--navy); }
   .topbar-title span { color:var(--orange); }
   .topbar-right { display:flex; align-items:center; gap:8px; }
   .badge-live { display:flex; align-items:center; gap:7px; padding:5px 12px; background:var(--green-dim); border:1px solid rgba(46,125,82,0.25); border-radius:var(--radius); font-size:calc(11.5px * var(--font-scale)); color:var(--green); font-weight:600; letter-spacing:0.3px; text-transform:uppercase; }
   .badge-live-dot { width:6px; height:6px; background:var(--green); border-radius:50%; animation:blink 2s ease-in-out infinite; }
   /* ── DB STATUS BAR ── */
-  .db-statusbar { display:flex; align-items:center; justify-content:space-between; padding:5px 34px; background:var(--surface2); border-bottom:1px solid var(--border); font-size:calc(11.5px * var(--font-scale)); flex-shrink:0; flex-wrap:wrap; gap:5px; }
+  .db-statusbar { display:flex; align-items:center; justify-content:space-between; padding:6px 24px; background:var(--surface2); border-bottom:1px solid var(--border); font-size:calc(11.5px * var(--font-scale)); flex-shrink:0; flex-wrap:wrap; gap:6px; }
   .db-statusbar-label { color:var(--muted); font-weight:500; letter-spacing:0.2px; }
   .db-statusbar-value { color:var(--navy); font-weight:700; letter-spacing:0.3px; }
   .db-statusbar-dot { width:6px; height:6px; background:var(--green); border-radius:50%; display:inline-block; margin-right:6px; animation:blink 3s ease-in-out infinite; }
@@ -138,7 +148,7 @@
   /* ── PROGRESS BAR PANEL ── */
   .scraper-panel { overflow:hidden; max-height:0; transition:max-height 0.4s cubic-bezier(0.4,0,0.2,1); background:var(--surface); border-bottom:1px solid var(--border); }
   .scraper-panel.open { max-height:120px; }
-  .scraper-panel-inner { padding:13px 34px; }
+  .scraper-panel-inner { padding:12px 24px 14px; }
   .scraper-panel-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
   .scraper-status-text { font-size:calc(12.5px * var(--font-scale)); font-weight:600; color:var(--navy); display:flex; align-items:center; gap:8px; }
   .scraper-spinner { width:14px; height:14px; border:2px solid var(--border-strong); border-top-color:var(--orange); border-radius:50%; animation:spin 0.8s linear infinite; flex-shrink:0; }
@@ -150,9 +160,9 @@
   .scraper-error { color:#c0392b !important; }
 
   /* ── DASHBOARD GRID ── */
-  .dashboard { display:grid; grid-template-columns:1.618fr 1fr 0.618fr; grid-template-rows:auto auto 1fr auto; gap:13px; padding:21px 34px; overflow:hidden; }
-  .stats-row { grid-column:1/3; display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
-  .stat-card { background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--navy); border-radius:var(--radius); padding:13px 21px; }
+  .dashboard { display:grid; grid-template-columns:1fr 1fr 320px; grid-template-rows:auto auto 1fr auto; gap:12px; padding:16px 24px 18px; overflow:hidden; }
+  .stats-row { grid-column:1/3; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--navy); border-radius:var(--radius); padding:13px 16px; }
   .stat-card.orange { border-top-color:var(--orange); }
   .stat-card.green  { border-top-color:var(--green); }
   .stat-card.muted  { border-top-color:var(--muted); }
@@ -164,11 +174,11 @@
 
   /* ── CARDS ── */
   .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); display:flex; flex-direction:column; overflow:hidden; }
-  .card-head { display:flex; align-items:center; justify-content:space-between; padding:13px 21px; border-bottom:1px solid var(--border); background:var(--card-head); flex-shrink:0; }
+  .card-head { display:flex; align-items:center; justify-content:space-between; padding:11px 16px 10px; border-bottom:1px solid var(--border); background:var(--card-head); flex-shrink:0; }
   .card-title { font-family:var(--font-display); font-size:calc(11.5px * var(--font-scale)); font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:rgba(232,228,218,0.7); }
   .card-head-action { font-size:calc(11px * var(--font-scale)); color:var(--orange2); cursor:pointer; transition:opacity 0.15s; font-weight:600; letter-spacing:0.3px; text-transform:uppercase; }
   .card-head-action:hover { opacity:0.7; }
-  .card-body { padding:13px 21px; flex:1; overflow:hidden; display:flex; flex-direction:column; }
+  .card-body { padding:13px 16px; flex:1; overflow:hidden; display:flex; flex-direction:column; }
 
   /* ── KEYWORD LIMIT BAR ── */
   .limit-track { height:3px; background:var(--border-strong); border-radius:2px; margin-bottom:4px; }
@@ -208,12 +218,12 @@
 
   /* ── EMAIL ── */
   .email-card { grid-column:2; grid-row:2; }
-  .email-status { display:flex; align-items:center; gap:8px; padding:8px 13px; background:var(--green-dim); border:1px solid rgba(46,125,82,0.2); border-radius:var(--radius); margin-bottom:13px; }
+  .email-status { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--green-dim); border:1px solid rgba(46,125,82,0.2); border-radius:var(--radius); margin-bottom:11px; }
   .email-dot { width:8px; height:8px; background:var(--green); border-radius:50%; flex-shrink:0; animation:blink 2s ease-in-out infinite; }
   .email-addr { font-size:calc(13px * var(--font-scale)); color:var(--text); font-weight:600; }
   .email-ok { font-size:calc(10.5px * var(--font-scale)); color:var(--green); font-weight:600; letter-spacing:0.3px; text-transform:uppercase; }
   .email-sub-label { font-size:calc(10px * var(--font-scale)); color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; margin-bottom:5px; }
-  .email-row { display:flex; align-items:flex-start; gap:8px; padding:8px 13px; background:var(--surface2); border-radius:var(--radius); border:1px solid var(--border); cursor:pointer; transition:border-color 0.15s; margin-bottom:5px; }
+  .email-row { display:flex; align-items:flex-start; gap:10px; padding:8px 10px; background:var(--surface2); border-radius:var(--radius); border:1px solid var(--border); cursor:pointer; transition:border-color 0.15s; margin-bottom:5px; }
   .email-row:hover { border-color:var(--border-strong); }
   .email-row-date { font-size:calc(10.5px * var(--font-scale)); color:var(--muted); white-space:nowrap; margin-top:1px; min-width:60px; font-weight:500; }
   .email-row-content { flex:1; overflow:hidden; }
@@ -234,7 +244,7 @@
   .match-btn:hover { background:var(--orange); border-color:var(--orange); color:var(--white); }
 
   /* ── ACTIVITY ── */
-  .activity-card { grid-column:3; grid-row:2/6; }
+  .activity-card { grid-column:3; grid-row:2/5; }
 
   /* ── SEARCH CARD ── */
   .search-card { grid-column:1/3; grid-row:4; }
@@ -277,12 +287,12 @@
   .page-btn:disabled { opacity:0.3; cursor:not-allowed; }
 
   /* ── KEYWORD MATCH GROUPS ── */
-  .kw-groups { display:flex; flex-wrap:wrap; gap:13px; overflow-y:auto; flex:1; align-content:flex-start; padding-bottom:5px; }
+  .kw-groups { display:flex; flex-wrap:wrap; gap:10px; overflow-y:auto; flex:1; align-content:flex-start; padding-bottom:4px; }
   .kw-group { flex:1 1 260px; min-width:220px; max-width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); display:flex; flex-direction:column; overflow:hidden; }
-  .kw-group-head { display:flex; align-items:center; justify-content:space-between; padding:8px 13px; background:var(--navy); gap:8px; }
+  .kw-group-head { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--navy); gap:8px; }
   .kw-group-name { font-family:var(--font-display); font-size:calc(12px * var(--font-scale)); font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--cream); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .kw-group-count { font-size:calc(10.5px * var(--font-scale)); color:rgba(232,228,218,0.6); font-weight:600; white-space:nowrap; flex-shrink:0; }
-  .kw-doc-row { display:flex; align-items:center; gap:8px; padding:8px 13px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.12s; }
+  .kw-doc-row { display:flex; align-items:center; gap:8px; padding:7px 12px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.12s; }
   .kw-doc-row:last-child { border-bottom:none; }
   .kw-doc-row:hover { background:var(--surface); }
   .kw-doc-title { flex:1; font-size:calc(12px * var(--font-scale)); color:var(--text); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
@@ -301,11 +311,11 @@
   .kw-status-date { font-size:calc(10px * var(--font-scale)); color:var(--muted); white-space:nowrap; flex-shrink:0; }
   .kw-status-count { padding:1px 7px; background:var(--navy); color:var(--cream); border-radius:10px; font-size:calc(10px * var(--font-scale)); font-weight:700; white-space:nowrap; flex-shrink:0; }
   .kw-status-count.zero { background:var(--surface2); color:var(--muted); border:1px solid var(--border-strong); }
-  .act-divider { height:1px; background:var(--border); margin:13px 0; }
+  .act-divider { height:1px; background:var(--border); margin:10px 0; }
 
   /* ── ACTIVITY FEED (activity panel bottom) ── */
   .feed-day-label { font-size:calc(10px * var(--font-scale)); font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); padding:8px 0 5px; }
-  .feed-item { display:flex; align-items:flex-start; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); cursor:pointer; transition:opacity 0.12s; }
+  .feed-item { display:flex; align-items:flex-start; gap:8px; padding:7px 0; border-bottom:1px solid var(--border); cursor:pointer; transition:opacity 0.12s; }
   .feed-item:last-child { border-bottom:none; }
   .feed-item:hover { opacity:0.8; }
   .feed-type-badge { padding:2px 6px; border-radius:2px; font-size:calc(9.5px * var(--font-scale)); font-weight:700; letter-spacing:0.4px; white-space:nowrap; flex-shrink:0; margin-top:1px; }
@@ -329,9 +339,9 @@
     <div class="logo">PRATIM<span class="logo-accent">ZAKON</span><div class="logo-dot"></div></div>
     <nav class="nav">
       <div class="nav-section-label">Glavni izbornik</div>
-      <div class="nav-item active"><span class="nav-icon">◈</span> Dashboard</div>
-      <div class="nav-item"><span class="nav-icon">◇</span> Matchevi</div>
-      <div class="nav-item"><span class="nav-icon">◎</span> Email arhiva</div>
+      <div class="nav-item active" onclick="scrollToSection('top')"><span class="nav-icon">◈</span> Dashboard</div>
+      <div class="nav-item" onclick="scrollToSection('matches')"><span class="nav-icon">◇</span> Matchevi</div>
+      <div class="nav-item" onclick="scrollToSection('emails')"><span class="nav-icon">◎</span> Email poruke</div>
       <div class="nav-divider"></div>
       <div class="nav-section-label">Račun</div>
       <div class="nav-item"><span class="nav-icon">○</span> Postavke</div>
@@ -434,7 +444,7 @@
         </div>
       </div>
 
-      <div class="card email-card">
+      <div class="card email-card" id="card-emails">
         <div class="card-head">
           <div class="card-title">Email notifikacije</div>
         </div>
@@ -452,7 +462,7 @@
         </div>
       </div>
 
-      <div class="card matches-card">
+      <div class="card matches-card" id="card-matches">
         <div class="card-head">
           <div class="card-title">Matchevi</div>
           <div class="card-head-action" id="match-count"></div>
@@ -484,7 +494,7 @@
         <div class="card-head">
           <div class="card-title">Aktivnost</div>
         </div>
-        <div class="card-body" style="padding:13px 21px;overflow-y:auto;">
+        <div class="card-body" style="padding:10px 16px;overflow-y:auto;">
           <div id="kw-status-section"></div>
           <div id="activity-list"></div>
         </div>
@@ -502,8 +512,8 @@
     <nav class="nav">
       <div class="nav-section-label">Glavni izbornik</div>
       <div class="nav-item active" onclick="closeMobNav()"><span class="nav-icon">◈</span> Dashboard</div>
-      <div class="nav-item" onclick="closeMobNav();showToast('Matchevi — uskoro dostupno')"><span class="nav-icon">◇</span> Matchevi</div>
-      <div class="nav-item" onclick="closeMobNav();showToast('Email arhiva — uskoro dostupno')"><span class="nav-icon">◎</span> Email arhiva</div>
+      <div class="nav-item" onclick="closeMobNav();setTimeout(()=>scrollToSection('matches'),200)"><span class="nav-icon">◇</span> Matchevi</div>
+      <div class="nav-item" onclick="closeMobNav();setTimeout(()=>scrollToSection('emails'),200)"><span class="nav-icon">◎</span> Email poruke</div>
       <div class="nav-divider"></div>
       <div class="nav-section-label">Račun</div>
       <div class="nav-item" onclick="closeMobNav();showToast('Postavke — uskoro dostupno')"><span class="nav-icon">○</span> Postavke</div>
@@ -598,11 +608,31 @@
 
   document.querySelectorAll('.nav-item').forEach(item => {
     const text = item.textContent.trim();
-    if (text.includes('Odjava'))        item.onclick = logout;
-    if (text.includes('Postavke'))      item.onclick = () => showToast('Postavke — uskoro dostupno');
-    if (text.includes('Matchevi'))      item.onclick = () => showToast('Matchevi — uskoro dostupno');
-    if (text.includes('Email arhiva'))  item.onclick = () => showToast('Email arhiva — uskoro dostupno');
-    });
+    if (text.includes('Odjava'))    item.onclick = logout;
+    if (text.includes('Postavke')) item.onclick = () => showToast('Postavke — uskoro dostupno');
+  });
+
+  function scrollToSection(section) {
+    const main = document.querySelector('.main');
+    const targets = {
+      top:     document.querySelector('.dashboard'),
+      matches: document.getElementById('card-matches'),
+      emails:  document.getElementById('card-emails'),
+    };
+    const el = targets[section];
+    if (!el) return;
+    // Na mobitelu main nema overflow — koristi window scroll
+    if (window.innerWidth <= 768) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      // Desktop/tablet: main div je onaj koji skrola
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      main.scrollTop = el.offsetTop - 20;
+    }
+    // Highlight aktivnog nav itema
+    document.querySelectorAll('.sidebar .nav-item').forEach(n => n.classList.remove('active'));
+    event.currentTarget && event.currentTarget.classList.add('active');
+  }
 
   function showToast(msg) {
     const t = document.getElementById('toast');
