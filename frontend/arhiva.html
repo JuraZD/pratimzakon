@@ -163,6 +163,31 @@
   .archive-search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 0 4px; display: none; }
   .archive-search-clear.visible { display: block; }
 
+  /* ─── NN PRETRAGA ─── */
+  .nn-search-section { margin-top: 36px; border-top: 2px solid var(--border-strong); padding-top: 28px; }
+  .nn-search-title { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--navy); letter-spacing: -0.3px; margin-bottom: 6px; }
+  .nn-search-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+  .nn-search-input-wrap { display: flex; gap: 8px; margin-bottom: 12px; }
+  .nn-search-input { flex: 1; padding: 9px 12px; background: var(--surface); border: 1.5px solid var(--border-strong); border-radius: var(--radius); color: var(--text); font-family: var(--font-body); font-size: 13.5px; outline: none; transition: border-color 0.15s; }
+  .nn-search-input:focus { border-color: var(--navy); }
+  .nn-search-input::placeholder { color: var(--muted); }
+  .btn-nn-search { padding: 9px 20px; background: var(--navy); border: none; border-radius: var(--radius); color: var(--cream); font-size: 13px; font-weight: 700; cursor: pointer; white-space: nowrap; letter-spacing: 0.3px; transition: background 0.15s; }
+  .btn-nn-search:hover { background: var(--navy2); }
+  .nn-result { display: grid; grid-template-columns: 1fr auto; align-items: start; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .nn-result:last-child { border-bottom: none; }
+  .nn-result-title { font-size: 13.5px; font-weight: 500; color: var(--navy); line-height: 1.35; margin-bottom: 3px; }
+  .nn-result-meta { font-size: 11.5px; color: var(--muted); }
+  .nn-result-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; flex-shrink: 0; }
+  .nn-result-badge { font-size: 10px; font-weight: 700; background: var(--surface2); border: 1px solid var(--border-strong); border-radius: 2px; padding: 2px 7px; color: var(--text); white-space: nowrap; text-transform: uppercase; letter-spacing: 0.3px; }
+  .btn-nn-view { padding: 4px 10px; background: transparent; border: 1.5px solid var(--border-strong); border-radius: var(--radius); color: var(--navy); font-family: var(--font-body); font-size: 11.5px; cursor: pointer; transition: all 0.15s; white-space: nowrap; font-weight: 600; }
+  .btn-nn-view:hover { background: var(--orange); border-color: var(--orange); color: var(--white); }
+  .nn-pagination { display: flex; gap: 4px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+  .pag-btn { padding: 4px 10px; border: 1.5px solid var(--border-strong); background: var(--surface2); color: var(--muted); font-family: var(--font-body); font-size: 11.5px; cursor: pointer; border-radius: var(--radius); transition: all 0.15s; font-weight: 600; }
+  .pag-btn:hover { border-color: var(--navy); color: var(--navy); }
+  .pag-btn.active { background: var(--navy); color: var(--cream); border-color: var(--navy); }
+  .pag-ellipsis { color: var(--muted); font-size: 11.5px; padding: 0 2px; }
+  .nn-empty { color: var(--muted); font-size: 13.5px; padding: 12px 0; }
+
   /* ─── EMPTY STATE ─── */
   .empty-state { text-align: center; padding: 64px 24px; }
   .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
@@ -201,6 +226,7 @@
       <div class="nav-item" onclick="window.location='dashboard.html'"><span class="nav-icon">◈</span> Dashboard</div>
       <div class="nav-item" onclick="window.location='dashboard.html'"><span class="nav-icon">◇</span> Matchevi</div>
       <div class="nav-item active"><span class="nav-icon">◫</span> Moja arhiva</div>
+      <div class="nav-item" onclick="window.location='aktivnost.html'"><span class="nav-icon">◎</span> Aktivnost</div>
       <div class="nav-divider"></div>
       <div class="nav-section-label">Račun</div>
       <div class="nav-item" onclick="showToast('Postavke — uskoro dostupno')"><span class="nav-icon">○</span> Postavke</div>
@@ -253,6 +279,21 @@
       <div id="archive-list" class="archive-list">
         <div class="loading-row">⟳ Učitavam arhivu...</div>
       </div>
+
+      <!-- NN PRETRAGA -->
+      <div class="nn-search-section">
+        <div class="nn-search-title">Pretraži NN arhivu</div>
+        <div class="nn-search-sub">Pretražite cijeli Narodne novine arhiv — ne samo vaše matcheve</div>
+        <div class="nn-search-input-wrap">
+          <input class="nn-search-input" id="nn-search-q" type="text"
+            placeholder="Upiši pojam (npr. porez, zakon o radu)..."
+            onkeydown="if(event.key==='Enter') nnSearch(1)">
+          <button class="btn-nn-search" onclick="nnSearch(1)">Pretraži</button>
+        </div>
+        <div id="nn-search-results"></div>
+        <div id="nn-search-pag"></div>
+      </div>
+
     </div>
 
   </div>
@@ -268,6 +309,7 @@
       <div class="nav-item" onclick="closeMobNav();window.location.href='dashboard.html'"><span class="nav-icon">◈</span> Dashboard</div>
       <div class="nav-item" onclick="closeMobNav();window.location.href='dashboard.html'"><span class="nav-icon">◇</span> Matchevi</div>
       <div class="nav-item active"><span class="nav-icon">◫</span> Moja arhiva</div>
+      <div class="nav-item" onclick="closeMobNav();window.location.href='aktivnost.html'"><span class="nav-icon">◎</span> Aktivnost</div>
       <div class="nav-divider"></div>
       <div class="nav-section-label">Račun</div>
       <div class="nav-item" onclick="closeMobNav();showToast('Postavke — uskoro dostupno')"><span class="nav-icon">○</span> Postavke</div>
@@ -506,6 +548,65 @@
       }
     } catch(e) {
       showToast('Greška pri uklanjanju');
+    }
+  }
+
+  // ── PRETRAGA NN ARHIVE ────────────────────────────────────────────────────
+  let _nnPage = 1;
+
+  async function nnSearch(page) {
+    const q = document.getElementById('nn-search-q').value.trim();
+    if (!q) return;
+    _nnPage = page;
+    const resultsEl = document.getElementById('nn-search-results');
+    const pagEl     = document.getElementById('nn-search-pag');
+    resultsEl.innerHTML = '<div class="nn-empty">Pretraživanje...</div>';
+    pagEl.innerHTML = '';
+
+    try {
+      const res = await fetch(
+        API + '/search/?q=' + encodeURIComponent(q) + '&per_page=10&page=' + page,
+        { headers: authHeaders() }
+      );
+      if (!res.ok) { resultsEl.innerHTML = '<div class="nn-empty">Greška pri pretrazi.</div>'; return; }
+      const data = await res.json();
+      if (!data.results || !data.results.length) {
+        resultsEl.innerHTML = '<div class="nn-empty">Nema rezultata za "' + esc(q) + '".</div>';
+        return;
+      }
+
+      resultsEl.innerHTML = data.results.map(doc => `
+        <div class="nn-result">
+          <div>
+            <div class="nn-result-title">${esc(doc.title)}</div>
+            <div class="nn-result-meta">
+              ${doc.institution ? esc(doc.institution) + ' · ' : ''}
+              ${doc.published_date ? esc(doc.published_date) : ''}
+              ${doc.issue_number ? ' · NN ' + doc.issue_number : ''}
+            </div>
+          </div>
+          <div class="nn-result-actions">
+            ${doc.type ? '<span class="nn-result-badge">' + esc(doc.type) + '</span>' : ''}
+            <button class="btn-nn-view" onclick="window.location='sazetak.html?id=${doc.id}'">Vidi →</button>
+          </div>
+        </div>
+      `).join('');
+
+      const totalPages = Math.ceil(data.total / 10);
+      if (totalPages > 1) {
+        let h = '<div class="nn-pagination">';
+        const start = Math.max(1, page - 2);
+        const end   = Math.min(totalPages, start + 4);
+        if (start > 1) h += '<button class="pag-btn" onclick="nnSearch(1)">1</button><span class="pag-ellipsis">…</span>';
+        for (let i = start; i <= end; i++) {
+          h += '<button class="pag-btn' + (i === page ? ' active' : '') + '" onclick="nnSearch(' + i + ')">' + i + '</button>';
+        }
+        if (end < totalPages) h += '<span class="pag-ellipsis">…</span><button class="pag-btn" onclick="nnSearch(' + totalPages + ')">' + totalPages + '</button>';
+        h += '<span style="font-size:12px;color:var(--muted);margin-left:8px;">' + data.total + ' ukupno</span></div>';
+        pagEl.innerHTML = h;
+      }
+    } catch(e) {
+      resultsEl.innerHTML = '<div class="nn-empty">Greška pri pretrazi.</div>';
     }
   }
 
