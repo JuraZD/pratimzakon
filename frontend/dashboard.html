@@ -320,6 +320,12 @@
   .match-pag-btn:disabled { opacity:0.3; cursor:not-allowed; }
   .match-pag-info { font-size:calc(11px * var(--font-scale)); color:var(--muted); font-weight:600; }
   .matches-card .card-body { padding:0 !important; display:flex; flex-direction:column; overflow:hidden; }
+  .matches-card .card-body > div { display:flex; flex-direction:column; flex:1; overflow:hidden; min-height:0; }
+  .match-pag-row { background:var(--navy); padding:9px 16px; border-top:none; }
+  .match-pag-row .match-pag-btn { background:rgba(255,255,255,0.1); border:1.5px solid rgba(255,255,255,0.2); color:var(--cream); font-size:calc(12px * var(--font-scale)); padding:5px 16px; }
+  .match-pag-row .match-pag-btn:hover:not(:disabled) { background:var(--orange); border-color:var(--orange); color:var(--white); }
+  .match-pag-row .match-pag-btn:disabled { opacity:0.25; }
+  .match-pag-row .match-pag-info { color:rgba(232,228,218,0.75); font-size:calc(11.5px * var(--font-scale)); }
 
   /* ── KEYWORD STATUS (activity panel top) ── */
   .act-section-label { font-size:calc(10px * var(--font-scale)); font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
@@ -859,12 +865,14 @@
     });
     html += '</div>';
 
-    // Pagination
+    // Pagination — always show if more than one page
     if (totalPages > 1) {
+      const from = (page - 1) * KW_PER_PAGE + 1;
+      const to   = Math.min(page * KW_PER_PAGE, activeMatches.length);
       html += `<div class="match-pag-row">
-        <button class="match-pag-btn" onclick="matchGoPage(${page - 1})" ${page <= 1 ? 'disabled' : ''}>←</button>
-        <span class="match-pag-info">${page} / ${totalPages}</span>
-        <button class="match-pag-btn" onclick="matchGoPage(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>→</button>
+        <button class="match-pag-btn" onclick="matchGoPage(${page - 1})" ${page <= 1 ? 'disabled' : ''}>← Prethodna</button>
+        <span class="match-pag-info">Prikazano ${from}–${to} od ${activeMatches.length}</span>
+        <button class="match-pag-btn" onclick="matchGoPage(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>Sljedeća →</button>
       </div>`;
     }
 
