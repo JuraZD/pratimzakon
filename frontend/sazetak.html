@@ -242,6 +242,9 @@
 
   .action-btn:last-child { margin-bottom: 0; }
 
+  .archive-viewlink { display:block; text-align:center; font-size:12px; color:var(--muted); margin-top:8px; text-decoration:none; transition:color 0.15s; }
+  .archive-viewlink:hover { color:var(--navy); text-decoration:underline; }
+
   .action-btn:hover { background: var(--navy); color: var(--surface); border-color: var(--navy); }
 
   .action-btn.primary { background: var(--orange); border-color: var(--orange); color: var(--white); }
@@ -311,6 +314,7 @@
       <div class="nav-section-label">Glavni izbornik</div>
       <div class="nav-item" onclick="window.location='dashboard.html'"><span class="nav-icon">◈</span> Dashboard</div>
       <div class="nav-item active"><span class="nav-icon">◇</span> Sažetak zakona</div>
+      <div class="nav-item" onclick="window.location='arhiva.html'"><span class="nav-icon">◫</span> Moja arhiva</div>
       <div class="nav-divider"></div>
       <div class="nav-section-label">Račun</div>
       <div class="nav-item"><span class="nav-icon">○</span> Postavke</div>
@@ -425,16 +429,7 @@
                 <span id="btn-archive-label">Spremi u arhivu</span>
                 <span class="action-btn-icon" id="btn-archive-icon">◎</span>
               </button>
-            </div>
-          </div>
-
-          <!-- Related docs -->
-          <div class="side-card">
-            <div class="side-card-head">
-              <div class="side-card-title">Povezani propisi</div>
-            </div>
-            <div class="side-card-body" id="related-docs-body">
-              <div style="color:var(--muted);font-size:12px;">⟳ Učitavam...</div>
+              <a class="archive-viewlink" href="arhiva.html">Pogledaj moju arhivu →</a>
             </div>
           </div>
 
@@ -453,6 +448,7 @@
       <div class="nav-section-label">Glavni izbornik</div>
       <div class="nav-item" onclick="closeMobNav();window.location.href='dashboard.html'"><span class="nav-icon">◈</span> Dashboard</div>
       <div class="nav-item active"><span class="nav-icon">◇</span> Sažetak zakona</div>
+      <div class="nav-item" onclick="closeMobNav();window.location.href='arhiva.html'"><span class="nav-icon">◫</span> Moja arhiva</div>
       <div class="nav-divider"></div>
       <div class="nav-section-label">Račun</div>
       <div class="nav-item" onclick="closeMobNav()"><span class="nav-icon">○</span> Postavke</div>
@@ -615,9 +611,8 @@
       document.getElementById('doc-meta').innerHTML = '';
     }
 
-    // Provjeri arhivni status i učitaj povezane propise
+    // Provjeri arhivni status
     checkArchive(docId);
-    loadRelated(docId, kw);
 
     // Dohvati AI sažetak — proslijedi ključnu riječ radi personalizacije
     const summaryText = document.getElementById('summary-text');
@@ -685,47 +680,6 @@
       showToast(data.archived ? 'Dokument spremljen u arhivu' : 'Dokument uklonjen iz arhive');
     } catch(e) {
       showToast('Greška pri spremanju u arhivu');
-    }
-  }
-
-  // ── POVEZANI PROPISI ─────────────────────────────────────────────────────
-  async function loadRelated(docId, kw) {
-    const container = document.getElementById('related-docs-body');
-    if (!kw) {
-      container.innerHTML = '<div style="color:var(--muted);font-size:12px;">Nema ključne riječi — otvori dokument iz matcheva.</div>';
-      return;
-    }
-    try {
-      const res = await fetch(`${API}/search/matches/recent?limit=200`, { headers: authHeaders() });
-      if (!res.ok) throw new Error();
-      const matches = await res.json();
-
-      // Samo matchevi istog keywordu, bez trenutnog dokumenta, bez duplikata
-      const seen = new Set([String(docId)]);
-      const items = [];
-      for (const m of matches) {
-        if (m.keyword !== kw) continue;
-        if (seen.has(String(m.document_id))) continue;
-        seen.add(String(m.document_id));
-        items.push(m);
-      }
-
-      if (!items.length) {
-        container.innerHTML = `<div style="color:var(--muted);font-size:12px;">Nema drugih dokumenata za keyword <strong>${esc(kw)}</strong>.</div>`;
-        return;
-      }
-
-      container.innerHTML = items.slice(0, 8).map(m => `
-        <div class="related-doc" onclick="window.location='sazetak.html?id=${m.document_id}&kw=${encodeURIComponent(m.keyword)}'">
-          <div class="related-doc-dot"></div>
-          <div>
-            <div class="related-doc-title">${esc(m.document_title)}</div>
-            <div class="related-doc-date">${esc(m.matched_at)} · ${esc(m.keyword)}</div>
-          </div>
-        </div>`).join('');
-
-    } catch(e) {
-      container.innerHTML = '<div style="color:var(--muted);font-size:12px;">Greška pri dohvatu.</div>';
     }
   }
 
