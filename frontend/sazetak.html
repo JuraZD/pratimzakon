@@ -691,46 +691,36 @@
   // ── POVEZANI PROPISI ─────────────────────────────────────────────────────
   async function loadRelated(docId, kw) {
     const container = document.getElementById('related-docs-body');
+    if (!kw) {
+      container.innerHTML = '<div style="color:var(--muted);font-size:12px;">Nema ključne riječi — otvori dokument iz matcheva.</div>';
+      return;
+    }
     try {
-      // Dohvati dokumente iste institucije
-      const res = await fetch(`${API}/search/document/${docId}/related`, { headers: authHeaders() });
-      const related = res.ok ? await res.json() : [];
+      const res = await fetch(`${API}/search/matches/recent?limit=200`, { headers: authHeaders() });
+      if (!res.ok) throw new Error();
+      const matches = await res.json();
 
-      // Dohvati korisnikove matcheve za isti keyword
-      const kwRes = await fetch(`${API}/search/matches/recent?limit=100`, { headers: authHeaders() });
-      const allMatches = kwRes.ok ? await kwRes.json() : [];
-      const kwMatches = kw
-        ? allMatches.filter(m => m.keyword === kw && String(m.document_id) !== String(docId))
-        : [];
-
-      // Spoji: prvo keyword matchevi, pa isti izdavač (bez duplikata)
+      // Samo matchevi istog keywordu, bez trenutnog dokumenta, bez duplikata
       const seen = new Set([String(docId)]);
       const items = [];
-      for (const m of kwMatches) {
-        if (!seen.has(String(m.document_id))) {
-          seen.add(String(m.document_id));
-          items.push({ id: m.document_id, title: m.document_title, sub: `Match: ${m.keyword} · ${m.matched_at}`, kw: m.keyword });
-        }
-      }
-      for (const d of related) {
-        if (!seen.has(String(d.id))) {
-          seen.add(String(d.id));
-          const nn = d.issue_number ? `NN ${d.issue_number}/${d.published_date ? d.published_date.substring(0,4) : ''}` : '';
-          items.push({ id: d.id, title: d.title, sub: [nn, d.institution].filter(Boolean).join(' · '), kw: '' });
-        }
+      for (const m of matches) {
+        if (m.keyword !== kw) continue;
+        if (seen.has(String(m.document_id))) continue;
+        seen.add(String(m.document_id));
+        items.push(m);
       }
 
       if (!items.length) {
-        container.innerHTML = '<div style="color:var(--muted);font-size:12px;">Nema povezanih propisa u bazi.</div>';
+        container.innerHTML = `<div style="color:var(--muted);font-size:12px;">Nema drugih dokumenata za keyword <strong>${esc(kw)}</strong>.</div>`;
         return;
       }
 
-      container.innerHTML = items.slice(0, 6).map(it => `
-        <div class="related-doc" onclick="window.location='sazetak.html?id=${it.id}${it.kw ? '&kw=' + encodeURIComponent(it.kw) : ''}'">
+      container.innerHTML = items.slice(0, 8).map(m => `
+        <div class="related-doc" onclick="window.location='sazetak.html?id=${m.document_id}&kw=${encodeURIComponent(m.keyword)}'">
           <div class="related-doc-dot"></div>
           <div>
-            <div class="related-doc-title">${esc(it.title)}</div>
-            <div class="related-doc-date">${esc(it.sub)}</div>
+            <div class="related-doc-title">${esc(m.document_title)}</div>
+            <div class="related-doc-date">${esc(m.matched_at)} · ${esc(m.keyword)}</div>
           </div>
         </div>`).join('');
 
