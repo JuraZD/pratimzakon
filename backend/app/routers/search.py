@@ -3,7 +3,7 @@ Pretraga arhive Narodnih novina.
 Dostupno svim prijavljenim korisnicima.
 """
 
-from datetime import date
+from datetime import date, datetime
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -438,3 +438,64 @@ def get_related_documents(
         )
 
     return related
+
+
+# ── BILJEŠKE ──────────────────────────────────────────────────────────────────
+
+class NoteBody(BaseModel):
+    text: str
+
+
+@router.get("/notes")
+def get_all_notes(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Dohvaća sve korisnikove bilješke kao {doc_id: text}."""
+    rows = (
+        db.query(Log)
+        .filter(Log.user_id == current_user.id, Log.event_type == "note")
+        .all()
+    )
+    result = {}
+    for r in rows:
+        detail = r.detail or ""
+        if "|text:" in detail:
+            head, note_text = detail.split("|text:", 1)
+            if head.startswith("doc_id:"):
+                try:
+                    doc_id = int(head.replace("doc_id:", "").strip())
+                    result[doc_id] = note_text
+                except ValueError:
+                    pass
+    return result
+
+
+@router.post("/note/{document_id}")
+def save_note(
+    document_id: int,
+    body: NoteBody,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Spremi ili obriši bilješku za dokument (prazno tekst = brisanje)."""
+    existing = (
+        db.query(Log)
+        .filter(Log.user_id == current_user.id, Log.event_type == "note")
+        .filter(Log.detail.contains(f"doc_id:{document_id}|"))
+        .first()
+    )
+    text = (body.text or "").strip()[:500]
+    if existing:
+        if text:
+            existing.detail = f"doc_id:{document_id}|text:{text}"
+        else:
+            db.delete(existing)
+    elif text:
+        db.add(Log(
+            user_id=current_user.id,
+            event_type="note",
+            detail=f"doc_id:{document_id}|text:{text}",
+        ))
+    db.commit()
+    return {"text": text}

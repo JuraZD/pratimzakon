@@ -1,0 +1,35 @@
+name: Tjedni digest email
+
+on:
+  schedule:
+    - cron: "0 7 * * 1"  # Ponedjeljak 08:00 CET (07:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Run weekly digest
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SMTP_SERVER:  ${{ secrets.SMTP_SERVER }}
+          SMTP_PORT:    ${{ secrets.SMTP_PORT }}
+          SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          FROM_EMAIL:   ${{ secrets.FROM_EMAIL }}
+          FROM_NAME:    ${{ secrets.FROM_NAME }}
+          BASE_URL:     ${{ secrets.BASE_URL }}
+        run: |
+          cd backend
+          python -m app.jobs.weekly_digest

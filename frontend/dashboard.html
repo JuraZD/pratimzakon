@@ -202,6 +202,29 @@
   .btn-save { width:100%; padding:10px; background:var(--orange); border:none; border-radius:var(--radius); color:var(--white); font-family:var(--font-display); font-size:calc(14px * var(--font-scale)); font-weight:800; cursor:pointer; transition:all 0.15s; letter-spacing:1.5px; text-transform:uppercase; }
   .btn-save:hover { background:var(--orange2); transform:translateY(-1px); }
 
+  /* ── KW STATS ── */
+  .kw-stat { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:16px; padding:0 4px; background:var(--green-dim); color:var(--green); border-radius:2px; font-size:10px; font-weight:700; letter-spacing:0.2px; margin-left:4px; }
+  .kw-stat.zero { background:var(--border); color:var(--muted); }
+
+  /* ── AI SUGGEST ── */
+  .btn-suggest { width:100%; margin-top:6px; padding:8px; background:transparent; border:1.5px dashed var(--border-strong); border-radius:var(--radius); color:var(--muted); font-family:var(--font-body); font-size:calc(12px * var(--font-scale)); font-weight:600; cursor:pointer; transition:all 0.15s; }
+  .btn-suggest:hover { border-color:var(--navy); color:var(--navy); background:var(--surface2); }
+  .btn-suggest:disabled { opacity:0.5; cursor:wait; }
+  .suggest-chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+  .suggest-chip { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; background:var(--green-dim); border:1.5px solid rgba(46,125,82,0.25); border-radius:2px; font-size:calc(12px * var(--font-scale)); color:var(--green); cursor:pointer; font-weight:600; transition:all 0.15s; }
+  .suggest-chip:hover { background:var(--green); color:var(--white); border-color:var(--green); }
+
+  /* ── DIGEST TOGGLE ── */
+  .digest-row { display:flex; align-items:center; justify-content:space-between; margin-top:10px; padding:9px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); }
+  .digest-label { font-size:calc(12px * var(--font-scale)); font-weight:600; color:var(--text); }
+  .digest-sub { font-size:calc(10px * var(--font-scale)); color:var(--muted); margin-top:1px; }
+  .toggle-switch { position:relative; width:36px; height:20px; flex-shrink:0; }
+  .toggle-switch input { opacity:0; width:0; height:0; }
+  .toggle-track { position:absolute; inset:0; background:var(--border-strong); border-radius:20px; cursor:pointer; transition:background 0.2s; }
+  .toggle-track::before { content:''; position:absolute; width:14px; height:14px; left:3px; top:3px; background:#fff; border-radius:50%; transition:transform 0.2s; }
+  .toggle-switch input:checked + .toggle-track { background:var(--green); }
+  .toggle-switch input:checked + .toggle-track::before { transform:translateX(16px); }
+
   /* ── SITUATION HISTORY ── */
   .sit-history { margin-top:8px; }
   .sit-history-label { font-size:calc(9.5px * var(--font-scale)); color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; margin-bottom:4px; }
@@ -463,6 +486,18 @@
           <div class="situation-label">Moja situacija — za personalizirani sažetak</div>
           <textarea class="situation-textarea" id="situation" placeholder="Npr: Vodim restoran s 5 zaposlenika u Zagrebu..."></textarea>
           <button class="btn-save" onclick="savePracenje()">Spremi praćenje</button>
+          <button class="btn-suggest" id="btn-suggest" onclick="suggestKeywords()">◈ Predloži ključne riječi na temelju situacije</button>
+          <div class="suggest-chips" id="suggest-chips" style="display:none"></div>
+          <div class="digest-row">
+            <div>
+              <div class="digest-label">Tjedni sažetak emailom</div>
+              <div class="digest-sub">Jedan email ponedjeljkom s novim pronalascima</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="digest-toggle" onchange="toggleDigest()">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
           <div id="situation-history"></div>
         </div>
       </div>
@@ -706,7 +741,8 @@
       data.forEach(kw => {
         const tag = document.createElement('div');
         tag.className = 'tag active';
-        tag.innerHTML = kw.keyword + ' <span class="tag-remove">×</span>';
+        tag.dataset.kwname = kw.keyword;
+        tag.innerHTML = kw.keyword + ' <span class="tag-remove">×</span><span class="kw-stat zero" id="kw-stat-' + encodeURIComponent(kw.keyword) + '"></span>';
         tag.onclick = function() { deleteKeyword(kw.id, tag); };
         list.appendChild(tag);
       });
@@ -794,6 +830,7 @@
       document.getElementById('match-count').textContent = allMatches.length > 0 ? allMatches.length + ' ukupno' : '';
       document.getElementById('stat-last-match').textContent = allMatches.length > 0 ? (allMatches[0].matched_at || '').split(' ')[0] || '—' : '—';
       renderMatchesByKeyword(allMatches);
+      applyKwStats(allMatches);
       renderActivityPanel();
     } catch(e) { console.error('Greška matchevi:', e); }
   }
@@ -1234,6 +1271,106 @@
     }
   }
 
+  // ── STATISTIKE PO KLJUČNOJ RIJEČI ─────────────────────────────────────────
+  function applyKwStats(matches) {
+    // Grupiraj matcheve po ključnoj riječi
+    const stats = {};
+    for (const m of matches) {
+      if (!stats[m.keyword]) stats[m.keyword] = { count: 0, last: null };
+      stats[m.keyword].count++;
+      if (!stats[m.keyword].last) stats[m.keyword].last = m.matched_at;
+    }
+    document.querySelectorAll('.tag[data-kwname]').forEach(tag => {
+      const kw = tag.dataset.kwname;
+      const stat = stats[kw];
+      const el = document.getElementById('kw-stat-' + encodeURIComponent(kw));
+      if (!el) return;
+      if (stat && stat.count > 0) {
+        el.textContent = stat.count;
+        el.className = 'kw-stat';
+        el.title = `Zadnji: ${stat.last}`;
+      } else {
+        el.textContent = '0';
+        el.className = 'kw-stat zero';
+      }
+    });
+  }
+
+  // ── AI PRIJEDLOG KLJUČNIH RIJEČI ──────────────────────────────────────────
+  async function suggestKeywords() {
+    const btn = document.getElementById('btn-suggest');
+    const chips = document.getElementById('suggest-chips');
+    btn.disabled = true;
+    btn.textContent = '⟳ Generira prijedloge...';
+    chips.style.display = 'none';
+    chips.innerHTML = '';
+    try {
+      const res = await fetch(API + '/keywords/suggest', { headers: authHeaders() });
+      if (!res.ok) { showToast('Greška pri generiranju prijedloga'); return; }
+      const data = await res.json();
+      if (!data.suggestions || !data.suggestions.length) {
+        showToast('Nema prijedloga — dodajte opis situacije');
+        return;
+      }
+      chips.innerHTML = data.suggestions.map(s =>
+        `<div class="suggest-chip" onclick="addSuggested(this,'${s.replace(/'/g,"\\'")}')">+ ${esc(s)}</div>`
+      ).join('');
+      chips.style.display = 'flex';
+    } catch(e) {
+      showToast('AI nije dostupan');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '◈ Predloži ključne riječi na temelju situacije';
+    }
+  }
+
+  async function addSuggested(el, keyword) {
+    const current = document.querySelectorAll('.tag').length;
+    try {
+      const userRes = await fetch(API + '/auth/me', { headers: authHeaders() });
+      const user = await userRes.json();
+      if (current >= user.keyword_limit) {
+        showToast('Dostigli ste limit od ' + user.keyword_limit + ' ključnih riječi');
+        return;
+      }
+      const res = await fetch(API + '/keywords/', {
+        method: 'POST', headers: authHeaders(),
+        body: JSON.stringify({ keyword: keyword, doc_type_filter: null, institution_filter: null, part_filter: null })
+      });
+      if (!res.ok) { showToast('Greška pri dodavanju'); return; }
+      const kw = await res.json();
+      const tag = document.createElement('div');
+      tag.className = 'tag active';
+      tag.dataset.kwname = kw.keyword;
+      tag.innerHTML = kw.keyword + ' <span class="tag-remove">×</span><span class="kw-stat zero" id="kw-stat-' + encodeURIComponent(kw.keyword) + '"></span>';
+      tag.onclick = function() { deleteKeyword(kw.id, tag); };
+      document.getElementById('tag-list').appendChild(tag);
+      updateKwCount();
+      el.remove();
+      showToast('Dodana ključna riječ: ' + keyword);
+    } catch(e) { showToast('Greška pri dodavanju'); }
+  }
+
+  // ── TJEDNI DIGEST ─────────────────────────────────────────────────────────
+  async function loadDigestStatus() {
+    try {
+      const res = await fetch(API + '/keywords/digest-status', { headers: authHeaders() });
+      if (!res.ok) return;
+      const data = await res.json();
+      const cb = document.getElementById('digest-toggle');
+      if (cb) cb.checked = data.enabled;
+    } catch(e) {}
+  }
+
+  async function toggleDigest() {
+    try {
+      const res = await fetch(API + '/keywords/digest-toggle', { method: 'POST', headers: authHeaders() });
+      if (!res.ok) { showToast('Greška pri promjeni postavke'); return; }
+      const data = await res.json();
+      showToast(data.enabled ? 'Tjedni sažetak uključen' : 'Tjedni sažetak isključen');
+    } catch(e) { showToast('Greška'); }
+  }
+
   // ── INIT ──────────────────────────────────────────────────────────────────
   async function init() {
     await loadUser();
@@ -1241,6 +1378,7 @@
     await loadKeywords();
     await loadMatches();
     await loadActivity();
+    loadDigestStatus();
   }
 
   init();

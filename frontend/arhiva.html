@@ -139,6 +139,22 @@
   .archive-btn.remove { color: var(--orange); border-color: rgba(184,77,27,0.3); }
   .archive-btn.remove:hover { background: var(--orange); color: var(--white); border-color: var(--orange); }
 
+  /* ─── NOTES ─── */
+  .note-section { margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px; }
+  .note-toggle { background: none; border: none; font-size: 11px; color: var(--muted); cursor: pointer; padding: 0; font-family: var(--font-body); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; transition: color 0.15s; }
+  .note-toggle:hover { color: var(--navy); }
+  .note-edit { display: none; margin-top: 6px; }
+  .note-edit.open { display: block; }
+  .note-textarea { width: 100%; padding: 7px 10px; background: var(--surface2); border: 1.5px solid var(--border-strong); border-radius: var(--radius); color: var(--text); font-family: var(--font-body); font-size: 12.5px; resize: vertical; min-height: 60px; outline: none; transition: border-color 0.15s; line-height: 1.55; }
+  .note-textarea:focus { border-color: var(--navy); }
+  .note-save-btn { margin-top: 5px; padding: 5px 14px; background: var(--navy); border: none; border-radius: var(--radius); color: var(--cream); font-size: 12px; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .note-save-btn:hover { background: var(--navy2); }
+  .note-text-display { font-size: 12.5px; color: var(--text); line-height: 1.55; font-style: italic; margin-top: 4px; }
+
+  /* ─── EXPORT ─── */
+  .btn-export { padding: 7px 16px; background: transparent; border: 1.5px solid var(--border-strong); border-radius: var(--radius); color: var(--muted); font-family: var(--font-body); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
+  .btn-export:hover { background: var(--navy); color: var(--cream); border-color: var(--navy); }
+
   /* ─── EMPTY STATE ─── */
   .empty-state { text-align: center; padding: 64px 24px; }
   .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
@@ -212,10 +228,11 @@
       </div>
 
       <div class="archive-stats" id="archive-stats" style="display:none">
-        <div>
+        <div style="flex:1">
           <div class="archive-stat-count" id="stat-count">0</div>
           <div class="archive-stat-label">Spremljenih dokumenata</div>
         </div>
+        <button class="btn-export" onclick="exportCSV()">↓ Preuzmi CSV</button>
       </div>
 
       <div id="archive-list" class="archive-list">
@@ -300,16 +317,21 @@
     } catch(e) {}
   }
 
-  // ── LOAD ARCHIVE ──────────────────────────────────────────────────────────
+  // ── LOAD ARCHIVE + NOTES ─────────────────────────────────────────────────
   let _archive = [];
+  let _notes = {};
 
   async function loadArchive() {
     const list = document.getElementById('archive-list');
     try {
-      const res = await fetch(`${API}/search/archive`, { headers: authHeaders() });
-      if (res.status === 401) { logout(); return; }
-      if (!res.ok) throw new Error();
-      _archive = await res.json();
+      const [archiveRes, notesRes] = await Promise.all([
+        fetch(`${API}/search/archive`, { headers: authHeaders() }),
+        fetch(`${API}/search/notes`,   { headers: authHeaders() }),
+      ]);
+      if (archiveRes.status === 401) { logout(); return; }
+      if (!archiveRes.ok) throw new Error();
+      _archive = await archiveRes.json();
+      _notes   = notesRes.ok ? await notesRes.json() : {};
       renderArchive();
     } catch(e) {
       list.innerHTML = '<div class="loading-row" style="color:var(--orange)">Greška pri dohvatu arhive.</div>';
@@ -335,7 +357,9 @@
       return;
     }
 
-    list.innerHTML = _archive.map((item, idx) => `
+    list.innerHTML = _archive.map((item, idx) => {
+      const note = _notes[item.document_id] || '';
+      return `
       <div class="archive-item" id="archive-row-${idx}">
         <div class="archive-item-left">
           <div class="archive-item-title" onclick="openDoc(${item.document_id})">${esc(item.document_title)}</div>
@@ -344,17 +368,93 @@
             <span class="archive-meta-sep">·</span>
             <span class="archive-meta-date">${esc(item.archived_at)}</span>
           </div>
+          <div class="note-section">
+            ${note ? `<div class="note-text-display" id="note-display-${item.document_id}">${esc(note)}</div>` : ''}
+            <button class="note-toggle" onclick="toggleNote(${item.document_id})">
+              ${note ? '✎ Uredi bilješku' : '+ Dodaj bilješku'}
+            </button>
+            <div class="note-edit" id="note-edit-${item.document_id}">
+              <textarea class="note-textarea" id="note-text-${item.document_id}" placeholder="Osobna bilješka — zašto je ovaj propis važan za vas...">${esc(note)}</textarea>
+              <button class="note-save-btn" onclick="saveNote(${item.document_id})">Spremi bilješku</button>
+            </div>
+          </div>
         </div>
         <div class="archive-item-actions">
           <button class="archive-btn open" onclick="openDoc(${item.document_id})">Otvori sažetak →</button>
           <button class="archive-btn" onclick="window.open('${esc(item.url)}','_blank')">NN.hr ↗</button>
           <button class="archive-btn remove" onclick="removeFromArchive(${item.document_id}, ${idx})">Ukloni</button>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }
 
   function openDoc(docId) {
     window.location.href = `sazetak.html?id=${docId}`;
+  }
+
+  // ── BILJEŠKE ─────────────────────────────────────────────────────────────
+  function toggleNote(docId) {
+    const edit = document.getElementById(`note-edit-${docId}`);
+    edit.classList.toggle('open');
+    if (edit.classList.contains('open')) {
+      document.getElementById(`note-text-${docId}`).focus();
+    }
+  }
+
+  async function saveNote(docId) {
+    const text = document.getElementById(`note-text-${docId}`).value.trim();
+    try {
+      const res = await fetch(`${API}/search/note/${docId}`, {
+        method: 'POST',
+        headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+      });
+      if (!res.ok) throw new Error();
+      _notes[docId] = text;
+      // Update display
+      const display = document.getElementById(`note-display-${docId}`);
+      const toggleBtn = document.querySelector(`#archive-row-${_archive.findIndex(a => a.document_id === docId)} .note-toggle`);
+      if (text) {
+        if (display) { display.textContent = text; }
+        else {
+          const noteSection = document.getElementById(`note-edit-${docId}`).parentElement;
+          const newDisplay = document.createElement('div');
+          newDisplay.className = 'note-text-display';
+          newDisplay.id = `note-display-${docId}`;
+          newDisplay.textContent = text;
+          noteSection.insertBefore(newDisplay, noteSection.querySelector('.note-toggle'));
+        }
+        if (toggleBtn) toggleBtn.textContent = '✎ Uredi bilješku';
+      } else {
+        if (display) display.remove();
+        if (toggleBtn) toggleBtn.textContent = '+ Dodaj bilješku';
+        delete _notes[docId];
+      }
+      document.getElementById(`note-edit-${docId}`).classList.remove('open');
+      showToast(text ? 'Bilješka spremljena' : 'Bilješka obrisana');
+    } catch(e) {
+      showToast('Greška pri spremanju bilješke');
+    }
+  }
+
+  // ── CSV EXPORT ────────────────────────────────────────────────────────────
+  function exportCSV() {
+    if (!_archive.length) { showToast('Arhiva je prazna'); return; }
+    const header = ['Dokument', 'Datum spreman', 'Link NN.hr', 'Bilješka'];
+    const rows = _archive.map(a => [
+      '"' + (a.document_title || '').replace(/"/g, '""') + '"',
+      '"' + (a.archived_at || '') + '"',
+      '"' + (a.url || '') + '"',
+      '"' + ((_notes[a.document_id] || '').replace(/"/g, '""').replace(/\n/g, ' ')) + '"',
+    ]);
+    const csv = '\ufeff' + [header.join(','), ...rows.map(r => r.join(','))].join('\r\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'pratimzakon-arhiva.csv';
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+    showToast('CSV preuzet');
   }
 
   async function removeFromArchive(docId, idx) {
