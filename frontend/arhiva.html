@@ -274,12 +274,12 @@
   function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   function authHeaders() {
-    const token = localStorage.getItem('pz-token');
+    const token = localStorage.getItem('token');
     return token ? { 'Authorization': 'Bearer ' + token } : {};
   }
 
   function logout() {
-    localStorage.removeItem('pz-token');
+    localStorage.removeItem('token');
     window.location.href = 'index.html';
   }
 
@@ -376,7 +376,7 @@
   }
 
   // ── INIT ──────────────────────────────────────────────────────────────────
-  if (!localStorage.getItem('pz-token')) {
+  if (!localStorage.getItem('token')) {
     window.location.href = 'index.html';
   } else {
     loadUser();
