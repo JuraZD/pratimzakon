@@ -120,6 +120,28 @@
   .db-statusbar-label { color:var(--muted); font-weight:500; letter-spacing:0.2px; }
   .db-statusbar-value { color:var(--navy); font-weight:700; letter-spacing:0.3px; }
   .db-statusbar-dot { width:6px; height:6px; background:var(--green); border-radius:50%; display:inline-block; margin-right:6px; animation:blink 3s ease-in-out infinite; }
+  .db-statusbar-dot.stale { background:var(--orange); }
+  .db-statusbar-dot.old { background:#c0392b; animation:none; }
+  .db-freshness { font-size:calc(11px * var(--font-scale)); color:var(--muted); margin-left:8px; }
+  .db-freshness.ok { color:var(--green); }
+  .db-freshness.stale { color:var(--orange); }
+
+  /* ── PERIOD FILTER ── */
+  .match-period-row { display:flex; align-items:center; gap:6px; padding:8px 16px 0; flex-shrink:0; }
+  .mpf-btn { padding:3px 12px; border:1.5px solid var(--border-strong); border-radius:20px; background:transparent; color:var(--muted); font-family:var(--font-body); font-size:calc(11.5px * var(--font-scale)); font-weight:600; cursor:pointer; transition:all 0.15s; }
+  .mpf-btn:hover { border-color:var(--navy); color:var(--navy); }
+  .mpf-btn.active { background:var(--navy); border-color:var(--navy); color:var(--cream); }
+  .mpf-count { margin-left:auto; font-size:calc(11px * var(--font-scale)); color:var(--muted); }
+
+  /* ── MATCH CHART ── */
+  .match-chart { padding:10px 16px 8px; border-bottom:1px solid var(--border); }
+  .mc-row { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+  .mc-row:last-child { margin-bottom:0; }
+  .mc-label { font-size:calc(11px * var(--font-scale)); color:var(--muted); font-weight:600; width:70px; flex-shrink:0; text-align:right; }
+  .mc-bar-wrap { flex:1; height:8px; background:var(--surface2); border-radius:4px; overflow:hidden; }
+  .mc-bar { height:100%; border-radius:4px; transition:width 0.4s ease; }
+  .mc-count { font-size:calc(11px * var(--font-scale)); font-weight:700; color:var(--text); width:28px; text-align:right; flex-shrink:0; }
+  .mc-pct { color:var(--muted); font-weight:400; }
   .db-scraper-btn { display:none; }
   @media (max-width: 768px) {
     .db-statusbar { padding: 5px 13px; font-size: calc(11px * var(--font-scale)); }
@@ -421,9 +443,10 @@
     <!-- DB STATUS BAR -->
     <div class="db-statusbar">
       <div>
-        <span class="db-statusbar-dot"></span>
+        <span class="db-statusbar-dot" id="db-freshness-dot"></span>
         <span class="db-statusbar-label">Zadnji broj NN u bazi: </span>
         <span class="db-statusbar-value" id="db-latest-issue">Učitavam...</span>
+        <span class="db-freshness" id="db-freshness-label"></span>
       </div>
       <button class="db-scraper-btn" onclick="triggerScraper()">▷ Pokreni tražilicu</button>
     </div>
@@ -524,6 +547,12 @@
         <div class="card-head">
           <div class="card-title">Matchevi</div>
           <div class="card-head-action" id="match-count"></div>
+        </div>
+        <div class="match-period-row">
+          <button class="mpf-btn active" id="mpf-all"  onclick="setMatchPeriod('all')">Sve</button>
+          <button class="mpf-btn" id="mpf-month" onclick="setMatchPeriod('month')">Ovaj mjesec</button>
+          <button class="mpf-btn" id="mpf-week"  onclick="setMatchPeriod('week')">Ovaj tjedan</button>
+          <span class="mpf-count" id="mpf-count"></span>
         </div>
         <div class="card-body">
           <div id="matches-body"><div style="padding:16px"><div class="empty-msg">Učitavanje...</div></div></div>
@@ -829,7 +858,7 @@
       document.getElementById('stat-week').textContent = allMatches.length || '0';
       document.getElementById('match-count').textContent = allMatches.length > 0 ? allMatches.length + ' ukupno' : '';
       document.getElementById('stat-last-match').textContent = allMatches.length > 0 ? (allMatches[0].matched_at || '').split(' ')[0] || '—' : '—';
-      renderMatchesByKeyword(allMatches);
+      renderMatchesByKeyword(getFilteredMatches());
       applyKwStats(allMatches);
       renderActivityPanel();
     } catch(e) { console.error('Greška matchevi:', e); }
@@ -859,6 +888,28 @@
       groups[kw].push(m);
     });
 
+    // ── Bar chart by document type ──
+    const typeCounts = { zakon: 0, izmjena: 0, pravilnik: 0, other: 0 };
+    matches.forEach(m => typeCounts[classifyMatch(m.document_title)]++);
+    const maxCount = Math.max(...Object.values(typeCounts), 1);
+    const typeRows = [
+      { key:'zakon',    label:'Zakoni',    color:'var(--green)' },
+      { key:'izmjena',  label:'Izmjene',   color:'var(--orange)' },
+      { key:'pravilnik',label:'Pravilnici',color:'var(--navy)' },
+      { key:'other',    label:'Ostalo',    color:'var(--muted)' },
+    ].filter(r => typeCounts[r.key] > 0);
+    let chartHtml = '<div class="match-chart">';
+    typeRows.forEach(r => {
+      const pct   = Math.round(typeCounts[r.key] / matches.length * 100);
+      const width = Math.round(typeCounts[r.key] / maxCount * 100);
+      chartHtml += `<div class="mc-row">
+        <div class="mc-label">${r.label}</div>
+        <div class="mc-bar-wrap"><div class="mc-bar" style="width:${width}%;background:${r.color}"></div></div>
+        <div class="mc-count">${typeCounts[r.key]} <span class="mc-pct">${pct}%</span></div>
+      </div>`;
+    });
+    chartHtml += '</div>';
+
     // Active set (null = all)
     const activeMatches = (_activeKw !== null && groups[_kwGroupOrder[_activeKw]])
       ? groups[_kwGroupOrder[_activeKw]]
@@ -869,7 +920,7 @@
     const slice = activeMatches.slice((page - 1) * KW_PER_PAGE, page * KW_PER_PAGE);
 
     // Filter tabs
-    let html = '<div class="match-tabs">';
+    let html = chartHtml + '<div class="match-tabs">';
     html += `<div class="match-tab${_activeKw === null ? ' active' : ''}" onclick="setKwFilter(-1)">Svi <span class="match-tab-count">×${matches.length}</span></div>`;
     _kwGroupOrder.forEach((kw, idx) => {
       html += `<div class="match-tab${_activeKw === idx ? ' active' : ''}" onclick="setKwFilter(${idx})">${esc(kw)} <span class="match-tab-count">×${groups[kw].length}</span></div>`;
@@ -1200,6 +1251,27 @@
       } else {
         el.textContent = 'Baza se puni...';
       }
+      // Staleness indicator
+      const dot   = document.getElementById('db-freshness-dot');
+      const label = document.getElementById('db-freshness-label');
+      if (data.published_date) {
+        const pub  = new Date(data.published_date);
+        const now  = new Date();
+        const days = Math.floor((now - pub) / 86400000);
+        if (days <= 1) {
+          dot.className = 'db-statusbar-dot';
+          label.className = 'db-freshness ok';
+          label.textContent = days === 0 ? '· ažurirano danas' : '· ažurirano jučer';
+        } else if (days <= 4) {
+          dot.className = 'db-statusbar-dot stale';
+          label.className = 'db-freshness stale';
+          label.textContent = `· zadnje ažuriranje: ${pub.getDate()}.${pub.getMonth()+1}.`;
+        } else {
+          dot.className = 'db-statusbar-dot old';
+          label.className = 'db-freshness stale';
+          label.textContent = `· nema ažuriranja od ${pub.getDate()}.${pub.getMonth()+1}.`;
+        }
+      }
     } catch(e) {
       if (retries > 0) {
         setTimeout(() => loadLatestIssue(retries - 1), 20000);
@@ -1207,6 +1279,34 @@
         document.getElementById('db-latest-issue').textContent = 'Nije dostupno';
       }
     }
+  }
+
+  // ── PERIOD FILTER ─────────────────────────────────────────────────────────
+  let _matchPeriod = 'all';
+
+  function parseMatchDate(str) {
+    const p = (str || '').split('.').filter(Boolean);
+    return p.length >= 3 ? new Date(+p[2], +p[1] - 1, +p[0]) : null;
+  }
+
+  function getFilteredMatches() {
+    if (_matchPeriod === 'all') return allMatches;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - (_matchPeriod === 'week' ? 7 : 30));
+    cutoff.setHours(0, 0, 0, 0);
+    return allMatches.filter(m => { const d = parseMatchDate(m.matched_at); return d && d >= cutoff; });
+  }
+
+  function setMatchPeriod(period) {
+    _matchPeriod = period;
+    ['all','month','week'].forEach(p => {
+      const b = document.getElementById('mpf-' + p);
+      if (b) b.classList.toggle('active', p === period);
+    });
+    const filtered = getFilteredMatches();
+    const cnt = document.getElementById('mpf-count');
+    if (cnt) cnt.textContent = filtered.length < allMatches.length ? filtered.length + ' od ' + allMatches.length : '';
+    renderMatchesByKeyword(filtered);
   }
 
   // ── PRETRAGA ARHIVE ────────────────────────────────────────────────────────

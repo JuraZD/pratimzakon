@@ -155,6 +155,14 @@
   .btn-export { padding: 7px 16px; background: transparent; border: 1.5px solid var(--border-strong); border-radius: var(--radius); color: var(--muted); font-family: var(--font-body); font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.15s; }
   .btn-export:hover { background: var(--navy); color: var(--cream); border-color: var(--navy); }
 
+  /* ─── SEARCH ─── */
+  .archive-search-wrap { margin-bottom: 14px; position: relative; }
+  .archive-search-input { width: 100%; padding: 9px 36px 9px 14px; background: var(--surface); border: 1.5px solid var(--border-strong); border-radius: var(--radius); color: var(--text); font-family: var(--font-body); font-size: 13.5px; outline: none; transition: border-color 0.15s; }
+  .archive-search-input:focus { border-color: var(--navy); }
+  .archive-search-input::placeholder { color: var(--muted); }
+  .archive-search-clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 0 4px; display: none; }
+  .archive-search-clear.visible { display: block; }
+
   /* ─── EMPTY STATE ─── */
   .empty-state { text-align: center; padding: 64px 24px; }
   .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.3; }
@@ -233,6 +241,13 @@
           <div class="archive-stat-label">Spremljenih dokumenata</div>
         </div>
         <button class="btn-export" onclick="exportCSV()">↓ Preuzmi CSV</button>
+      </div>
+
+      <div class="archive-search-wrap" id="archive-search-wrap" style="display:none">
+        <input class="archive-search-input" id="archive-search" type="text"
+          placeholder="Pretraži arhivu po naslovu..."
+          oninput="filterArchive(this.value)">
+        <button class="archive-search-clear" id="archive-search-clear" onclick="clearArchiveSearch()">×</button>
       </div>
 
       <div id="archive-list" class="archive-list">
@@ -338,26 +353,29 @@
     }
   }
 
-  function renderArchive() {
+  function renderArchive(data) {
     const list = document.getElementById('archive-list');
     const statsBox = document.getElementById('archive-stats');
     const statCount = document.getElementById('stat-count');
+    if (!data) data = _archive;
 
     statCount.textContent = _archive.length;
     statsBox.style.display = _archive.length ? 'flex' : 'none';
+    document.getElementById('archive-search-wrap').style.display = _archive.length > 3 ? 'block' : 'none';
 
-    if (!_archive.length) {
-      list.innerHTML = `
-        <div class="empty-state">
-          <div class="empty-icon">◫</div>
-          <div class="empty-title">Arhiva je prazna</div>
-          <div class="empty-text">Kada čitate sažetak zakona, kliknite "Spremi u arhivu" kako biste označili dokument kao važan. Ovdje ćete uvijek moći pronaći sve što ste označili.</div>
-          <a class="empty-cta" href="dashboard.html">Pregledaj matcheve →</a>
-        </div>`;
+    if (!data.length) {
+      list.innerHTML = _archive.length
+        ? `<div style="padding:24px;text-align:center;color:var(--muted);font-size:13.5px;">Nema rezultata za pretragu.</div>`
+        : `<div class="empty-state">
+            <div class="empty-icon">◫</div>
+            <div class="empty-title">Arhiva je prazna</div>
+            <div class="empty-text">Kada čitate sažetak zakona, kliknite "Spremi u arhivu" kako biste označili dokument kao važan.</div>
+            <a class="empty-cta" href="dashboard.html">Pregledaj matcheve →</a>
+          </div>`;
       return;
     }
 
-    list.innerHTML = _archive.map((item, idx) => {
+    list.innerHTML = data.map((item, idx) => {
       const note = _notes[item.document_id] || '';
       return `
       <div class="archive-item" id="archive-row-${idx}">
@@ -390,6 +408,22 @@
 
   function openDoc(docId) {
     window.location.href = `sazetak.html?id=${docId}`;
+  }
+
+  // ── PRETRAGA ARHIVE ───────────────────────────────────────────────────────
+  function filterArchive(q) {
+    q = q.trim().toLowerCase();
+    const clearBtn = document.getElementById('archive-search-clear');
+    if (clearBtn) clearBtn.classList.toggle('visible', q.length > 0);
+    const filtered = q ? _archive.filter(a => a.document_title.toLowerCase().includes(q)) : _archive;
+    renderArchive(filtered);
+  }
+
+  function clearArchiveSearch() {
+    const input = document.getElementById('archive-search');
+    if (input) { input.value = ''; input.focus(); }
+    document.getElementById('archive-search-clear').classList.remove('visible');
+    renderArchive();
   }
 
   // ── BILJEŠKE ─────────────────────────────────────────────────────────────
