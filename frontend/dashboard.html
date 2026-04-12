@@ -37,7 +37,7 @@
   @media (max-width: 1024px) { :root { --font-scale: 0.88; } }
   @media (max-width: 768px)  { :root { --font-scale: 0.82; } }
 
-  .app { display:grid; grid-template-columns:210px 1fr; height:100vh; overflow:hidden; }
+  .app { display:grid; grid-template-columns:220px 1fr; height:100vh; overflow:hidden; }
 
   /* ── MOBILE DRAWER ── */
   .mob-hamburger { display:none; align-items:center; justify-content:center; width:36px; height:36px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-size:20px; cursor:pointer; transition:all 0.15s; flex-shrink:0; }
@@ -54,17 +54,17 @@
     .app { grid-template-columns: 1fr !important; height: auto !important; overflow: visible !important; }
     .sidebar { display: none !important; }
     .main { display: block !important; overflow: visible !important; height: auto !important; grid-template-rows: none !important; }
-    .topbar { padding: 10px 14px; flex-wrap: nowrap; }
+    .topbar { padding: 8px 13px; flex-wrap: nowrap; }
     .topbar-title { font-size: calc(18px * var(--font-scale)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
     .badge-live { display: none !important; }
     .btn-secondary { display: none !important; }
     .font-controls { display: none !important; }
     .mob-hamburger { display: flex !important; }
-    .scraper-panel-inner { padding: 10px 14px 12px; }
+    .scraper-panel-inner { padding: 8px 13px; }
     /* Dashboard: force single-column block layout */
-    .dashboard { display: block !important; padding: 10px 12px 32px !important; overflow: visible !important; grid-template-columns: none !important; grid-template-rows: none !important; }
-    .stats-row { display: grid !important; grid-template-columns: repeat(2,1fr) !important; gap: 8px !important; margin-bottom: 10px; grid-column: auto !important; }
-    .keywords-card, .email-card, .matches-card, .activity-card, .search-card { display: flex !important; width: 100% !important; margin-bottom: 10px; grid-column: auto !important; grid-row: auto !important; }
+    .dashboard { display: block !important; padding: 8px 13px 34px !important; overflow: visible !important; grid-template-columns: none !important; grid-template-rows: none !important; }
+    .stats-row { display: grid !important; grid-template-columns: repeat(2,1fr) !important; gap: 8px !important; margin-bottom: 8px; grid-column: auto !important; }
+    .keywords-card, .email-card, .matches-card, .activity-card, .search-card { display: flex !important; width: 100% !important; margin-bottom: 13px; grid-column: auto !important; grid-row: auto !important; }
     .activity-card { height: auto !important; min-height: 0; }
     /* Cards: expand to full content height — no clipping */
     .card { overflow: visible !important; }
@@ -79,24 +79,24 @@
   }
   @media (max-width: 1024px) and (min-width: 769px) {
     .app { grid-template-columns: 180px 1fr; }
-    .dashboard { grid-template-columns: 1fr 1fr 260px !important; }
+    .dashboard { grid-template-columns: 1.618fr 1fr 0.618fr !important; }
   }
 
   /* ── SIDEBAR ── */
   .sidebar { background:#1a2744; display:flex; flex-direction:column; overflow:hidden; }
-  .logo { padding:22px 22px 20px; font-family:var(--font-display); font-weight:800; font-size:calc(22px * var(--font-scale)); letter-spacing:1px; text-transform:uppercase; color:#e8e4da; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; }
+  .logo { padding:21px; font-family:var(--font-display); font-weight:800; font-size:calc(22px * var(--font-scale)); letter-spacing:1px; text-transform:uppercase; color:#e8e4da; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; }
   .logo-accent { color:var(--orange2); }
   .logo-dot { width:7px; height:7px; background:var(--orange2); border-radius:50%; margin-left:7px; animation:blink 2.5s ease-in-out infinite; }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-  .nav { flex:1; padding:14px 0; }
-  .nav-section-label { padding:10px 22px 6px; font-size:calc(10px * var(--font-scale)); font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:rgba(232,228,218,0.3); }
-  .nav-item { display:flex; align-items:center; gap:10px; padding:9px 22px; cursor:pointer; transition:background 0.15s; color:rgba(232,228,218,0.55); font-size:calc(13.5px * var(--font-scale)); font-weight:500; position:relative; }
+  .nav { flex:1; padding:13px 0; }
+  .nav-section-label { padding:8px 21px 5px; font-size:calc(10px * var(--font-scale)); font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:rgba(232,228,218,0.3); }
+  .nav-item { display:flex; align-items:center; gap:8px; padding:8px 21px; cursor:pointer; transition:background 0.15s; color:rgba(232,228,218,0.55); font-size:calc(13.5px * var(--font-scale)); font-weight:500; position:relative; }
   .nav-item:hover { background:rgba(255,255,255,0.06); color:var(--cream); }
   .nav-item.active { background:rgba(212,88,31,0.15); color:var(--cream); }
   .nav-item.active::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--orange2); }
   .nav-icon { font-size:13px; width:16px; text-align:center; }
-  .nav-divider { height:1px; background:rgba(255,255,255,0.07); margin:10px 22px; }
-  .user-card { padding:16px 22px; border-top:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.15); }
+  .nav-divider { height:1px; background:rgba(255,255,255,0.07); margin:8px 21px; }
+  .user-card { padding:13px 21px; border-top:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.15); }
   .user-name { font-family:var(--font-display); font-weight:700; font-size:calc(14px * var(--font-scale)); color:var(--cream); letter-spacing:0.5px; margin-bottom:2px; }
   .user-email { color:rgba(232,228,218,0.4); font-size:calc(11.5px * var(--font-scale)); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:8px; }
   .user-badge { display:inline-block; padding:2px 8px; background:rgba(46,125,82,0.2); border:1px solid rgba(46,125,82,0.35); color:#5aaf80; border-radius:2px; font-size:calc(10.5px * var(--font-scale)); font-weight:600; letter-spacing:0.5px; text-transform:uppercase; }
@@ -105,20 +105,20 @@
   .main { display:grid; grid-template-rows:auto auto auto 1fr; overflow:hidden; background:var(--bg); }
 
   /* ── TOPBAR ── */
-  .topbar { display:flex; align-items:center; justify-content:space-between; padding:16px 28px 14px; background:var(--surface); border-bottom:2px solid var(--navy); }
+  .topbar { display:flex; align-items:center; justify-content:space-between; padding:13px 34px; background:var(--surface); border-bottom:2px solid var(--navy); }
   .topbar-title { font-family:var(--font-display); font-size:calc(26px * var(--font-scale)); font-weight:800; letter-spacing:0.5px; text-transform:uppercase; color:var(--navy); }
   .topbar-title span { color:var(--orange); }
   .topbar-right { display:flex; align-items:center; gap:8px; }
   .badge-live { display:flex; align-items:center; gap:7px; padding:5px 12px; background:var(--green-dim); border:1px solid rgba(46,125,82,0.25); border-radius:var(--radius); font-size:calc(11.5px * var(--font-scale)); color:var(--green); font-weight:600; letter-spacing:0.3px; text-transform:uppercase; }
   .badge-live-dot { width:6px; height:6px; background:var(--green); border-radius:50%; animation:blink 2s ease-in-out infinite; }
   /* ── DB STATUS BAR ── */
-  .db-statusbar { display:flex; align-items:center; justify-content:space-between; padding:7px 28px; background:var(--surface2); border-bottom:1px solid var(--border); font-size:calc(11.5px * var(--font-scale)); flex-shrink:0; flex-wrap:wrap; gap:6px; }
+  .db-statusbar { display:flex; align-items:center; justify-content:space-between; padding:5px 34px; background:var(--surface2); border-bottom:1px solid var(--border); font-size:calc(11.5px * var(--font-scale)); flex-shrink:0; flex-wrap:wrap; gap:5px; }
   .db-statusbar-label { color:var(--muted); font-weight:500; letter-spacing:0.2px; }
   .db-statusbar-value { color:var(--navy); font-weight:700; letter-spacing:0.3px; }
   .db-statusbar-dot { width:6px; height:6px; background:var(--green); border-radius:50%; display:inline-block; margin-right:6px; animation:blink 3s ease-in-out infinite; }
   .db-scraper-btn { display:none; }
   @media (max-width: 768px) {
-    .db-statusbar { padding: 6px 12px; font-size: calc(11px * var(--font-scale)); }
+    .db-statusbar { padding: 5px 13px; font-size: calc(11px * var(--font-scale)); }
     /* Show scraper trigger in statusbar on mobile (since topbar btn is hidden) */
     .db-scraper-btn { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; background:transparent; border:1.5px solid var(--navy); border-radius:var(--radius); color:var(--navy); font-family:var(--font-body); font-size:calc(11px * var(--font-scale)); font-weight:600; cursor:pointer; transition:all 0.15s; text-transform:uppercase; letter-spacing:0.3px; }
     .db-scraper-btn:hover { background:var(--navy); color:var(--cream); }
@@ -138,7 +138,7 @@
   /* ── PROGRESS BAR PANEL ── */
   .scraper-panel { overflow:hidden; max-height:0; transition:max-height 0.4s cubic-bezier(0.4,0,0.2,1); background:var(--surface); border-bottom:1px solid var(--border); }
   .scraper-panel.open { max-height:120px; }
-  .scraper-panel-inner { padding:12px 28px 14px; }
+  .scraper-panel-inner { padding:13px 34px; }
   .scraper-panel-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
   .scraper-status-text { font-size:calc(12.5px * var(--font-scale)); font-weight:600; color:var(--navy); display:flex; align-items:center; gap:8px; }
   .scraper-spinner { width:14px; height:14px; border:2px solid var(--border-strong); border-top-color:var(--orange); border-radius:50%; animation:spin 0.8s linear infinite; flex-shrink:0; }
@@ -150,9 +150,9 @@
   .scraper-error { color:#c0392b !important; }
 
   /* ── DASHBOARD GRID ── */
-  .dashboard { display:grid; grid-template-columns:1fr 1fr 310px; grid-template-rows:auto auto 1fr auto; gap:12px; padding:16px 28px 18px; overflow:hidden; }
-  .stats-row { grid-column:1/3; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-  .stat-card { background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--navy); border-radius:var(--radius); padding:13px 15px; }
+  .dashboard { display:grid; grid-template-columns:1.618fr 1fr 0.618fr; grid-template-rows:auto auto 1fr auto; gap:13px; padding:21px 34px; overflow:hidden; }
+  .stats-row { grid-column:1/3; display:grid; grid-template-columns:repeat(4,1fr); gap:8px; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--navy); border-radius:var(--radius); padding:13px 21px; }
   .stat-card.orange { border-top-color:var(--orange); }
   .stat-card.green  { border-top-color:var(--green); }
   .stat-card.muted  { border-top-color:var(--muted); }
@@ -164,11 +164,11 @@
 
   /* ── CARDS ── */
   .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); display:flex; flex-direction:column; overflow:hidden; }
-  .card-head { display:flex; align-items:center; justify-content:space-between; padding:11px 16px 10px; border-bottom:1px solid var(--border); background:var(--card-head); flex-shrink:0; }
+  .card-head { display:flex; align-items:center; justify-content:space-between; padding:13px 21px; border-bottom:1px solid var(--border); background:var(--card-head); flex-shrink:0; }
   .card-title { font-family:var(--font-display); font-size:calc(11.5px * var(--font-scale)); font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:rgba(232,228,218,0.7); }
   .card-head-action { font-size:calc(11px * var(--font-scale)); color:var(--orange2); cursor:pointer; transition:opacity 0.15s; font-weight:600; letter-spacing:0.3px; text-transform:uppercase; }
   .card-head-action:hover { opacity:0.7; }
-  .card-body { padding:13px 16px; flex:1; overflow:hidden; display:flex; flex-direction:column; }
+  .card-body { padding:13px 21px; flex:1; overflow:hidden; display:flex; flex-direction:column; }
 
   /* ── KEYWORD LIMIT BAR ── */
   .limit-track { height:3px; background:var(--border-strong); border-radius:2px; margin-bottom:4px; }
@@ -179,13 +179,13 @@
 
   /* ── KEYWORDS ── */
   .keywords-card { grid-column:1; grid-row:2; }
-  .tag-list { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:11px; }
+  .tag-list { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:13px; }
   .tag { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:2px; font-size:calc(12px * var(--font-scale)); color:var(--muted); cursor:pointer; transition:all 0.15s; user-select:none; font-weight:500; }
   .tag:hover { border-color:var(--orange); color:var(--orange); background:var(--orange-dim); }
   .tag.active { background:var(--navy); border-color:var(--navy); color:var(--cream); }
   .tag-remove { font-size:13px; line-height:1; opacity:0.5; }
   .tag:hover .tag-remove { opacity:1; }
-  .tag-input-wrap { display:flex; gap:7px; margin-bottom:11px; }
+  .tag-input-wrap { display:flex; gap:8px; margin-bottom:13px; }
   .tag-input { flex:1; padding:7px 11px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-family:var(--font-body); font-size:calc(13px * var(--font-scale)); outline:none; transition:border-color 0.15s; }
   .tag-input:focus { border-color:var(--navy); }
   .tag-input::placeholder { color:var(--muted); }
@@ -198,14 +198,22 @@
   .btn-save { width:100%; padding:10px; background:var(--orange); border:none; border-radius:var(--radius); color:var(--white); font-family:var(--font-display); font-size:calc(14px * var(--font-scale)); font-weight:800; cursor:pointer; transition:all 0.15s; letter-spacing:1.5px; text-transform:uppercase; }
   .btn-save:hover { background:var(--orange2); transform:translateY(-1px); }
 
+  /* ── SITUATION HISTORY ── */
+  .sit-history { margin-top:8px; }
+  .sit-history-label { font-size:calc(9.5px * var(--font-scale)); color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; margin-bottom:4px; }
+  .sit-history-row { display:flex; gap:8px; padding:4px 0; border-bottom:1px solid var(--border); font-size:calc(11px * var(--font-scale)); color:var(--muted); line-height:1.45; }
+  .sit-history-row:last-child { border-bottom:none; }
+  .sit-history-time { white-space:nowrap; flex-shrink:0; font-weight:600; color:var(--navy3); }
+  .sit-history-text { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
+
   /* ── EMAIL ── */
   .email-card { grid-column:2; grid-row:2; }
-  .email-status { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--green-dim); border:1px solid rgba(46,125,82,0.2); border-radius:var(--radius); margin-bottom:11px; }
+  .email-status { display:flex; align-items:center; gap:8px; padding:8px 13px; background:var(--green-dim); border:1px solid rgba(46,125,82,0.2); border-radius:var(--radius); margin-bottom:13px; }
   .email-dot { width:8px; height:8px; background:var(--green); border-radius:50%; flex-shrink:0; animation:blink 2s ease-in-out infinite; }
   .email-addr { font-size:calc(13px * var(--font-scale)); color:var(--text); font-weight:600; }
   .email-ok { font-size:calc(10.5px * var(--font-scale)); color:var(--green); font-weight:600; letter-spacing:0.3px; text-transform:uppercase; }
-  .email-sub-label { font-size:calc(10px * var(--font-scale)); color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; margin-bottom:6px; }
-  .email-row { display:flex; align-items:flex-start; gap:10px; padding:8px 10px; background:var(--surface2); border-radius:var(--radius); border:1px solid var(--border); cursor:pointer; transition:border-color 0.15s; margin-bottom:5px; }
+  .email-sub-label { font-size:calc(10px * var(--font-scale)); color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; margin-bottom:5px; }
+  .email-row { display:flex; align-items:flex-start; gap:8px; padding:8px 13px; background:var(--surface2); border-radius:var(--radius); border:1px solid var(--border); cursor:pointer; transition:border-color 0.15s; margin-bottom:5px; }
   .email-row:hover { border-color:var(--border-strong); }
   .email-row-date { font-size:calc(10.5px * var(--font-scale)); color:var(--muted); white-space:nowrap; margin-top:1px; min-width:60px; font-weight:500; }
   .email-row-content { flex:1; overflow:hidden; }
@@ -245,7 +253,7 @@
   ::-webkit-scrollbar { width:3px; }
   ::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:2px; }
   .activity-list { display:flex; flex-direction:column; overflow-y:auto; flex:1; }
-  .activity-item { display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
+  .activity-item { display:flex; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); }
   .activity-item:last-child { border-bottom:none; }
   .activity-dot-wrap { display:flex; flex-direction:column; align-items:center; padding-top:4px; flex-shrink:0; }
   .activity-dot { width:7px; height:7px; border-radius:50%; }
@@ -268,6 +276,47 @@
   .pag-ellipsis { color:var(--muted); font-size:calc(11px * var(--font-scale)); padding:0 2px; }
   .page-btn:disabled { opacity:0.3; cursor:not-allowed; }
 
+  /* ── KEYWORD MATCH GROUPS ── */
+  .kw-groups { display:flex; flex-wrap:wrap; gap:13px; overflow-y:auto; flex:1; align-content:flex-start; padding-bottom:5px; }
+  .kw-group { flex:1 1 260px; min-width:220px; max-width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); display:flex; flex-direction:column; overflow:hidden; }
+  .kw-group-head { display:flex; align-items:center; justify-content:space-between; padding:8px 13px; background:var(--navy); gap:8px; }
+  .kw-group-name { font-family:var(--font-display); font-size:calc(12px * var(--font-scale)); font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--cream); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .kw-group-count { font-size:calc(10.5px * var(--font-scale)); color:rgba(232,228,218,0.6); font-weight:600; white-space:nowrap; flex-shrink:0; }
+  .kw-doc-row { display:flex; align-items:center; gap:8px; padding:8px 13px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.12s; }
+  .kw-doc-row:last-child { border-bottom:none; }
+  .kw-doc-row:hover { background:var(--surface); }
+  .kw-doc-title { flex:1; font-size:calc(12px * var(--font-scale)); color:var(--text); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+  .kw-doc-date { font-size:calc(10.5px * var(--font-scale)); color:var(--muted); white-space:nowrap; flex-shrink:0; }
+  .kw-doc-btn { padding:3px 9px; background:transparent; border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--navy); font-family:var(--font-body); font-size:calc(10.5px * var(--font-scale)); cursor:pointer; transition:all 0.15s; white-space:nowrap; font-weight:600; flex-shrink:0; }
+  .kw-doc-btn:hover { background:var(--orange); border-color:var(--orange); color:var(--white); }
+  .matches-card .card-body { overflow-y:auto; }
+
+  /* ── KEYWORD STATUS (activity panel top) ── */
+  .act-section-label { font-size:calc(10px * var(--font-scale)); font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+  .kw-status-list { margin-bottom:2px; }
+  .kw-status-row { display:flex; align-items:center; gap:6px; padding:5px 0; border-bottom:1px solid var(--border); }
+  .kw-status-row:last-child { border-bottom:none; }
+  .kw-status-name { flex:1; font-size:calc(12px * var(--font-scale)); font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .kw-status-name.inactive { color:var(--muted); font-weight:400; }
+  .kw-status-date { font-size:calc(10px * var(--font-scale)); color:var(--muted); white-space:nowrap; flex-shrink:0; }
+  .kw-status-count { padding:1px 7px; background:var(--navy); color:var(--cream); border-radius:10px; font-size:calc(10px * var(--font-scale)); font-weight:700; white-space:nowrap; flex-shrink:0; }
+  .kw-status-count.zero { background:var(--surface2); color:var(--muted); border:1px solid var(--border-strong); }
+  .act-divider { height:1px; background:var(--border); margin:13px 0; }
+
+  /* ── ACTIVITY FEED (activity panel bottom) ── */
+  .feed-day-label { font-size:calc(10px * var(--font-scale)); font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); padding:8px 0 5px; }
+  .feed-item { display:flex; align-items:flex-start; gap:8px; padding:8px 0; border-bottom:1px solid var(--border); cursor:pointer; transition:opacity 0.12s; }
+  .feed-item:last-child { border-bottom:none; }
+  .feed-item:hover { opacity:0.8; }
+  .feed-type-badge { padding:2px 6px; border-radius:2px; font-size:calc(9.5px * var(--font-scale)); font-weight:700; letter-spacing:0.4px; white-space:nowrap; flex-shrink:0; margin-top:1px; }
+  .feed-type-zakon     { background:var(--green-dim); color:var(--green); }
+  .feed-type-uredba    { background:var(--orange-dim); color:var(--orange); }
+  .feed-type-pravilnik { background:rgba(26,39,68,0.08); color:var(--navy3); }
+  .feed-type-other     { background:var(--surface2); color:var(--muted); }
+  .feed-body { flex:1; min-width:0; }
+  .feed-title { font-size:calc(12px * var(--font-scale)); color:var(--text); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.4; }
+  .feed-kw { font-size:calc(10.5px * var(--font-scale)); color:var(--muted); margin-top:1px; }
+  @media (max-width:768px) { .kw-group { flex:1 1 100%; } }
   /* ── TOAST ── */
   .toast { position:fixed; bottom:22px; right:22px; padding:11px 18px; background:var(--navy); border-left:4px solid var(--orange); color:var(--cream); font-size:calc(13px * var(--font-scale)); font-weight:500; box-shadow:0 6px 24px rgba(0,0,0,0.2); transform:translateY(70px); opacity:0; transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index:999; pointer-events:none; border-radius:var(--radius); }
   .toast.show { transform:translateY(0); opacity:1; }
@@ -381,6 +430,7 @@
           <div class="situation-label">Moja situacija — za personalizirani sažetak</div>
           <textarea class="situation-textarea" id="situation" placeholder="Npr: Vodim restoran s 5 zaposlenika u Zagrebu..."></textarea>
           <button class="btn-save" onclick="savePracenje()">Spremi praćenje</button>
+          <div id="situation-history"></div>
         </div>
       </div>
 
@@ -407,7 +457,7 @@
           <div class="card-title">Matchevi</div>
           <div class="card-head-action" id="match-count"></div>
         </div>
-        <div class="card-body" style="padding-top:8px;padding-bottom:6px;">
+        <div class="card-body" style="padding-top:8px;padding-bottom:8px;">
           <div id="matches-body"><div class="empty-msg">Učitavanje...</div></div>
           <div id="matches-pag"></div>
         </div>
@@ -434,10 +484,9 @@
         <div class="card-head">
           <div class="card-title">Aktivnost</div>
         </div>
-        <div class="card-body" style="padding:10px 16px;overflow-y:auto;">
-          <div class="activity-list" id="activity-list">
-            <div class="empty-msg">Učitavanje...</div>
-          </div>
+        <div class="card-body" style="padding:13px 21px;overflow-y:auto;">
+          <div id="kw-status-section"></div>
+          <div id="activity-list"></div>
         </div>
       </div>
 
@@ -487,8 +536,9 @@
   const API = 'https://pratimzakon.onrender.com';
   let userKwLimit = 5;
   let allMatches = [];
-  let currentPage = 1;
-  const PER_PAGE = 20;
+  let allKeywords = [];
+  let matchPage = 1;
+  const MATCH_PER_PAGE = 10;
 
   // ── TEMA ──────────────────────────────────────────────────────────────────
   function toggleTheme() {
@@ -579,6 +629,9 @@
       document.getElementById('mob-user-email').textContent = user.email;
       document.getElementById('mob-user-badge').textContent = planLabel;
       userKwLimit = user.keyword_limit || 5;
+      // Predpuni situaciju iz baze
+      const sitEl = document.getElementById('situation');
+      if (sitEl && user.situation) sitEl.value = user.situation;
       const h = new Date().getHours();
       const g = h < 12 ? 'DOBRO JUTRO' : h < 18 ? 'DOBAR DAN' : 'DOBRA VEČER';
       document.getElementById('topbar-greeting').innerHTML = g + ', <span>' + namePart.toUpperCase() + '</span>';
@@ -591,6 +644,7 @@
     try {
       const res = await fetch(API + '/keywords/', { headers: authHeaders() });
       const data = await res.json();
+      allKeywords = data;
       const list = document.getElementById('tag-list');
       if (!list) return;
       list.innerHTML = '';
@@ -673,7 +727,7 @@
   // ── LOAD MATCHES ──────────────────────────────────────────────────────────
   async function loadMatches() {
     try {
-      const res = await fetch(API + '/search/matches/recent?limit=20', { headers: authHeaders() });
+      const res = await fetch(API + '/search/matches/recent?limit=100', { headers: authHeaders() });
       if (!res.ok) {
         document.getElementById('matches-body').innerHTML = '<div class="empty-msg">Nije moguće dohvatiti matcheve — pokušaj ponovno.</div>';
         return;
@@ -681,44 +735,78 @@
       allMatches = await res.json();
       const list = document.getElementById('matches-body');
       if (!list) return;
-      if (allMatches.length === 0) {
-        list.innerHTML = '<div class="empty-msg">Još nema matcheva — tražilica će ih pronaći pri sljedećem skeniranju.</div>';
-        document.getElementById('match-count').textContent = '';
-        document.getElementById('stat-week').textContent = '0';
-        document.getElementById('stat-last-match').textContent = '—';
-        return;
-      }
-      document.getElementById('stat-week').textContent = allMatches.length;
-      document.getElementById('match-count').textContent = allMatches.length + ' ukupno';
-      document.getElementById('stat-last-match').textContent = (allMatches[0].matched_at || '').split(' ')[0] || '—';
-      renderMatchPage(1);
+      document.getElementById('stat-week').textContent = allMatches.length || '0';
+      document.getElementById('match-count').textContent = allMatches.length > 0 ? allMatches.length + ' ukupno' : '';
+      document.getElementById('stat-last-match').textContent = allMatches.length > 0 ? (allMatches[0].matched_at || '').split(' ')[0] || '—' : '—';
+      renderMatchesByKeyword(allMatches);
+      renderActivityPanel();
     } catch(e) { console.error('Greška matchevi:', e); }
   }
 
-  function renderMatchPage(page) {
-    currentPage = page;
+  function renderMatchesByKeyword(matches, page) {
+    page = page || 1;
+    matchPage = page;
     const list = document.getElementById('matches-body');
-    if (!list || !allMatches.length) return;
-    const totalPages = Math.ceil(allMatches.length / PER_PAGE);
-    const slice = allMatches.slice((page - 1) * PER_PAGE, page * PER_PAGE);
-    list.innerHTML = slice.map(m => `
-      <div class="match-row">
-        <div class="match-title">${esc(m.document_title)}</div>
-        <div class="match-kw">${esc(m.keyword)}</div>
-        <div class="match-date">${esc((m.matched_at || '').split(' ')[0])}</div>
-        <button class="match-btn" onclick="window.location='sazetak.html?id=${esc(m.document_id)}'">Vidi sažetak</button>
-      </div>
-    `).join('');
     const pag = document.getElementById('matches-pag');
-    if (totalPages > 1) {
-      let h = '<div class="pagination">';
-      h += `<button class="page-btn" onclick="renderMatchPage(${page - 1})" ${page <= 1 ? 'disabled' : ''}>←</button>`;
-      for (let p = Math.max(1, page - 2); p <= Math.min(totalPages, page + 2); p++)
-        h += `<button class="page-btn ${p === page ? 'active' : ''}" onclick="renderMatchPage(${p})">${p}</button>`;
-      h += `<button class="page-btn" onclick="renderMatchPage(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>→</button></div>`;
-      pag.innerHTML = h;
-    } else {
-      pag.innerHTML = '';
+
+    if (!matches.length) {
+      list.innerHTML = '<div class="empty-msg">Još nema matcheva — pokreni tražilicu za prve rezultate.</div>';
+      if (pag) pag.innerHTML = '';
+      return;
+    }
+
+    // Stranica od 10 matcheva (sortirani najnoviji prvi)
+    const totalPages = Math.ceil(matches.length / MATCH_PER_PAGE);
+    const slice = matches.slice((page - 1) * MATCH_PER_PAGE, page * MATCH_PER_PAGE);
+
+    // Grupiraj slice po ključnoj riječi
+    const groups = {};
+    slice.forEach(m => {
+      const kw = m.keyword || '—';
+      if (!groups[kw]) groups[kw] = [];
+      groups[kw].push(m);
+    });
+
+    const kwCount = n => n === 1 ? '1 dokument' : n < 5 ? n + ' dokumenta' : n + ' dokumenata';
+    let html = '<div class="kw-groups">';
+    for (const [kw, docs] of Object.entries(groups)) {
+      html += `<div class="kw-group">
+        <div class="kw-group-head">
+          <span class="kw-group-name" title="${esc(kw)}">${esc(kw)}</span>
+          <span class="kw-group-count">${kwCount(docs.length)}</span>
+        </div>
+        <div>`;
+      docs.forEach(m => {
+        const date = (m.matched_at || '').split(' ')[0];
+        html += `<div class="kw-doc-row" onclick="window.location='sazetak.html?id=${esc(m.document_id)}&kw=${encodeURIComponent(m.keyword)}'">
+          <div class="kw-doc-title" title="${esc(m.document_title)}">${esc(m.document_title)}</div>
+          <div class="kw-doc-date">${esc(date)}</div>
+          <button class="kw-doc-btn" onclick="event.stopPropagation();window.location='sazetak.html?id=${esc(m.document_id)}&kw=${encodeURIComponent(m.keyword)}'">Otvori</button>
+        </div>`;
+      });
+      html += '</div></div>';
+    }
+    html += '</div>';
+    list.innerHTML = html;
+
+    // Paginacija
+    if (pag) {
+      if (totalPages > 1) {
+        let h = '<div class="pagination">';
+        h += `<button class="pag-btn" onclick="renderMatchesByKeyword(allMatches,${page-1})" ${page<=1?'disabled':''}>←</button>`;
+        const start = Math.max(1, page - 2);
+        const end = Math.min(totalPages, page + 2);
+        if (start > 1) h += '<span class="pag-ellipsis">…</span>';
+        for (let p = start; p <= end; p++)
+          h += `<button class="pag-btn${p===page?' active':''}" onclick="renderMatchesByKeyword(allMatches,${p})">${p}</button>`;
+        if (end < totalPages) h += '<span class="pag-ellipsis">…</span>';
+        h += `<button class="pag-btn" onclick="renderMatchesByKeyword(allMatches,${page+1})" ${page>=totalPages?'disabled':''}>→</button>`;
+        h += `<span style="font-size:calc(10.5px * var(--font-scale));color:var(--muted);margin-left:4px;">${(page-1)*MATCH_PER_PAGE+1}–${Math.min(page*MATCH_PER_PAGE,matches.length)} / ${matches.length}</span>`;
+        h += '</div>';
+        pag.innerHTML = h;
+      } else {
+        pag.innerHTML = '';
+      }
     }
   }
 
@@ -726,13 +814,10 @@
   async function loadActivity() {
     try {
       const res = await fetch(API + '/search/activity/recent?limit=50', { headers: authHeaders() });
-      if (!res.ok) {
-        const el = document.getElementById('activity-list');
-        if (el) el.innerHTML = '<div class="empty-msg">Nije moguće dohvatiti aktivnost.</div>';
-        return;
-      }
+      if (!res.ok) return;
       const activities = await res.json();
 
+      // Email kartica — samo email_sent eventi
       const emails = activities.filter(a => a.event_type === 'email_sent');
       const emailList = document.getElementById('email-list');
       if (emailList) {
@@ -749,23 +834,133 @@
         document.getElementById('stat-emails').textContent = emails.length;
       }
 
-      const actList = document.getElementById('activity-list');
-      if (actList) {
-        actList.innerHTML = activities.length === 0
-          ? '<div class="empty-msg">Još nema aktivnosti.</div>'
-          : activities.map((a, i) => `
-              <div class="activity-item">
-                <div class="activity-dot-wrap">
-                  <div class="activity-dot ${esc(a.color)}"></div>
-                  ${i < activities.length - 1 ? '<div class="activity-line"></div>' : ''}
-                </div>
-                <div class="activity-body">
-                  <div class="activity-text">${esc(a.message)}</div>
-                  <div class="activity-time">${esc(a.timestamp)}</div>
-                </div>
-              </div>`).join('');
+      // Historija promjena situacije — ispod textarea
+      const sitChanges = activities.filter(a => a.event_type === 'situation_updated');
+      const histEl = document.getElementById('situation-history');
+      if (histEl) {
+        if (sitChanges.length) {
+          let h = '<div class="sit-history"><div class="sit-history-label">Prethodne promjene</div>';
+          sitChanges.slice(0, 5).forEach(s => {
+            const text = s.message.replace('Ažurirana situacija — ', '') || '(prazno)';
+            h += `<div class="sit-history-row">
+              <span class="sit-history-time">${esc(s.timestamp)}</span>
+              <span class="sit-history-text" title="${esc(text)}">${esc(text)}</span>
+            </div>`;
+          });
+          h += '</div>';
+          histEl.innerHTML = h;
+        } else {
+          histEl.innerHTML = '';
+        }
       }
     } catch(e) { console.error('Greška aktivnost:', e); }
+
+    // Aktivnost panel renderira se iz allMatches + allKeywords
+    renderActivityPanel();
+  }
+
+  // ── ACTIVITY PANEL ────────────────────────────────────────────────────────
+  function parseMatchDate(s) {
+    if (!s || s === '—') return null;
+    const m = s.match(/(\d{2})\.(\d{2})\.(\d{4})/);
+    return m ? new Date(+m[3], +m[2] - 1, +m[1]) : null;
+  }
+
+  function dayLabel(d) {
+    if (!d) return 'Starije';
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+    const weekAgo = new Date(today); weekAgo.setDate(today.getDate() - 7);
+    const t = new Date(d); t.setHours(0, 0, 0, 0);
+    if (t.getTime() === today.getTime()) return 'Danas';
+    if (t.getTime() === yesterday.getTime()) return 'Jučer';
+    if (t >= weekAgo) return 'Ovaj tjedan';
+    return 'Starije';
+  }
+
+  function docTypeFromTitle(title) {
+    const t = (title || '').toLowerCase();
+    if (/^zakon/.test(t))      return { label: 'ZAKON',      cls: 'zakon' };
+    if (/^uredba/.test(t))     return { label: 'UREDBA',     cls: 'uredba' };
+    if (/^pravilnik/.test(t))  return { label: 'PRAVILNIK',  cls: 'pravilnik' };
+    if (/^odluka/.test(t))     return { label: 'ODLUKA',     cls: 'pravilnik' };
+    if (/^naredba/.test(t))    return { label: 'NAREDBA',    cls: 'other' };
+    if (/^rješenje/.test(t))   return { label: 'RJEŠENJE',   cls: 'other' };
+    if (/^obavijest/.test(t))  return { label: 'OBAVIJEST',  cls: 'other' };
+    return { label: 'DOKUMENT', cls: 'other' };
+  }
+
+  function renderActivityPanel() {
+    // ── Gornji dio: status svake ključne riječi ──
+    const kwSection = document.getElementById('kw-status-section');
+    if (kwSection) {
+      if (!allKeywords.length) {
+        kwSection.innerHTML = '';
+      } else {
+        const stats = {};
+        allKeywords.forEach(kw => { stats[kw.keyword] = { count: 0, lastDate: null }; });
+        allMatches.forEach(m => {
+          const kw = m.keyword;
+          if (!stats[kw]) return;
+          stats[kw].count++;
+          const d = parseMatchDate(m.matched_at);
+          if (!stats[kw].lastDate || (d && d > stats[kw].lastDate)) stats[kw].lastDate = d;
+        });
+
+        let html = '<div class="act-section-label">Status praćenja</div><div class="kw-status-list">';
+        allKeywords.forEach(kw => {
+          const s = stats[kw.keyword] || { count: 0, lastDate: null };
+          const inactive = s.count === 0;
+          const dateStr = s.lastDate
+            ? s.lastDate.toLocaleDateString('hr', { day: '2-digit', month: '2-digit' })
+            : '—';
+          html += `<div class="kw-status-row">
+            <span class="kw-status-name${inactive ? ' inactive' : ''}" title="${esc(kw.keyword)}">${esc(kw.keyword)}</span>
+            <span class="kw-status-date">${dateStr}</span>
+            <span class="kw-status-count${s.count === 0 ? ' zero' : ''}">${s.count}</span>
+          </div>`;
+        });
+        html += '</div><div class="act-divider"></div>';
+        kwSection.innerHTML = html;
+      }
+    }
+
+    // ── Donji dio: feed po danu ──
+    const feedEl = document.getElementById('activity-list');
+    if (!feedEl) return;
+
+    if (!allMatches.length) {
+      feedEl.innerHTML = '<div class="empty-msg">Još nema aktivnosti — pokreni tražilicu.</div>';
+      return;
+    }
+
+    const days = {};
+    const DAY_ORDER = ['Danas', 'Jučer', 'Ovaj tjedan', 'Starije'];
+    allMatches.slice(0, 50).forEach(m => {
+      const label = dayLabel(parseMatchDate(m.matched_at));
+      if (!days[label]) days[label] = [];
+      days[label].push(m);
+    });
+
+    let html = '<div class="act-section-label">Nedavne novosti</div>';
+    let anyDay = false;
+    DAY_ORDER.forEach(dl => {
+      if (!days[dl]) return;
+      anyDay = true;
+      html += `<div class="feed-day-label">${dl}</div>`;
+      days[dl].forEach(m => {
+        const type = docTypeFromTitle(m.document_title);
+        html += `<div class="feed-item" onclick="window.location='sazetak.html?id=${esc(m.document_id)}&kw=${encodeURIComponent(m.keyword)}'">
+          <span class="feed-type-badge feed-type-${type.cls}">${type.label}</span>
+          <div class="feed-body">
+            <div class="feed-title" title="${esc(m.document_title)}">${esc(m.document_title)}</div>
+            <div class="feed-kw">${esc(m.keyword)}</div>
+          </div>
+        </div>`;
+      });
+    });
+    if (!anyDay) html += '<div class="empty-msg">Još nema aktivnosti.</div>';
+    feedEl.innerHTML = html;
   }
 
   // ── PROGRESS BAR ──────────────────────────────────────────────────────────
@@ -873,14 +1068,27 @@
   }
 
   // ── ZADNJI BROJ NN ────────────────────────────────────────────────────────
-  async function loadLatestIssue() {
+  async function loadLatestIssue(retries) {
+    if (retries === undefined) retries = 3;
     try {
       const res = await fetch(API + '/search/latest-issue', { headers: authHeaders() });
-      if (!res.ok) { document.getElementById('db-latest-issue').textContent = 'Nije dostupno'; return; }
+      if (!res.ok) throw new Error('status ' + res.status);
       const data = await res.json();
-      document.getElementById('db-latest-issue').textContent = data.label || (data.published_date ? 'Objavljeno: ' + data.published_date : 'Nema podataka');
+      const el = document.getElementById('db-latest-issue');
+      const count = data.total_docs ? data.total_docs.toLocaleString('hr') + ' dokumenata' : '';
+      if (data.label) {
+        el.textContent = data.label + (count ? ' · ' + count : '');
+      } else if (count) {
+        el.textContent = count + ' u bazi';
+      } else {
+        el.textContent = 'Baza se puni...';
+      }
     } catch(e) {
-      document.getElementById('db-latest-issue').textContent = 'Nije dostupno';
+      if (retries > 0) {
+        setTimeout(() => loadLatestIssue(retries - 1), 20000);
+      } else {
+        document.getElementById('db-latest-issue').textContent = 'Nije dostupno';
+      }
     }
   }
 
