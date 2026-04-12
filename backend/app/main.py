@@ -75,5 +75,14 @@ app.include_router(stats.router)
 
 
 @app.get("/health")
-def health():
-    return {"status": "ok"}
+def health(db=None):
+    """Lightweight health check — pita bazu da spriječi Supabase pauzu."""
+    try:
+        from .database import SessionLocal
+        from sqlalchemy import text
+        s = SessionLocal()
+        s.execute(text("SELECT 1"))
+        s.close()
+        return {"status": "ok", "db": "ok"}
+    except Exception:
+        return {"status": "ok", "db": "unavailable"}
