@@ -310,3 +310,131 @@ def get_recent_activity(
             )
         )
     return results
+
+
+# ── ARHIVA ────────────────────────────────────────────────────────────────
+
+class ArchiveItem(BaseModel):
+    document_id: int
+    document_title: str
+    archived_at: str
+    url: str
+
+class ArchiveStatus(BaseModel):
+    archived: bool
+
+
+@router.get("/archive", response_model=List[ArchiveItem])
+def get_archive(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Dohvaća sve korisnikove arhivirane dokumente."""
+    rows = (
+        db.query(Log)
+        .filter(Log.user_id == current_user.id)
+        .filter(Log.event_type == "archived")
+        .order_by(Log.timestamp.desc())
+        .all()
+    )
+    results = []
+    for r in rows:
+        parts = dict(p.split(":", 1) for p in (r.detail or "").split("|") if ":" in p)
+        doc_id_str = parts.get("doc_id")
+        if not doc_id_str:
+            continue
+        doc_id = int(doc_id_str)
+        doc = db.query(Document).filter(Document.id == doc_id).first()
+        results.append(ArchiveItem(
+            document_id=doc_id,
+            document_title=parts.get("title", doc.title if doc else "—"),
+            archived_at=r.timestamp.strftime("%d.%m.%Y.") if r.timestamp else "—",
+            url=doc.url if doc else "",
+        ))
+    return results
+
+
+@router.get("/archive/{document_id}", response_model=ArchiveStatus)
+def check_archive(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Provjeri je li dokument u korisnikovoj arhivi."""
+    existing = (
+        db.query(Log)
+        .filter(Log.user_id == current_user.id)
+        .filter(Log.event_type == "archived")
+        .filter(Log.detail.contains(f"doc_id:{document_id}"))
+        .first()
+    )
+    return {"archived": existing is not None}
+
+
+@router.post("/archive/{document_id}", response_model=ArchiveStatus)
+def toggle_archive(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Spremi ili ukloni dokument iz arhive (toggle)."""
+    doc = db.query(Document).filter(Document.id == document_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Dokument nije pronađen.")
+
+    existing = (
+        db.query(Log)
+        .filter(Log.user_id == current_user.id)
+        .filter(Log.event_type == "archived")
+        .filter(Log.detail.contains(f"doc_id:{document_id}"))
+        .first()
+    )
+
+    if existing:
+        db.delete(existing)
+        db.commit()
+        return {"archived": False}
+    else:
+        log = Log(
+            user_id=current_user.id,
+            event_type="archived",
+            detail=f"doc_id:{document_id}|title:{doc.title[:120]}",
+        )
+        db.add(log)
+        db.commit()
+        return {"archived": True}
+
+
+# ── POVEZANI PROPISI ──────────────────────────────────────────────────────
+
+@router.get("/document/{document_id}/related", response_model=List[DocumentResult])
+def get_related_documents(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Dohvaća dokumente iste institucije, isključuje trenutni dokument."""
+    doc = db.query(Document).filter(Document.id == document_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Dokument nije pronađen.")
+
+    base = db.query(Document).filter(Document.id != document_id)
+
+    if doc.institution:
+        related = (
+            base
+            .filter(Document.institution == doc.institution)
+            .order_by(Document.published_date.desc())
+            .limit(5)
+            .all()
+        )
+    else:
+        related = (
+            base
+            .filter(Document.type == doc.type)
+            .order_by(Document.published_date.desc())
+            .limit(5)
+            .all()
+        )
+
+    return related

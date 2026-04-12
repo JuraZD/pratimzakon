@@ -421,9 +421,9 @@
                 <span>Puni tekst na NN.hr</span>
                 <span class="action-btn-icon">↗</span>
               </button>
-              <button class="action-btn" onclick="showToast('Dokument dodan u arhivu')">
-                <span>Spremi u arhivu</span>
-                <span class="action-btn-icon">◎</span>
+              <button class="action-btn" id="btn-archive" onclick="toggleArchive()">
+                <span id="btn-archive-label">Spremi u arhivu</span>
+                <span class="action-btn-icon" id="btn-archive-icon">◎</span>
               </button>
             </div>
           </div>
@@ -433,28 +433,8 @@
             <div class="side-card-head">
               <div class="side-card-title">Povezani propisi</div>
             </div>
-            <div class="side-card-body">
-              <div class="related-doc">
-                <div class="related-doc-dot"></div>
-                <div>
-                  <div class="related-doc-title">Zakon o porezu na dohodak — pročišćeni tekst</div>
-                  <div class="related-doc-date">NN 115/2016 · Porez</div>
-                </div>
-              </div>
-              <div class="related-doc">
-                <div class="related-doc-dot"></div>
-                <div>
-                  <div class="related-doc-title">Pravilnik o porezu na dohodak — original</div>
-                  <div class="related-doc-date">NN 132/2022 · Porez</div>
-                </div>
-              </div>
-              <div class="related-doc">
-                <div class="related-doc-dot"></div>
-                <div>
-                  <div class="related-doc-title">Izmjena Zakona o PDV-u NN 21/2026</div>
-                  <div class="related-doc-date">NN 21/2026 · PDV</div>
-                </div>
-              </div>
+            <div class="side-card-body" id="related-docs-body">
+              <div style="color:var(--muted);font-size:12px;">⟳ Učitavam...</div>
             </div>
           </div>
 
@@ -635,6 +615,10 @@
       document.getElementById('doc-meta').innerHTML = '';
     }
 
+    // Provjeri arhivni status i učitaj povezane propise
+    checkArchive(docId);
+    loadRelated(docId, kw);
+
     // Dohvati AI sažetak — proslijedi ključnu riječ radi personalizacije
     const summaryText = document.getElementById('summary-text');
     try {
@@ -653,6 +637,109 @@
       summaryText.innerHTML = '<p style="color:var(--muted)">Greška pri generiranju sažetka.</p>';
     }
   }
+
+  // ── ARHIVA ──────────────────────────────────────────────────────────────
+  let _isArchived = false;
+
+  function setArchiveBtn(archived) {
+    _isArchived = archived;
+    const btn = document.getElementById('btn-archive');
+    const label = document.getElementById('btn-archive-label');
+    const icon = document.getElementById('btn-archive-icon');
+    if (!btn) return;
+    if (archived) {
+      btn.style.background = 'var(--green-dim)';
+      btn.style.borderColor = 'var(--green)';
+      btn.style.color = 'var(--green)';
+      label.textContent = 'U arhivi';
+      icon.textContent = '✓';
+    } else {
+      btn.style.background = '';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+      label.textContent = 'Spremi u arhivu';
+      icon.textContent = '◎';
+    }
+  }
+
+  async function checkArchive(docId) {
+    try {
+      const res = await fetch(`${API}/search/archive/${docId}`, { headers: authHeaders() });
+      if (!res.ok) return;
+      const data = await res.json();
+      setArchiveBtn(data.archived);
+    } catch(e) { /* ignore */ }
+  }
+
+  async function toggleArchive() {
+    const docId = getDocId();
+    if (!docId) return;
+    try {
+      const res = await fetch(`${API}/search/archive/${docId}`, {
+        method: 'POST',
+        headers: authHeaders(),
+      });
+      if (!res.ok) { showToast('Greška pri spremanju'); return; }
+      const data = await res.json();
+      setArchiveBtn(data.archived);
+      showToast(data.archived ? 'Dokument spremljen u arhivu' : 'Dokument uklonjen iz arhive');
+    } catch(e) {
+      showToast('Greška pri spremanju u arhivu');
+    }
+  }
+
+  // ── POVEZANI PROPISI ─────────────────────────────────────────────────────
+  async function loadRelated(docId, kw) {
+    const container = document.getElementById('related-docs-body');
+    try {
+      // Dohvati dokumente iste institucije
+      const res = await fetch(`${API}/search/document/${docId}/related`, { headers: authHeaders() });
+      const related = res.ok ? await res.json() : [];
+
+      // Dohvati korisnikove matcheve za isti keyword
+      const kwRes = await fetch(`${API}/search/matches/recent?limit=100`, { headers: authHeaders() });
+      const allMatches = kwRes.ok ? await kwRes.json() : [];
+      const kwMatches = kw
+        ? allMatches.filter(m => m.keyword === kw && String(m.document_id) !== String(docId))
+        : [];
+
+      // Spoji: prvo keyword matchevi, pa isti izdavač (bez duplikata)
+      const seen = new Set([String(docId)]);
+      const items = [];
+      for (const m of kwMatches) {
+        if (!seen.has(String(m.document_id))) {
+          seen.add(String(m.document_id));
+          items.push({ id: m.document_id, title: m.document_title, sub: `Match: ${m.keyword} · ${m.matched_at}`, kw: m.keyword });
+        }
+      }
+      for (const d of related) {
+        if (!seen.has(String(d.id))) {
+          seen.add(String(d.id));
+          const nn = d.issue_number ? `NN ${d.issue_number}/${d.published_date ? d.published_date.substring(0,4) : ''}` : '';
+          items.push({ id: d.id, title: d.title, sub: [nn, d.institution].filter(Boolean).join(' · '), kw: '' });
+        }
+      }
+
+      if (!items.length) {
+        container.innerHTML = '<div style="color:var(--muted);font-size:12px;">Nema povezanih propisa u bazi.</div>';
+        return;
+      }
+
+      container.innerHTML = items.slice(0, 6).map(it => `
+        <div class="related-doc" onclick="window.location='sazetak.html?id=${it.id}${it.kw ? '&kw=' + encodeURIComponent(it.kw) : ''}'">
+          <div class="related-doc-dot"></div>
+          <div>
+            <div class="related-doc-title">${esc(it.title)}</div>
+            <div class="related-doc-date">${esc(it.sub)}</div>
+          </div>
+        </div>`).join('');
+
+    } catch(e) {
+      container.innerHTML = '<div style="color:var(--muted);font-size:12px;">Greška pri dohvatu.</div>';
+    }
+  }
+
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   loadPage();
 </script>
