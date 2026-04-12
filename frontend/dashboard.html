@@ -287,19 +287,25 @@
   .page-btn:disabled { opacity:0.3; cursor:not-allowed; }
 
   /* ── KEYWORD MATCH GROUPS ── */
-  .kw-groups { display:flex; flex-wrap:wrap; gap:10px; overflow-y:auto; flex:1; align-content:flex-start; padding-bottom:4px; }
-  .kw-group { flex:1 1 260px; min-width:220px; max-width:100%; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); display:flex; flex-direction:column; overflow:hidden; }
-  .kw-group-head { display:flex; align-items:center; justify-content:space-between; padding:8px 12px; background:var(--navy); gap:8px; }
-  .kw-group-name { font-family:var(--font-display); font-size:calc(12px * var(--font-scale)); font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--cream); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .kw-group-count { font-size:calc(10.5px * var(--font-scale)); color:rgba(232,228,218,0.6); font-weight:600; white-space:nowrap; flex-shrink:0; }
-  .kw-doc-row { display:flex; align-items:center; gap:8px; padding:7px 12px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.12s; }
+  .kw-groups { display:flex; flex-wrap:wrap; gap:12px; overflow-y:auto; flex:1; align-content:flex-start; padding-bottom:4px; }
+  .kw-group { flex:1 1 290px; min-width:260px; max-width:100%; background:var(--surface); border:1px solid var(--border-strong); border-radius:var(--radius); display:flex; flex-direction:column; overflow:hidden; }
+  .kw-group-head { display:flex; align-items:center; justify-content:space-between; padding:10px 14px; background:var(--navy); gap:8px; flex-shrink:0; }
+  .kw-group-name { font-family:var(--font-display); font-size:calc(13px * var(--font-scale)); font-weight:700; letter-spacing:1.2px; text-transform:uppercase; color:var(--cream); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .kw-group-count { font-size:calc(11px * var(--font-scale)); color:rgba(232,228,218,0.65); font-weight:600; white-space:nowrap; flex-shrink:0; background:rgba(255,255,255,0.1); padding:2px 8px; border-radius:10px; }
+  .kw-doc-list { flex:1; }
+  .kw-doc-row { display:flex; align-items:center; gap:8px; padding:9px 14px; border-bottom:1px solid var(--border); cursor:pointer; transition:background 0.12s; }
   .kw-doc-row:last-child { border-bottom:none; }
-  .kw-doc-row:hover { background:var(--surface); }
-  .kw-doc-title { flex:1; font-size:calc(12px * var(--font-scale)); color:var(--text); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
-  .kw-doc-date { font-size:calc(10.5px * var(--font-scale)); color:var(--muted); white-space:nowrap; flex-shrink:0; }
-  .kw-doc-btn { padding:3px 9px; background:transparent; border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--navy); font-family:var(--font-body); font-size:calc(10.5px * var(--font-scale)); cursor:pointer; transition:all 0.15s; white-space:nowrap; font-weight:600; flex-shrink:0; }
+  .kw-doc-row:hover { background:var(--surface2); }
+  .kw-doc-title { flex:1; font-size:calc(13px * var(--font-scale)); color:var(--text); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0; }
+  .kw-doc-date { font-size:calc(11px * var(--font-scale)); color:var(--muted); white-space:nowrap; flex-shrink:0; }
+  .kw-doc-btn { padding:4px 10px; background:transparent; border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--navy); font-family:var(--font-body); font-size:calc(11px * var(--font-scale)); cursor:pointer; transition:all 0.15s; white-space:nowrap; font-weight:600; flex-shrink:0; }
   .kw-doc-btn:hover { background:var(--orange); border-color:var(--orange); color:var(--white); }
-  .matches-card .card-body { overflow-y:auto; }
+  .kw-group-footer { display:flex; align-items:center; justify-content:space-between; padding:7px 14px; border-top:1px solid var(--border); background:var(--surface2); flex-shrink:0; }
+  .kw-pag-btn { padding:3px 10px; border:1.5px solid var(--border-strong); background:var(--surface); color:var(--navy); font-family:var(--font-body); font-size:calc(11px * var(--font-scale)); cursor:pointer; border-radius:var(--radius); transition:all 0.15s; font-weight:700; line-height:1.4; }
+  .kw-pag-btn:hover:not(:disabled) { background:var(--navy); color:var(--cream); border-color:var(--navy); }
+  .kw-pag-btn:disabled { opacity:0.3; cursor:not-allowed; }
+  .kw-pag-info { font-size:calc(11px * var(--font-scale)); color:var(--muted); font-weight:600; }
+  .matches-card .card-body { overflow-y:auto; padding:12px 16px; }
 
   /* ── KEYWORD STATUS (activity panel top) ── */
   .act-section-label { font-size:calc(10px * var(--font-scale)); font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
@@ -326,7 +332,7 @@
   .feed-body { flex:1; min-width:0; }
   .feed-title { font-size:calc(12px * var(--font-scale)); color:var(--text); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.4; }
   .feed-kw { font-size:calc(10.5px * var(--font-scale)); color:var(--muted); margin-top:1px; }
-  @media (max-width:768px) { .kw-group { flex:1 1 100%; } }
+  @media (max-width:768px) { .kw-group { flex:1 1 100%; min-width:0; } }
   /* ── TOAST ── */
   .toast { position:fixed; bottom:22px; right:22px; padding:11px 18px; background:var(--navy); border-left:4px solid var(--orange); color:var(--cream); font-size:calc(13px * var(--font-scale)); font-weight:500; box-shadow:0 6px 24px rgba(0,0,0,0.2); transform:translateY(70px); opacity:0; transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index:999; pointer-events:none; border-radius:var(--radius); }
   .toast.show { transform:translateY(0); opacity:1; }
@@ -547,8 +553,9 @@
   let userKwLimit = 5;
   let allMatches = [];
   let allKeywords = [];
-  let matchPage = 1;
-  const MATCH_PER_PAGE = 10;
+  let kwPages = {};
+  let _kwGroupOrder = [];
+  const KW_PER_PAGE = 5;
 
   // ── TEMA ──────────────────────────────────────────────────────────────────
   function toggleTheme() {
@@ -773,40 +780,38 @@
     } catch(e) { console.error('Greška matchevi:', e); }
   }
 
-  function renderMatchesByKeyword(matches, page) {
-    page = page || 1;
-    matchPage = page;
+  function renderMatchesByKeyword(matches) {
     const list = document.getElementById('matches-body');
     const pag = document.getElementById('matches-pag');
-
+    if (pag) pag.innerHTML = '';
     if (!matches.length) {
       list.innerHTML = '<div class="empty-msg">Još nema matcheva — pokreni tražilicu za prve rezultate.</div>';
-      if (pag) pag.innerHTML = '';
       return;
     }
 
-    // Stranica od 10 matcheva (sortirani najnoviji prvi)
-    const totalPages = Math.ceil(matches.length / MATCH_PER_PAGE);
-    const slice = matches.slice((page - 1) * MATCH_PER_PAGE, page * MATCH_PER_PAGE);
-
-    // Grupiraj slice po ključnoj riječi
+    // Grupiraj SVE matcheve po ključnoj riječi (ne slicaj globalno)
     const groups = {};
-    slice.forEach(m => {
+    _kwGroupOrder = [];
+    matches.forEach(m => {
       const kw = m.keyword || '—';
-      if (!groups[kw]) groups[kw] = [];
+      if (!groups[kw]) { groups[kw] = []; _kwGroupOrder.push(kw); }
       groups[kw].push(m);
     });
 
     const kwCount = n => n === 1 ? '1 dokument' : n < 5 ? n + ' dokumenta' : n + ' dokumenata';
     let html = '<div class="kw-groups">';
-    for (const [kw, docs] of Object.entries(groups)) {
+    _kwGroupOrder.forEach((kw, idx) => {
+      const docs = groups[kw];
+      const page = kwPages[kw] || 1;
+      const totalPages = Math.ceil(docs.length / KW_PER_PAGE);
+      const slice = docs.slice((page - 1) * KW_PER_PAGE, page * KW_PER_PAGE);
       html += `<div class="kw-group">
         <div class="kw-group-head">
           <span class="kw-group-name" title="${esc(kw)}">${esc(kw)}</span>
           <span class="kw-group-count">${kwCount(docs.length)}</span>
         </div>
-        <div>`;
-      docs.forEach(m => {
+        <div class="kw-doc-list">`;
+      slice.forEach(m => {
         const date = (m.matched_at || '').split(' ')[0];
         html += `<div class="kw-doc-row" onclick="window.location='sazetak.html?id=${esc(m.document_id)}&kw=${encodeURIComponent(m.keyword)}'">
           <div class="kw-doc-title" title="${esc(m.document_title)}">${esc(m.document_title)}</div>
@@ -814,30 +819,25 @@
           <button class="kw-doc-btn" onclick="event.stopPropagation();window.location='sazetak.html?id=${esc(m.document_id)}&kw=${encodeURIComponent(m.keyword)}'">Otvori</button>
         </div>`;
       });
-      html += '</div></div>';
-    }
+      html += '</div>';
+      if (totalPages > 1) {
+        html += `<div class="kw-group-footer">
+          <button class="kw-pag-btn" onclick="kwGoPage(${idx},${page-1})" ${page<=1?'disabled':''}>←</button>
+          <span class="kw-pag-info">${page} / ${totalPages}</span>
+          <button class="kw-pag-btn" onclick="kwGoPage(${idx},${page+1})" ${page>=totalPages?'disabled':''}>→</button>
+        </div>`;
+      }
+      html += '</div>';
+    });
     html += '</div>';
     list.innerHTML = html;
+  }
 
-    // Paginacija
-    if (pag) {
-      if (totalPages > 1) {
-        let h = '<div class="pagination">';
-        h += `<button class="pag-btn" onclick="renderMatchesByKeyword(allMatches,${page-1})" ${page<=1?'disabled':''}>←</button>`;
-        const start = Math.max(1, page - 2);
-        const end = Math.min(totalPages, page + 2);
-        if (start > 1) h += '<span class="pag-ellipsis">…</span>';
-        for (let p = start; p <= end; p++)
-          h += `<button class="pag-btn${p===page?' active':''}" onclick="renderMatchesByKeyword(allMatches,${p})">${p}</button>`;
-        if (end < totalPages) h += '<span class="pag-ellipsis">…</span>';
-        h += `<button class="pag-btn" onclick="renderMatchesByKeyword(allMatches,${page+1})" ${page>=totalPages?'disabled':''}>→</button>`;
-        h += `<span style="font-size:calc(10.5px * var(--font-scale));color:var(--muted);margin-left:4px;">${(page-1)*MATCH_PER_PAGE+1}–${Math.min(page*MATCH_PER_PAGE,matches.length)} / ${matches.length}</span>`;
-        h += '</div>';
-        pag.innerHTML = h;
-      } else {
-        pag.innerHTML = '';
-      }
-    }
+  function kwGoPage(kwIdx, page) {
+    const kw = _kwGroupOrder[kwIdx];
+    if (!kw) return;
+    kwPages[kw] = page;
+    renderMatchesByKeyword(allMatches);
   }
 
   // ── LOAD ACTIVITY ─────────────────────────────────────────────────────────
