@@ -310,9 +310,7 @@
     <nav class="nav">
       <div class="nav-section-label">Glavni izbornik</div>
       <div class="nav-item" onclick="window.location='dashboard.html'"><span class="nav-icon">◈</span> Dashboard</div>
-      <div class="nav-item" onclick="window.location='moje-pracenje.html'"><span class="nav-icon">◉</span> Moje praćenje</div>
-      <div class="nav-item active"><span class="nav-icon">◇</span> Matchevi</div>
-      <div class="nav-item"><span class="nav-icon">◎</span> Email arhiva</div>
+      <div class="nav-item active"><span class="nav-icon">◇</span> Sažetak zakona</div>
       <div class="nav-divider"></div>
       <div class="nav-section-label">Račun</div>
       <div class="nav-item"><span class="nav-icon">○</span> Postavke</div>
@@ -345,18 +343,14 @@
 
       <!-- DOC HEADER -->
       <div class="doc-header">
-        <div class="doc-meta">
-          <span class="doc-badge badge-izmjena">Izmjena propisa</span>
-          <span class="doc-nn">NN 18/2026</span>
-          <span class="doc-date">02. travnja 2026.</span>
+        <div class="doc-meta" id="doc-meta">
+          <span style="color:var(--muted);font-size:13px;">⟳ Učitavam podatke...</span>
         </div>
 
-        <div class="doc-title">Pravilnik o izmjeni Pravilnika o porezu na dohodak od samostalne djelatnosti</div>
+        <div class="doc-title" id="doc-title" style="color:var(--muted);font-size:22px;font-weight:400;">Učitavam dokument...</div>
 
-        <div class="doc-kw-row">
+        <div class="doc-kw-row" id="doc-kw-row" style="display:none;">
           <span class="doc-kw-label">Pronađeno po ključnoj riječi:</span>
-          <span class="doc-kw-tag">porez</span>
-          <span class="doc-kw-tag">PDV</span>
         </div>
       </div>
 
@@ -373,42 +367,13 @@
           </div>
           <div class="summary-body">
 
-            <div class="situation-context">
+            <div class="situation-context" id="situation-context" style="display:none;">
               <div class="situation-context-icon">◎</div>
-              <div class="situation-context-text">
-                Sažetak je prilagođen vašoj situaciji: <strong>restoran, 5 zaposlenika, Zagreb, obveznik PDV-a, obrt od 2019.</strong>
-              </div>
+              <div class="situation-context-text" id="situation-context-text"></div>
             </div>
 
-            <div class="summary-text">
-              <p>Ovaj pravilnik mijenja način utvrđivanja porezne osnovice za obrtnike koji vode poslovne knjige. Konkretno za vas kao ugostitelja — <strong>uvode se novi pragovi za paušalno oporezivanje</strong> koji se povećavaju s 300.000 na 400.000 kuna godišnjeg prihoda, što znači da imate šire mogućnosti za odabir načina oporezivanja.</p>
-              <p>Budući da ste obveznik PDV-a od 2019. i imate 5 zaposlenika, ove izmjene vas <strong>izravno dotiču u dijelu koji se odnosi na obrasce za prijavu dohotka</strong>. Od 1. srpnja 2026. koristit ćete novi obrazac DOH-Z/N umjesto dosadašnjeg DOH-Z.</p>
-              <p>Za vaš obrt nema obveze retroaktivnih ispravaka — izmjena se primjenjuje <strong>isključivo na prihode ostvarene od 1. srpnja 2026. nadalje.</strong></p>
-            </div>
-
-            <div class="key-points">
-              <div class="key-points-title">Što trebate znati</div>
-              <div class="key-point">
-                <div class="key-point-dot"></div>
-                <div class="key-point-text">Novi obrazac DOH-Z/N obvezan od 1. srpnja 2026. — zamijenite stari DOH-Z</div>
-              </div>
-              <div class="key-point">
-                <div class="key-point-dot"></div>
-                <div class="key-point-text">Prag za paušal raste na 400.000 kn — nije relevantno za vas jer ste PDV obveznik, ali bitno za eventualno restrukturiranje</div>
-              </div>
-              <div class="key-point">
-                <div class="key-point-dot"></div>
-                <div class="key-point-text">Nema retroaktivnih izmjena — svi prihodi do 30.6.2026. se prijavljuju po starom obrascu</div>
-              </div>
-              <div class="key-point">
-                <div class="key-point-dot"></div>
-                <div class="key-point-text">Rok za predaju novog obrasca DOH-Z/N je 28. veljače 2027. za prihode iz 2026.</div>
-              </div>
-            </div>
-
-            <div class="amendment-box">
-              <div class="amendment-box-title">⚠ Izmjena postojećeg propisa</div>
-              <div class="amendment-box-text">Ovaj dokument mijenja Pravilnik o porezu na dohodak od samostalne djelatnosti (NN 132/2022). Za cjeloviti tekst originalnog propisa posjetite Zakon.hr.</div>
+            <div class="summary-text" id="summary-text">
+              <p style="color:var(--muted)">⟳ Generiram personalizirani sažetak...</p>
             </div>
 
           </div>
@@ -425,23 +390,19 @@
             <div class="side-card-body">
               <div class="info-row">
                 <div class="info-label">NN broj</div>
-                <div class="info-value">18/2026</div>
+                <div class="info-value" id="info-nn">—</div>
               </div>
               <div class="info-row">
                 <div class="info-label">Datum objave</div>
-                <div class="info-value">02.04.2026.</div>
+                <div class="info-value" id="info-date">—</div>
               </div>
               <div class="info-row">
                 <div class="info-label">Tip dokumenta</div>
-                <div class="info-value">Pravilnik — izmjena</div>
+                <div class="info-value" id="info-type">—</div>
               </div>
               <div class="info-row">
                 <div class="info-label">Donijelo</div>
-                <div class="info-value">Ministarstvo financija</div>
-              </div>
-              <div class="info-row">
-                <div class="info-label">Na snazi od</div>
-                <div class="info-value">01.07.2026.</div>
+                <div class="info-value" id="info-institution">—</div>
               </div>
             </div>
           </div>
@@ -452,7 +413,8 @@
               <div class="side-card-title">Akcije</div>
             </div>
             <div class="side-card-body">
-              <button class="action-btn primary" id = "btn-email-action"></button>                <span>Pošalji na email</span>
+              <button class="action-btn primary" id="btn-email-action">
+                <span>Pošalji na email</span>
                 <span class="action-btn-icon">→</span>
               </button>
               <button class="action-btn" onclick="openNN()">
@@ -592,77 +554,103 @@
     return d.toLocaleDateString('hr-HR', { day: '2-digit', month: 'long', year: 'numeric' });
   }
 
+  function getKw() {
+    return new URLSearchParams(window.location.search).get('kw') || '';
+  }
+
   async function loadPage() {
     const docId = getDocId();
-    if (!docId) { showToast('Nema ID dokumenta u URL-u'); return; }
+    const kw = getKw();
+    if (!docId) {
+      document.getElementById('doc-title').textContent = 'Nema ID dokumenta u URL-u.';
+      return;
+    }
     if (!getToken()) { window.location.href = 'index.html'; return; }
 
-    // Dohvati korisnika
-    try {
-        const userRes = await fetch(API + '/auth/me', { headers: authHeaders() });
-        if (userRes.status === 401) { window.location.href = 'index.html'; return; }
-        const user = await userRes.json();
-        const namePart = user.email.split('@')[0];
-        document.getElementById('sidebar-name').textContent = namePart;
-        document.getElementById('sidebar-email').textContent = user.email;
-        const planLabel = user.plan === 'free' ? 'BETA' : user.plan.toUpperCase();
-        document.getElementById('sidebar-badge').textContent = planLabel;
-        document.getElementById('mob-user-name').textContent = namePart;
-        document.getElementById('mob-user-email').textContent = user.email;
-        document.getElementById('mob-user-badge').textContent = planLabel;
+    // Prikaži ključnu riječ iz URL-a odmah
+    if (kw) {
+      const kwRow = document.getElementById('doc-kw-row');
+      kwRow.style.display = 'flex';
+      kwRow.innerHTML = `<span class="doc-kw-label">Pronađeno po ključnoj riječi:</span><span class="doc-kw-tag">${kw}</span>`;
+    }
 
-        // Pravi email u gumbu
-        document.querySelector('.action-btn.primary').onclick =
-            () => showToast('Email poslan na ' + user.email);
-    } catch(e) { showToast('Greška pri dohvatu korisnika'); }
+    // Dohvati korisnika
+    let userSituation = '';
+    try {
+      const userRes = await fetch(API + '/auth/me', { headers: authHeaders() });
+      if (userRes.status === 401) { window.location.href = 'index.html'; return; }
+      const user = await userRes.json();
+      const namePart = user.email.split('@')[0];
+      document.getElementById('sidebar-name').textContent = namePart;
+      document.getElementById('sidebar-email').textContent = user.email;
+      const planLabel = user.plan === 'free' ? 'BETA' : user.plan.toUpperCase();
+      document.getElementById('sidebar-badge').textContent = planLabel;
+      document.getElementById('mob-user-name').textContent = namePart;
+      document.getElementById('mob-user-email').textContent = user.email;
+      document.getElementById('mob-user-badge').textContent = planLabel;
+      document.getElementById('btn-email-action').onclick =
+        () => showToast('Email poslan na ' + user.email);
+
+      userSituation = user.situation || '';
+      if (userSituation) {
+        const ctx = document.getElementById('situation-context');
+        document.getElementById('situation-context-text').innerHTML =
+          'Sažetak je prilagođen vašoj situaciji: <strong>' + userSituation + '</strong>';
+        ctx.style.display = 'flex';
+      }
+    } catch(e) { /* nastavak bez korisničkih podataka */ }
 
     // Dohvati podatke dokumenta
     try {
       const res = await fetch(`${API}/search/document/${docId}`, { headers: authHeaders() });
-      if (res.status === 401) { window.location.href = 'index.html'; return; }
+      if (!res.ok) throw new Error(res.status);
       const doc = await res.json();
 
       const docClass = classifyTitle(doc.title);
 
-      // Popuni header
-      document.querySelector('.doc-meta').innerHTML =
+      document.getElementById('doc-meta').innerHTML =
         badgeHTML(docClass) +
         `<span class="doc-nn">NN ${doc.issue_number || '—'}/${doc.published_date ? doc.published_date.substring(0,4) : '—'}</span>` +
         `<span class="doc-date">${formatDate(doc.published_date)}</span>`;
 
-      document.querySelector('.doc-title').textContent = doc.title;
+      const titleEl = document.getElementById('doc-title');
+      titleEl.textContent = doc.title;
+      titleEl.style.color = '';
+      titleEl.style.fontSize = '';
+      titleEl.style.fontWeight = '';
 
-      // Info sidebar
-      document.querySelectorAll('.info-value')[0].textContent = doc.issue_number ? `${doc.issue_number}/${doc.published_date ? doc.published_date.substring(0,4) : ''}` : '—';
-      document.querySelectorAll('.info-value')[1].textContent = doc.published_date ? formatDate(doc.published_date) : '—';
-      document.querySelectorAll('.info-value')[2].textContent = doc.type ? doc.type.charAt(0).toUpperCase() + doc.type.slice(1) : '—';
-      document.querySelectorAll('.info-value')[3].textContent = doc.institution || '—';
+      document.getElementById('info-nn').textContent =
+        doc.issue_number ? `${doc.issue_number}/${doc.published_date ? doc.published_date.substring(0,4) : ''}` : '—';
+      document.getElementById('info-date').textContent =
+        doc.published_date ? formatDate(doc.published_date) : '—';
+      document.getElementById('info-type').textContent =
+        doc.type ? doc.type.charAt(0).toUpperCase() + doc.type.slice(1) : '—';
+      document.getElementById('info-institution').textContent = doc.institution || '—';
 
-      // NN link
-      document.querySelector('.action-btn:nth-child(2)').onclick = () => window.open(doc.url, '_blank');
+      document.querySelector('.action-btn:not(.primary)').onclick =
+        () => window.open(doc.url, '_blank');
 
     } catch(e) {
-      showToast('Greška pri dohvatu dokumenta');
+      document.getElementById('doc-title').textContent = 'Greška pri dohvatu dokumenta.';
+      document.getElementById('doc-meta').innerHTML = '';
     }
 
-    // Dohvati AI sažetak
-    const summaryBody = document.querySelector('.summary-text');
-    summaryBody.innerHTML = '<p style="color:var(--muted)">⟳ Generiram sažetak...</p>';
-
+    // Dohvati AI sažetak — proslijedi ključnu riječ radi personalizacije
+    const summaryText = document.getElementById('summary-text');
     try {
-      const res = await fetch(`${API}/search/summarize/${docId}`, { headers: authHeaders() });
+      const kwParam = kw ? `?keyword=${encodeURIComponent(kw)}` : '';
+      const res = await fetch(`${API}/search/summarize/${docId}${kwParam}`, { headers: authHeaders() });
+      if (!res.ok) throw new Error(res.status);
       const data = await res.json();
 
       if (data.summary) {
-        const paragraphs = data.summary.split('
-
-').filter(p => p.trim());
-        summaryBody.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
+        const paragraphs = data.summary.split('\n\n').filter(p => p.trim());
+        summaryText.innerHTML = paragraphs.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
       } else {
-        summaryBody.innerHTML = '<p style="color:var(--muted)">Sažetak nije dostupan.</p>';
+        summaryText.innerHTML = '<p style="color:var(--muted)">Sažetak nije dostupan.</p>';
       }
     } catch(e) {
-      summaryBody.innerHTML = '<p style="color:var(--muted)">Greška pri generiranju sažetka.</p>';
+      summaryText.innerHTML = '<p style="color:var(--muted)">Greška pri generiranju sažetka.</p>';
     }
   }
 
