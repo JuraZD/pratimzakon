@@ -159,7 +159,7 @@
   .scraper-error { color:#c0392b !important; }
 
   /* ── DASHBOARD GRID ── */
-  .dashboard { display:grid; grid-template-columns:1fr 1fr 320px; grid-template-rows:auto auto 1fr auto; gap:12px; padding:16px 24px 18px; overflow:hidden; }
+  .dashboard { display:grid; grid-template-columns:1fr 1fr 320px; grid-template-rows:auto auto minmax(380px,1fr) auto; gap:12px; padding:16px 24px 18px; overflow:hidden; }
   .stats-row { grid-column:1/3; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
   .stat-card { background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--navy); border-radius:var(--radius); padding:13px 16px; }
   .stat-card.orange { border-top-color:var(--orange); }
@@ -293,7 +293,7 @@
   .match-tab-count { opacity:0.65; font-size:calc(10px * var(--font-scale)); margin-left:2px; }
 
   /* ── MATCH CARD GRID ── */
-  .match-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:10px; padding:12px 16px; overflow-y:auto; flex:1; align-content:start; }
+  .match-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; padding:12px 16px; overflow-y:auto; flex:1; min-height:200px; align-content:start; }
   .match-card { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); display:flex; flex-direction:column; overflow:hidden; cursor:pointer; transition:transform 0.15s,box-shadow 0.15s,border-color 0.15s; }
   .match-card:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(26,39,68,0.11); border-color:var(--border-strong); background:var(--surface); }
   .match-card-accent { height:3px; flex-shrink:0; }
@@ -301,14 +301,14 @@
   .accent-zakon { background:var(--green); }
   .accent-pravilnik { background:var(--navy); }
   .accent-other { background:var(--muted); }
-  .match-card-inner { padding:11px 14px 12px; flex:1; display:flex; flex-direction:column; gap:7px; }
+  .match-card-inner { padding:10px 13px 11px; flex:1; display:flex; flex-direction:column; gap:6px; }
   .match-card-badge { display:inline-block; padding:2px 7px; border-radius:2px; font-size:calc(9.5px * var(--font-scale)); font-weight:700; letter-spacing:0.5px; text-transform:uppercase; align-self:flex-start; }
   .badge-izmjena-c { background:var(--orange-dim); color:var(--orange); }
   .badge-zakon-c { background:var(--green-dim); color:var(--green); }
   .badge-pravilnik-c { background:rgba(26,39,68,0.08); color:var(--navy); }
   html.dark .badge-pravilnik-c { background:rgba(200,212,240,0.1); color:var(--navy2); }
   .badge-other-c { background:var(--surface2); color:var(--muted); }
-  .match-card-title { font-size:calc(13px * var(--font-scale)); color:var(--text); font-weight:600; line-height:1.45; display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; flex:1; }
+  .match-card-title { font-size:calc(13px * var(--font-scale)); color:var(--text); font-weight:600; line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
   .match-card-meta { display:flex; align-items:center; gap:6px; margin-top:auto; padding-top:9px; border-top:1px solid var(--border); }
   .match-card-date { font-size:calc(10.5px * var(--font-scale)); color:var(--muted); flex-shrink:0; }
   .match-card-kw { padding:2px 8px; background:var(--navy); color:var(--cream); border-radius:10px; font-size:calc(10px * var(--font-scale)); font-weight:700; letter-spacing:0.3px; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; min-width:0; }
@@ -320,7 +320,8 @@
   .match-pag-btn:disabled { opacity:0.3; cursor:not-allowed; }
   .match-pag-info { font-size:calc(11px * var(--font-scale)); color:var(--muted); font-weight:600; }
   .matches-card .card-body { padding:0 !important; display:flex; flex-direction:column; overflow:hidden; }
-  .matches-card .card-body > div { display:flex; flex-direction:column; flex:1; overflow:hidden; min-height:0; }
+  /* #matches-body is the JS-rendered flex column: tabs + cards + pag */
+  #matches-body { display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden; }
   .match-pag-row { background:var(--navy); padding:9px 16px; border-top:none; }
   .match-pag-row .match-pag-btn { background:rgba(255,255,255,0.1); border:1.5px solid rgba(255,255,255,0.2); color:var(--cream); font-size:calc(12px * var(--font-scale)); padding:5px 16px; }
   .match-pag-row .match-pag-btn:hover:not(:disabled) { background:var(--orange); border-color:var(--orange); color:var(--white); }
