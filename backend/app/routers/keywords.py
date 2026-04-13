@@ -275,6 +275,5 @@ def suggest_keywords(
         return {"suggestions": suggestions}
 
     except Exception as e:
-        import logging
         logging.error(f"AI suggest greška: {e}")
         raise HTTPException(status_code=500, detail="AI nije dostupan")

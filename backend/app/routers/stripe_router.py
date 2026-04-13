@@ -56,7 +56,7 @@ def switch_plan(
         raise HTTPException(status_code=400, detail="Nemate aktivnu pretplatu")
 
     current_plan_type = current_user.plan_type
-    if current_plan_type == plan or (current_plan_type in ("pro",) and plan == "basic") or (current_plan_type in ("expert",) and plan == "plus"):
+    if current_plan_type == plan:
         raise HTTPException(status_code=400, detail="Već ste na tom planu")
 
     sub_id = getattr(current_user, "stripe_subscription_id", None)
