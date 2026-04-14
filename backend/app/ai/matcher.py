@@ -7,8 +7,37 @@ Koristi: title, type, institution (legal_area trenutno prazan)
 import os
 import logging
 import anthropic
+from pydantic import BaseModel
 
 client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+
+class ProcjenaRelevantnosti(BaseModel):
+    relevantno: bool
+    razlog: str
+
+
+_TOOL_PROCJENA = {
+    "name": "procjena_relevantnosti",
+    "description": "Procijeni je li pravni dokument relevantan za korisnika.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "relevantno": {
+                "type": "boolean",
+                "description": "True ako je dokument relevantan za korisnika, False ako nije.",
+            },
+            "razlog": {
+                "type": "string",
+                "description": (
+                    "Jedna rečenica na hrvatskom bez pravnog žargona koja objašnjava "
+                    "zašto se dokument tiče ovog korisnika. Ako nije relevantan, vrati '-'."
+                ),
+            },
+        },
+        "required": ["relevantno", "razlog"],
+    },
+}
 
 RELEVANT_TYPES = {"zakon", "pravilnik", "uredba", "odluka"}
 
@@ -138,6 +167,7 @@ Odgovori samo DA ili NE.""",
 def ai_deep_check(doc, situation: str, keywords: list[str]) -> tuple[bool, str]:
     """
     Razina 3 — AI dublja analiza s razlogom.
+    Koristi tool_choice za garantirani JSON output validiran Pydanticom.
     Vraća (je_relevantno, razlog).
     """
     try:
@@ -156,6 +186,8 @@ def ai_deep_check(doc, situation: str, keywords: list[str]) -> tuple[bool, str]:
         msg = client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=150,
+            tools=[_TOOL_PROCJENA],
+            tool_choice={"type": "tool", "name": "procjena_relevantnosti"},
             messages=[
                 {
                     "role": "user",
@@ -169,36 +201,15 @@ Korisnikove ključne riječi: {kw_str}
 {doc_context}
 
 Je li ovaj dokument relevantan za ovog konkretnog korisnika?
-Uzmi u obzir neizravne veze — npr. promjena doprinosa 
-utječe na troškove poslovanja, promjena PDV-a utječe 
-na cijene, promjena radnog prava utječe na zaposlenike.
-
-Odgovori TOČNO u ovom formatu:
-RELEVANTNO: DA
-RAZLOG: [jedna rečenica na hrvatskom, bez pravnog žargona,
-zašto se konkretno tiče ovog korisnika]
-
-ili:
-
-RELEVANTNO: NE
-RAZLOG: -""",
+Uzmi u obzir neizravne veze — npr. promjena doprinosa
+utječe na troškove poslovanja, promjena PDV-a utječe
+na cijene, promjena radnog prava utječe na zaposlenike.""",
                 }
             ],
         )
 
-        response = msg.content[0].text.strip()
-        lines = response.split("\n")
-
-        is_relevant = False
-        reason = ""
-
-        for line in lines:
-            if line.startswith("RELEVANTNO:"):
-                is_relevant = "DA" in line.upper()
-            if line.startswith("RAZLOG:"):
-                reason = line.replace("RAZLOG:", "").strip()
-
-        return is_relevant, reason
+        procjena = ProcjenaRelevantnosti(**msg.content[0].input)
+        return procjena.relevantno, procjena.razlog
 
     except Exception as e:
         logging.error(f"AI deep check greška: {e}")

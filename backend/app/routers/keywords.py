@@ -12,6 +12,31 @@ from ..schemas import KeywordCreate, KeywordOut
 from ..auth import get_current_user
 from .search import DocumentResult, SearchResponse
 
+_TOOL_SUGESTIJE = {
+    "name": "predlozi_kljucne_rijeci",
+    "description": "Predloži relevantne ključne riječi za praćenje Narodnih novina.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "kljucne_rijeci": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": (
+                    "Lista od 1 do 5 kratkih ključnih riječi (1-3 riječi svaka) "
+                    "relevantnih za hrvatsko zakonodavstvo. "
+                    "Ne smiju se ponavljati već postojeće ključne riječi."
+                ),
+                "maxItems": 5,
+            }
+        },
+        "required": ["kljucne_rijeci"],
+    },
+}
+
+
+class SugestijeOutput(BaseModel):
+    kljucne_rijeci: List[str]
+
 router = APIRouter(prefix="/keywords", tags=["keywords"])
 
 
@@ -252,29 +277,25 @@ def suggest_keywords(
         msg = client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=120,
+            tools=[_TOOL_SUGESTIJE],
+            tool_choice={"type": "tool", "name": "predlozi_kljucne_rijeci"},
             messages=[{
                 "role": "user",
                 "content": (
-                    "Na temelju korisnikove situacije, predloži 5 relevantnih ključnih "
+                    "Na temelju korisnikove situacije, predloži do 5 relevantnih ključnih "
                     "riječi za praćenje Narodnih novina RH.\n\n"
                     f"Korisnikova situacija: {situation}\n"
                     f"Već prate: {existing_str}\n\n"
-                    "Pravila:\n"
-                    "- Predloži SAMO nove ključne riječi (ne one koje već prate)\n"
-                    "- Kratki pojmovi, 1\xe2\x80\x933 riječi\n"
-                    "- Relevantni za hrvatsko zakonodavstvo\n"
-                    "- Jedan pojam po retku, bez numeriranja, bez objašnjenja\n\n"
-                    "Format:\nzakon o radu\nporez na dobit\nfiskalizacija"
+                    "Predloži SAMO nove ključne riječi (ne one koje već prate). "
+                    "Kratki pojmovi, 1-3 riječi, relevantni za hrvatsko zakonodavstvo."
                 ),
             }],
         )
-        raw = msg.content[0].text.strip()
-        suggestions = [line.strip() for line in raw.split("\n") if line.strip()][:6]
+        output = SugestijeOutput(**msg.content[0].input)
         existing_lower = {k.lower() for k in existing_kws}
-        suggestions = [s for s in suggestions if s.lower() not in existing_lower][:5]
+        suggestions = [s for s in output.kljucne_rijeci if s.lower() not in existing_lower][:5]
         return {"suggestions": suggestions}
 
     except Exception as e:
-        import logging
         logging.error(f"AI suggest greška: {e}")
         raise HTTPException(status_code=500, detail="AI nije dostupan")
