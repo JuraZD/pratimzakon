@@ -11,6 +11,7 @@ from email.mime.text import MIMEText
 from typing import List, Dict
 from sqlalchemy.orm import Session
 from app.ai.matcher import check_document_for_user, generate_summary
+from app.utils.stemmer import stem_keyword as _stem_keyword
 
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
@@ -19,43 +20,6 @@ SMTP_USERNAME = os.getenv("SMTP_USERNAME", "")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 FROM_EMAIL = os.getenv("FROM_EMAIL", SMTP_USERNAME)
 FROM_NAME = os.getenv("FROM_NAME", "PratimZakon")
-
-# ── JEDNOSTAVNO STEMMANJE ZA HRVATSKI ─────────────────────────────────────────
-_HR_SUFFIXES = sorted(
-    [
-        "icama", "stvima", "stvima",
-        "stvo", "stva", "stvu", "stvom",
-        "nika", "nice", "nici", "niku",
-        "ama", "ima", "ski", "ska", "sko",
-        "ni", "na", "no", "ne",
-        "om", "og",
-        "a", "e", "i", "o", "u",
-    ],
-    key=len,
-    reverse=True,
-)
-_MIN_STEM_LEN = 4
-_MIN_KW_LEN   = 6
-
-
-def _stem_keyword(keyword: str) -> str:
-    """
-    Jednostavni stemmer za hrvatski jezik.
-    Uklanja tipični nastavak samo za riječi dulje od _MIN_KW_LEN znakova.
-    Primjeri:
-      'poljoprivreda' → 'poljoprivred'
-      'zdravstvo'     → 'zdravstv'
-      'osiguranje'    → 'osiguranJ' wait... 'osiguranj'
-      'porez'         → 'porez'   (≤5 znakova, bez promjene)
-      'PDV'           → 'PDV'     (≤5 znakova, bez promjene)
-    """
-    kw = keyword.strip().lower()
-    if len(kw) <= _MIN_KW_LEN:
-        return kw
-    for suffix in _HR_SUFFIXES:
-        if kw.endswith(suffix) and (len(kw) - len(suffix)) >= _MIN_STEM_LEN:
-            return kw[: -len(suffix)]
-    return kw
 
 
 def _send_smtp(to_email: str, subject: str, html_body: str, text_body: str) -> bool:

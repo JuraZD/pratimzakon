@@ -6,12 +6,12 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 import logging
 import threading
-from ..scraper.nn_scraper import run_check
 
 from ..database import get_db
 from ..models import User, Log
 from ..schemas import AdminStats
 from ..auth import get_current_user
+from ..utils.stemmer import stem_keyword as _stem
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -55,11 +55,7 @@ class SetPlanRequest(BaseModel):
 
 PLAN_CONFIG = {
     "free": {"subscription_status": "free", "plan_type": "free", "keyword_limit": 3},
-    "basic": {
-        "subscription_status": "active",
-        "plan_type": "basic",
-        "keyword_limit": 10,
-    },
+    "basic": {"subscription_status": "active", "plan_type": "basic", "keyword_limit": 5},
     "plus": {"subscription_status": "active", "plan_type": "plus", "keyword_limit": 20},
 }
 
@@ -144,25 +140,6 @@ def trigger_user_scan(
     from ..models import Document, Keyword, Log as ScanLog
 
     user_id = current_user.id
-
-    # Hrvatski stemmer — kopija iz notifier.py, bez AI importa
-    _SUFFIXES = sorted(
-        ["icama", "stvima", "stvo", "stva", "stvu", "stvom",
-         "nika", "nice", "nici", "niku",
-         "ama", "ima", "ski", "ska", "sko",
-         "ni", "na", "no", "ne", "om", "og",
-         "a", "e", "i", "o", "u"],
-        key=len, reverse=True,
-    )
-
-    def _stem(kw: str) -> str:
-        s = kw.strip().lower()
-        if len(s) <= 6:
-            return s
-        for suf in _SUFFIXES:
-            if s.endswith(suf) and (len(s) - len(suf)) >= 4:
-                return s[:-len(suf)]
-        return s
 
     def run_in_background():
         try:

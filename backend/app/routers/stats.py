@@ -7,7 +7,7 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
-from sqlalchemy import func, extract, cast, Integer
+from sqlalchemy import func, extract
 from ..database import get_db
 from ..models import Document, User, Log, Keyword
 from ..auth import get_current_user, user_has_plan
@@ -165,7 +165,6 @@ def get_stats(
     ]
 
     # ── User growth (signups per month, last 24 months)
-    from sqlalchemy import DateTime
     growth_rows = (
         db.query(
             func.to_char(User.created_at, "YYYY-MM").label("month"),
