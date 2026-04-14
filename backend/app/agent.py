@@ -142,6 +142,12 @@ def _analyse(db, docs: list, users: list) -> list[MatchResult]:
 
             messages.append({"role": "user", "content": tool_results})
 
+            # Context pruning — sprječava rast konteksta u dugim sesijama.
+            # Zadržava initial task + zadnje 4 poruke (2 tool_use + 2 tool_result).
+            MAX_HISTORY = 4
+            if len(messages) > 1 + MAX_HISTORY:
+                messages = messages[:1] + messages[-MAX_HISTORY:]
+
     logging.info(f"[Analyse] Završeno — {len(matches)} parova provjereno")
     return matches
 

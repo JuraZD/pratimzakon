@@ -5,11 +5,60 @@ Koristi: title, type, institution (legal_area trenutno prazan)
 """
 
 import os
+import time
 import logging
 import anthropic
 from pydantic import BaseModel
 
 client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+
+_MAX_RETRIES = 3
+
+# ── Cached system prompti ─────────────────────────────────────────────────────
+# cache_control="ephemeral" — Anthropic cachira ovaj blok između poziva.
+# Cached tokeni koštaju 10× manje od normalnih input tokena.
+
+_SYSTEM_MATCHER = [{
+    "type": "text",
+    "text": (
+        "Ti si hrvatski pravni stručnjak koji procjenjuje relevantnost "
+        "zakona i propisa iz Narodnih novina za konkretne korisnike. "
+        "Uzmi u obzir neizravne veze: promjena doprinosa utječe na troškove "
+        "poslovanja, promjena PDV-a na cijene, promjena radnog prava na zaposlenike."
+    ),
+    "cache_control": {"type": "ephemeral"},
+}]
+
+_SYSTEM_SUMMARY = [{
+    "type": "text",
+    "text": (
+        "Ti si hrvatski pravni stručnjak koji objašnjava zakone običnim ljudima "
+        "na jednostavnom hrvatskom jeziku.\n\n"
+        "Pravila pisanja:\n"
+        "- Piši na hrvatskom standardnom jeziku\n"
+        "- Koristi 'porezne obveze' ne 'poreske obveze'\n"
+        "- Koristi 'račun' ne 'faktura'\n"
+        "- Koristi 'zaposlenik' ne 'radnik' ili 'employee'\n"
+        "- Bez pravnog žargona\n"
+        "- Bez markdown formatiranja (bez **, bez #)\n"
+        "- 3-4 rečenice maksimalno\n"
+        "- Objasni konkretno što korisnik treba napraviti ili znati"
+    ),
+    "cache_control": {"type": "ephemeral"},
+}]
+
+
+def _retry(fn):
+    """Ponovi poziv pri RateLimitError s eksponencijalnim čekanjem."""
+    for attempt in range(_MAX_RETRIES):
+        try:
+            return fn()
+        except anthropic.RateLimitError:
+            if attempt == _MAX_RETRIES - 1:
+                raise
+            wait = 2 ** attempt
+            logging.warning(f"Rate limit — čekam {wait}s (pokušaj {attempt + 1}/{_MAX_RETRIES})")
+            time.sleep(wait)
 
 
 class ProcjenaRelevantnosti(BaseModel):
@@ -130,33 +179,28 @@ def ai_quick_check(doc, situation: str, keywords: list[str]) -> bool:
     """
     Razina 2 — AI čita naslov, tip i instituciju.
     Jeftin i brz poziv — samo 5 tokena odgovora.
+    System prompt se cachira između poziva.
     """
     try:
         kw_str = ", ".join(keywords) if keywords else "nije definirano"
         situation_str = situation if situation else "nije opisana"
         doc_context = _build_doc_context(doc)
 
-        msg = client.messages.create(
+        msg = _retry(lambda: client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=5,
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"""Ti si hrvatski pravni stručnjak.
-
-Korisnikova situacija: {situation_str}
-Korisnikove ključne riječi: {kw_str}
-
-Dokument:
-{doc_context}
-
-Može li ovaj dokument biti relevantan za korisnika,
-čak i neizravno?
-
-Odgovori samo DA ili NE.""",
-                }
-            ],
-        )
+            system=_SYSTEM_MATCHER,
+            messages=[{
+                "role": "user",
+                "content": (
+                    f"Korisnikova situacija: {situation_str}\n"
+                    f"Korisnikove ključne riječi: {kw_str}\n\n"
+                    f"Dokument:\n{doc_context}\n\n"
+                    "Može li ovaj dokument biti relevantan za korisnika, "
+                    "čak i neizravno? Odgovori samo DA ili NE."
+                ),
+            }],
+        ))
         return "DA" in msg.content[0].text.upper()
 
     except Exception as e:
@@ -168,6 +212,7 @@ def ai_deep_check(doc, situation: str, keywords: list[str]) -> tuple[bool, str]:
     """
     Razina 3 — AI dublja analiza s razlogom.
     Koristi tool_choice za garantirani JSON output validiran Pydanticom.
+    System prompt se cachira; retry pri rate limitu.
     Vraća (je_relevantno, razlog).
     """
     try:
@@ -183,30 +228,23 @@ def ai_deep_check(doc, situation: str, keywords: list[str]) -> tuple[bool, str]:
         else:
             type_note = "Ovo je novi propis."
 
-        msg = client.messages.create(
+        msg = _retry(lambda: client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=150,
+            system=_SYSTEM_MATCHER,
             tools=[_TOOL_PROCJENA],
             tool_choice={"type": "tool", "name": "procjena_relevantnosti"},
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"""Ti si hrvatski pravni stručnjak.
-
-Korisnikova situacija: {situation_str}
-Korisnikove ključne riječi: {kw_str}
-
-{type_note}
-
-{doc_context}
-
-Je li ovaj dokument relevantan za ovog konkretnog korisnika?
-Uzmi u obzir neizravne veze — npr. promjena doprinosa
-utječe na troškove poslovanja, promjena PDV-a utječe
-na cijene, promjena radnog prava utječe na zaposlenike.""",
-                }
-            ],
-        )
+            messages=[{
+                "role": "user",
+                "content": (
+                    f"Korisnikova situacija: {situation_str}\n"
+                    f"Korisnikove ključne riječi: {kw_str}\n\n"
+                    f"{type_note}\n\n"
+                    f"{doc_context}\n\n"
+                    "Je li ovaj dokument relevantan za ovog konkretnog korisnika?"
+                ),
+            }],
+        ))
 
         procjena = ProcjenaRelevantnosti(**msg.content[0].input)
         return procjena.relevantno, procjena.razlog
@@ -220,9 +258,9 @@ def generate_summary(doc, situation: str, keyword: str = None) -> str:
     """
     Generira personalizirani sažetak dokumenta.
     Poziva se SAMO ako je dokument već prošao matching.
+    System prompt + tekst dokumenta se cachiraju; retry pri rate limitu.
     """
     try:
-        # Dohvati tekst dokumenta
         doc_text = fetch_doc_text(doc.url) if doc.url else ""
 
         situation_str = situation if situation else "nije opisana"
@@ -244,36 +282,24 @@ def generate_summary(doc, situation: str, keyword: str = None) -> str:
             task = "Objasni što ovaj novi propis uvodi."
             amendment_note = ""
 
-        msg = client.messages.create(
+        # Tekst dokumenta ide u zaseban blok s cache_control —
+        # ako više korisnika traži sažetak istog dokumenta, tekst se cachira.
+        doc_block = {
+            "type": "text",
+            "text": f"{doc_context}\n\nTekst dokumenta:\n{doc_text[:3000] if doc_text else 'Tekst nije dostupan.'}",
+            "cache_control": {"type": "ephemeral"},
+        }
+        user_block = {
+            "type": "text",
+            "text": f"Korisnikova situacija: {situation_str}{kw_str}\n\n{task}",
+        }
+
+        msg = _retry(lambda: client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=300,
-            messages=[
-                {
-                    "role": "user",
-                    "content": f"""Ti si hrvatski pravni stručnjak koji objašnjava
-zakone običnim ljudima na jednostavnom hrvatskom jeziku.
-
-Korisnikova situacija: {situation_str}{kw_str}
-
-{task}
-
-Pravila pisanja:
-- Piši na hrvatskom standardnom jeziku
-- Koristi "porezne obveze" ne "poreske obveze"
-- Koristi "račun" ne "faktura"
-- Koristi "zaposlenik" ne "radnik" ili "employee"
-- Bez pravnog žargona
-- Bez markdown formatiranja (bez **, bez #)
-- 3-4 rečenice maksimalno
-- Objasni konkretno što korisnik treba napraviti ili znati
-
-{doc_context}
-
-Tekst dokumenta:
-{doc_text[:3000] if doc_text else 'Tekst nije dostupan u bazi.'}""",
-                }
-            ],
-        )
+            system=_SYSTEM_SUMMARY,
+            messages=[{"role": "user", "content": [doc_block, user_block]}],
+        ))
 
         return msg.content[0].text.strip() + amendment_note
 
