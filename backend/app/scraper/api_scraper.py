@@ -450,7 +450,7 @@ async def _process_edition(session, sem, db, lookup, part: str, year: int, numbe
     return updated, inserted, failed
 
 
-async def _run(year_from: int, year_to: int, dry_run: bool = False, min_editions: dict = None):
+async def _run(year_from: int, year_to: int, dry_run: bool = False, min_editions: dict = None, notify: bool = True):
     from app.database import SessionLocal
     from app.models import Log, Document
     db = SessionLocal()
@@ -502,7 +502,7 @@ async def _run(year_from: int, year_to: int, dry_run: bool = False, min_editions
                         f"ažurirano={u}, novo={i}, greška={f}"
                     )
     if not dry_run:
-        if total_inserted > 0:
+        if total_inserted > 0 and notify:
             from app.email.notifier import send_keyword_notifications
             new_docs = db.query(Document.id).filter(Document.created_at >= run_start).all()
             new_ids = [d.id for d in new_docs]
@@ -529,12 +529,15 @@ def run_backfill(year_from: int = 2015, year_to: int = None, dry_run: bool = Fal
     asyncio.run(_run(year_from, year_to, dry_run))
 
 
-def run_daily(dry_run: bool = False):
+def run_daily(dry_run: bool = False, notify: bool = True):
     """
     Dnevni mod — dohvaća samo nova izdanja koja još nisu u bazi.
     Provjerava zadnji poznati broj u bazi za SL i MU, pa obrađuje
     samo izdanja viša od toga (uz buffer od 2 za sigurnost).
     Ako je siječanj, uključuje i prethodnu godinu.
+
+    notify=False: scraper samo sprema dokumente, ne šalje notifikacije.
+    Koristiti kada agent preuzima notifikacije (Korak 4/5).
     """
     from app.database import SessionLocal
     from app.models import Document
@@ -552,7 +555,7 @@ def run_daily(dry_run: bool = False):
         min_editions[part] = val or 0
         logging.info(f"Zadnji {part} broj u bazi ({year_from}+): {min_editions[part]}")
     db.close()
-    asyncio.run(_run(year_from, now.year, dry_run, min_editions=min_editions))
+    asyncio.run(_run(year_from, now.year, dry_run, min_editions=min_editions, notify=notify))
 
 
 if __name__ == "__main__":
@@ -565,8 +568,10 @@ if __name__ == "__main__":
     bp.add_argument("--dry-run", action="store_true")
     dp = subparsers.add_parser("daily", help="Dnevni scraper (tekuća godina)")
     dp.add_argument("--dry-run", action="store_true")
+    dp.add_argument("--no-notify", action="store_true",
+                    help="Ne šalji notifikacije — koristi kada agent preuzima tu ulogu")
     args = parser.parse_args()
     if args.mode == "backfill":
         run_backfill(args.year_from, args.year_to, args.dry_run)
     else:
-        run_daily(args.dry_run)
+        run_daily(args.dry_run, notify=not args.no_notify)
