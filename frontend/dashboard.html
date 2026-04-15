@@ -370,7 +370,7 @@
     <nav class="nav">
       <div class="nav-section-label">Glavni izbornik</div>
       <div class="nav-item active" onclick="scrollToSection('top')"><span class="nav-icon">◈</span> Dashboard</div>
-      <div class="nav-item" onclick="scrollToSection('matches')"><span class="nav-icon">◇</span> Matchevi</div>
+      <div class="nav-item" onclick="window.location='statistika.html'"><span class="nav-icon">◉</span> Statistika</div>
       <div class="nav-item" onclick="window.location='arhiva.html'"><span class="nav-icon">◫</span> Moja arhiva</div>
       <div class="nav-item" onclick="window.location='aktivnost.html'"><span class="nav-icon">◎</span> Aktivnost</div>
       <div class="nav-divider"></div>
@@ -520,23 +520,6 @@
       </div>
 
 
-      <div class="card" id="card-nn-search" style="margin-top:13px;">
-        <div class="card-head">
-          <div class="card-title">Pretraži NN arhivu</div>
-        </div>
-        <div class="card-body" style="gap:10px;">
-          <div style="font-size:calc(11.5px * var(--font-scale));color:var(--muted);margin-bottom:2px;">Baza podataka pokriva objave od 1. siječnja 2026. godine.</div>
-          <div style="display:flex;gap:8px;">
-            <input id="dash-search-q" class="search-input" type="text"
-              placeholder="Upiši pojam (npr. porez, zakon o radu)..."
-              onkeydown="if(event.key==='Enter') dashSearch(1)">
-            <button class="btn-search-go" onclick="dashSearch(1)">Pretraži</button>
-          </div>
-          <div id="dash-search-results"></div>
-          <div id="dash-search-pag"></div>
-        </div>
-      </div>
-
 
     </div>
   </div>
@@ -550,7 +533,7 @@
     <nav class="nav">
       <div class="nav-section-label">Glavni izbornik</div>
       <div class="nav-item active" onclick="closeMobNav()"><span class="nav-icon">◈</span> Dashboard</div>
-      <div class="nav-item" onclick="closeMobNav();setTimeout(()=>scrollToSection('matches'),200)"><span class="nav-icon">◇</span> Matchevi</div>
+      <div class="nav-item" onclick="closeMobNav();window.location.href='statistika.html'"><span class="nav-icon">◉</span> Statistika</div>
       <div class="nav-item" onclick="closeMobNav();window.location.href='arhiva.html'"><span class="nav-icon">◫</span> Moja arhiva</div>
       <div class="nav-item" onclick="closeMobNav();window.location.href='aktivnost.html'"><span class="nav-icon">◎</span> Aktivnost</div>
       <div class="nav-divider"></div>
@@ -869,28 +852,6 @@
       groups[kw].push(m);
     });
 
-    // ── Bar chart by document type ──
-    const typeCounts = { zakon: 0, izmjena: 0, pravilnik: 0, other: 0 };
-    matches.forEach(m => typeCounts[classifyMatch(m.document_title)]++);
-    const maxCount = Math.max(...Object.values(typeCounts), 1);
-    const typeRows = [
-      { key:'zakon',    label:'Zakoni',    color:'var(--green)' },
-      { key:'izmjena',  label:'Izmjene',   color:'var(--orange)' },
-      { key:'pravilnik',label:'Pravilnici',color:'var(--navy)' },
-      { key:'other',    label:'Ostalo',    color:'var(--muted)' },
-    ].filter(r => typeCounts[r.key] > 0);
-    let chartHtml = '<div class="match-chart">';
-    typeRows.forEach(r => {
-      const pct   = Math.round(typeCounts[r.key] / matches.length * 100);
-      const width = Math.round(typeCounts[r.key] / maxCount * 100);
-      chartHtml += `<div class="mc-row">
-        <div class="mc-label">${r.label}</div>
-        <div class="mc-bar-wrap"><div class="mc-bar" style="width:${width}%;background:${r.color}"></div></div>
-        <div class="mc-count">${typeCounts[r.key]} <span class="mc-pct">${pct}%</span></div>
-      </div>`;
-    });
-    chartHtml += '</div>';
-
     // Active set (null = all)
     const activeMatches = (_activeKw !== null && groups[_kwGroupOrder[_activeKw]])
       ? groups[_kwGroupOrder[_activeKw]]
@@ -901,7 +862,7 @@
     const slice = activeMatches.slice((page - 1) * KW_PER_PAGE, page * KW_PER_PAGE);
 
     // Filter tabs
-    let html = chartHtml + '<div class="match-tabs">';
+    let html = '<div class="match-tabs">';
     html += `<div class="match-tab${_activeKw === null ? ' active' : ''}" onclick="setKwFilter(-1)">Svi <span class="match-tab-count">×${matches.length}</span></div>`;
     _kwGroupOrder.forEach((kw, idx) => {
       html += `<div class="match-tab${_activeKw === idx ? ' active' : ''}" onclick="setKwFilter(${idx})">${esc(kw)} <span class="match-tab-count">×${groups[kw].length}</span></div>`;
