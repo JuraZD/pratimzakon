@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PratimZakon — Aktivnost</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --navy:#1a2744; --navy2:#243258; --navy3:#2d3e6a;
+    --orange:#b84d1b; --orange2:#d4581f;
+    --cream:#e8e4da; --cream2:#f2efe8; --white:#ffffff;
+    --text:#1a2744; --muted:#6b7a99;
+    --border:rgba(26,39,68,0.12); --border-strong:rgba(26,39,68,0.22);
+    --orange-dim:rgba(184,77,27,0.10);
+    --green:#2e7d52; --green-dim:rgba(46,125,82,0.12);
+    --font-display:'Barlow Condensed',sans-serif; --font-body:'Barlow',sans-serif;
+    --radius:4px;
+    --bg:var(--cream); --surface:var(--white); --surface2:var(--cream2);
+    --card-head:var(--navy);
+  }
+  html.dark {
+    --navy:#c8d4f0; --navy2:#a8b8e0; --navy3:#8aa0cc;
+    --orange:#e06830; --orange2:#e87840;
+    --cream:#111827; --cream2:#1e2837; --white:#1a2436;
+    --text:#d0daf0; --muted:#6b7a99;
+    --border:rgba(200,212,240,0.10); --border-strong:rgba(200,212,240,0.18);
+    --orange-dim:rgba(224,104,48,0.12);
+    --green:#4aaf78; --green-dim:rgba(74,175,120,0.12);
+    --bg:#111827; --surface:#1a2436; --surface2:#1e2837; --card-head:#0e1520;
+  }
+
+  html, body { min-height:100%; background:var(--bg); color:var(--text); font-family:var(--font-body); font-size:14px; line-height:1.5; transition:background 0.25s,color 0.25s; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  .app { display:grid; grid-template-columns:210px 1fr; min-height:100vh; }
+
+  /* ── SIDEBAR ── */
+  .sidebar { background:#1a2744; display:flex; flex-direction:column; position:sticky; top:0; height:100vh; }
+  .logo { padding:21px; font-family:var(--font-display); font-weight:800; font-size:22px; letter-spacing:1px; text-transform:uppercase; color:#e8e4da; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; }
+  .logo-accent { color:var(--orange2); }
+  .logo-dot { width:7px; height:7px; background:var(--orange2); border-radius:50%; margin-left:7px; animation:blink 2.5s ease-in-out infinite; }
+  .nav { flex:1; padding:13px 0; }
+  .nav-section-label { padding:8px 21px 5px; font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:rgba(232,228,218,0.3); }
+  .nav-item { display:flex; align-items:center; gap:8px; padding:8px 21px; cursor:pointer; transition:background 0.15s; color:rgba(232,228,218,0.55); font-size:13.5px; font-weight:500; position:relative; }
+  .nav-item:hover { background:rgba(255,255,255,0.06); color:rgba(232,228,218,0.9); }
+  .nav-item.active { background:rgba(212,88,31,0.15); color:rgba(232,228,218,0.95); }
+  .nav-item.active::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--orange2); }
+  .nav-icon { font-size:13px; width:16px; text-align:center; }
+  .nav-divider { height:1px; background:rgba(255,255,255,0.07); margin:8px 21px; }
+  .user-card { padding:13px 21px; border-top:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.15); }
+  .user-name { font-family:var(--font-display); font-weight:700; font-size:14px; color:rgba(232,228,218,0.9); letter-spacing:0.5px; margin-bottom:2px; }
+  .user-email { color:rgba(232,228,218,0.4); font-size:11.5px; margin-bottom:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .user-badge { display:inline-block; padding:2px 8px; background:rgba(46,125,82,0.2); border:1px solid rgba(46,125,82,0.35); color:#5aaf80; border-radius:2px; font-size:10.5px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; }
+
+  /* ── MAIN ── */
+  .main { display:flex; flex-direction:column; min-height:100vh; }
+
+  /* ── TOPBAR ── */
+  .topbar { display:flex; align-items:center; justify-content:space-between; padding:14px 28px 12px; background:var(--surface); border-bottom:2px solid var(--navy); position:sticky; top:0; z-index:10; flex-shrink:0; }
+  .topbar-left { display:flex; align-items:center; gap:14px; }
+  .btn-back { display:flex; align-items:center; gap:6px; padding:6px 14px; background:transparent; border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-family:var(--font-body); font-size:12.5px; font-weight:600; cursor:pointer; transition:all 0.15s; text-transform:uppercase; letter-spacing:0.3px; text-decoration:none; }
+  .btn-back:hover { background:var(--navy); color:var(--surface); border-color:var(--navy); }
+  .topbar-crumb { font-family:var(--font-display); font-size:14px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:var(--muted); }
+  .topbar-crumb span { color:var(--navy); }
+  .topbar-right { display:flex; align-items:center; gap:10px; }
+  .btn-theme { width:34px; height:34px; padding:0; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-size:15px; cursor:pointer; transition:all 0.15s; display:flex; align-items:center; justify-content:center; }
+  .btn-theme:hover { background:var(--navy); color:var(--surface); border-color:var(--navy); }
+
+  /* ── MOBILE ── */
+  .mob-hamburger { display:none; align-items:center; justify-content:center; width:36px; height:36px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-size:20px; cursor:pointer; transition:all 0.15s; flex-shrink:0; }
+  .mob-hamburger:hover { background:var(--navy); color:var(--cream); border-color:var(--navy); }
+  .mob-drawer-overlay { display:none; position:fixed; inset:0; z-index:300; }
+  .mob-drawer-overlay.open { display:block; }
+  .mob-drawer-bg { position:absolute; inset:0; background:rgba(0,0,0,0.55); }
+  .mob-drawer { position:absolute; left:0; top:0; bottom:0; width:260px; background:#1a2744; display:flex; flex-direction:column; overflow:hidden; transform:translateX(-100%); transition:transform 0.25s cubic-bezier(0.4,0,0.2,1); }
+  .mob-drawer-overlay.open .mob-drawer { transform:translateX(0); }
+
+  /* ── CONTENT ── */
+  .content { padding:28px 36px 56px; max-width:960px; width:100%; }
+
+  /* ── PAGE HEADER ── */
+  .page-header { margin-bottom:28px; }
+  .page-title { font-family:var(--font-display); font-size:32px; font-weight:800; color:var(--navy); letter-spacing:-0.3px; margin-bottom:6px; }
+  .page-subtitle { font-size:13.5px; color:var(--muted); }
+
+  /* ── SECTION ── */
+  .section { margin-bottom:32px; }
+  .section-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .section-title { font-family:var(--font-display); font-size:13px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); }
+  .section-title-line { flex:1; height:1px; background:var(--border); margin-left:14px; }
+
+  /* ── KW STATUS GRID ── */
+  .kw-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:10px; }
+  .kw-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:13px 15px; border-left:3px solid var(--border-strong); transition:border-color 0.15s, box-shadow 0.15s; }
+  .kw-card:hover { box-shadow:0 2px 8px rgba(26,39,68,0.08); }
+  .kw-card.active { border-left-color:var(--green); }
+  .kw-card.stale { border-left-color:var(--orange); }
+  .kw-card.inactive { border-left-color:var(--border-strong); opacity:0.7; }
+  .kw-card-name { font-size:14px; font-weight:600; color:var(--navy); margin-bottom:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .kw-card-stats { display:flex; gap:12px; align-items:center; }
+  .kw-stat-num { font-family:var(--font-display); font-size:24px; font-weight:800; color:var(--navy); line-height:1; }
+  .kw-stat-num.zero { color:var(--muted); }
+  .kw-stat-label { font-size:11px; color:var(--muted); font-weight:500; }
+  .kw-last-date { font-size:11px; color:var(--muted); margin-top:4px; }
+  .kw-badge { display:inline-block; margin-top:5px; padding:2px 7px; border-radius:2px; font-size:10px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; }
+  .kw-badge.active { background:var(--green-dim); color:var(--green); }
+  .kw-badge.stale { background:var(--orange-dim); color:var(--orange); }
+  .kw-badge.inactive { background:var(--border); color:var(--muted); }
+  .kw-card.archived { border-left-color:var(--border-strong); opacity:0.55; }
+  .kw-badge.archived { background:var(--border); color:var(--muted); }
+  .kw-historical-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; font-weight:600; margin-bottom:4px; margin-top:-4px; }
+  .kw-history-note { grid-column:1/-1; font-size:12px; color:var(--muted); background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:8px 12px; margin-bottom:4px; }
+  .section-match-total { font-size:11px; color:var(--muted); font-weight:600; background:var(--surface2); border:1px solid var(--border); border-radius:2px; padding:2px 8px; margin-left:auto; white-space:nowrap; }
+
+  /* ── TIMELINE ── */
+  .timeline { display:flex; flex-direction:column; }
+  .tl-day-group { margin-bottom:20px; }
+  .tl-day-label { font-size:11px; font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:10px; padding-bottom:5px; border-bottom:1px solid var(--border); }
+  .tl-day-label span { color:var(--navy); }
+  .tl-items { display:flex; flex-direction:column; gap:0; }
+  .tl-item { display:flex; gap:12px; padding:9px 0; border-bottom:1px solid var(--border); }
+  .tl-item:last-child { border-bottom:none; }
+  .tl-dot-col { display:flex; flex-direction:column; align-items:center; padding-top:5px; flex-shrink:0; width:16px; }
+  .tl-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+  .tl-dot.green  { background:var(--green); }
+  .tl-dot.orange { background:var(--orange2); }
+  .tl-dot.navy   { background:var(--navy3); }
+  .tl-dot.red    { background:#c0392b; }
+  .tl-dot.muted  { background:var(--muted); }
+  .tl-line { width:1px; flex:1; background:var(--border); margin-top:4px; min-height:8px; }
+  .tl-body { flex:1; }
+  .tl-msg { font-size:13.5px; color:var(--text); line-height:1.45; margin-bottom:2px; }
+  .tl-msg strong { color:var(--navy); font-weight:600; }
+  .tl-time { font-size:11px; color:var(--muted); font-weight:500; }
+  .tl-type-badge { display:inline-block; padding:1px 6px; border-radius:2px; font-size:9.5px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; margin-left:6px; vertical-align:middle; }
+  .badge-match  { background:var(--green-dim); color:var(--green); }
+  .badge-change { background:var(--orange-dim); color:var(--orange); }
+  .badge-email  { background:rgba(26,39,68,0.07); color:var(--navy3); }
+  .badge-system { background:var(--border); color:var(--muted); }
+
+  /* ── EMAIL LOG ── */
+  .email-log { display:flex; flex-direction:column; gap:6px; }
+  .email-log-item { display:grid; grid-template-columns:90px 1fr auto; align-items:center; gap:12px; padding:9px 12px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); }
+  .email-log-date { font-size:12px; color:var(--muted); font-weight:600; white-space:nowrap; }
+  .email-log-title { font-size:13px; font-weight:500; color:var(--navy); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .email-log-badge { font-size:10px; font-weight:700; padding:2px 7px; background:var(--green-dim); color:var(--green); border-radius:2px; white-space:nowrap; }
+
+  /* ── EMPTY ── */
+  .empty-hint { color:var(--muted); font-size:13.5px; padding:16px 0; }
+
+  /* ── LOADING ── */
+  .loading-row { display:flex; align-items:center; gap:10px; padding:20px 0; color:var(--muted); font-size:13px; }
+
+  /* ── TOAST ── */
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px); background:var(--navy); color:var(--cream); padding:10px 22px; border-radius:var(--radius); font-size:13.5px; font-weight:500; opacity:0; transition:opacity 0.25s,transform 0.25s; pointer-events:none; z-index:999; white-space:nowrap; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  ::-webkit-scrollbar { width:3px; }
+  ::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:2px; }
+
+  /* ── MOBILE ── */
+  @media (max-width: 768px) {
+    .app { grid-template-columns:1fr; }
+    .sidebar { display:none; }
+    .mob-hamburger { display:flex !important; }
+    .content { padding:20px 16px 48px; }
+    .kw-grid { grid-template-columns:1fr 1fr; }
+    .page-title { font-size:26px; }
+    .email-log-item { grid-template-columns:1fr; gap:4px; }
+  }
+  @media (max-width: 480px) {
+    .kw-grid { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="logo">PRATIM<span class="logo-accent">ZAKON</span><div class="logo-dot"></div></div>
+    <nav class="nav">
+      <div class="nav-section-label">Glavni izbornik</div>
+      <div class="nav-item" onclick="window.location='dashboard.html'"><span class="nav-icon">◈</span> Dashboard</div>
+      <div class="nav-item" onclick="window.location='dashboard.html'"><span class="nav-icon">◇</span> Matchevi</div>
+      <div class="nav-item" onclick="window.location='arhiva.html'"><span class="nav-icon">◫</span> Moja arhiva</div>
+      <div class="nav-item active"><span class="nav-icon">◎</span> Aktivnost</div>
+      <div class="nav-divider"></div>
+      <div class="nav-section-label">Račun</div>
+      <div class="nav-item" onclick="showToast('Postavke — uskoro dostupno')"><span class="nav-icon">○</span> Postavke</div>
+      <div class="nav-item" onclick="logout()"><span class="nav-icon">→</span> Odjava</div>
+    </nav>
+    <div class="user-card">
+      <div class="user-name" id="sidebar-name">—</div>
+      <div class="user-email" id="sidebar-email">—</div>
+      <div class="user-badge" id="sidebar-badge">BETA</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <button class="mob-hamburger" onclick="openMobNav()" aria-label="Izbornik">☰</button>
+      <div class="topbar-left">
+        <a class="btn-back" href="dashboard.html">← Natrag</a>
+        <div class="topbar-crumb">Dashboard <span>/ Aktivnost</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-theme" id="theme-toggle" onclick="toggleTheme()" title="Promijeni temu">☀</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="page-header">
+        <div class="page-title">Aktivnost</div>
+        <div class="page-subtitle">Kronološki pregled svih događaja, promjena praćenja i poslanih emailova</div>
+      </div>
+
+      <!-- STATUS KLJUČNIH RIJEČI -->
+      <div class="section">
+        <div class="section-head">
+          <div class="section-title">Status ključnih riječi</div>
+          <div class="section-title-line"></div>
+          <div class="section-match-total" id="section-match-total" style="display:none"></div>
+        </div>
+        <div id="kw-grid" class="kw-grid">
+          <div class="loading-row">⟳ Učitavam...</div>
+        </div>
+      </div>
+
+      <!-- TIMELINE -->
+      <div class="section">
+        <div class="section-head">
+          <div class="section-title">Kronologija</div>
+          <div class="section-title-line"></div>
+        </div>
+        <div id="timeline" class="timeline">
+          <div class="loading-row">⟳ Učitavam aktivnost...</div>
+        </div>
+      </div>
+
+      <!-- EMAIL LOG -->
+      <div class="section">
+        <div class="section-head">
+          <div class="section-title">Email notifikacije</div>
+          <div class="section-title-line"></div>
+        </div>
+        <div id="email-log" class="email-log">
+          <div class="loading-row">⟳ Učitavam...</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE DRAWER -->
+<div class="mob-drawer-overlay" id="mob-drawer-overlay">
+  <div class="mob-drawer-bg" onclick="closeMobNav()"></div>
+  <div class="mob-drawer">
+    <div class="logo">PRATIM<span class="logo-accent">ZAKON</span><div class="logo-dot"></div></div>
+    <nav class="nav">
+      <div class="nav-section-label">Glavni izbornik</div>
+      <div class="nav-item" onclick="closeMobNav();window.location.href='dashboard.html'"><span class="nav-icon">◈</span> Dashboard</div>
+      <div class="nav-item" onclick="closeMobNav();window.location.href='dashboard.html'"><span class="nav-icon">◇</span> Matchevi</div>
+      <div class="nav-item" onclick="closeMobNav();window.location.href='arhiva.html'"><span class="nav-icon">◫</span> Moja arhiva</div>
+      <div class="nav-item active"><span class="nav-icon">◎</span> Aktivnost</div>
+      <div class="nav-divider"></div>
+      <div class="nav-section-label">Račun</div>
+      <div class="nav-item" onclick="closeMobNav();showToast('Postavke — uskoro dostupno')"><span class="nav-icon">○</span> Postavke</div>
+      <div class="nav-item" onclick="logout()"><span class="nav-icon">→</span> Odjava</div>
+    </nav>
+    <div class="user-card">
+      <div class="user-name" id="mob-user-name">—</div>
+      <div class="user-email" id="mob-user-email">—</div>
+      <div class="user-badge" id="mob-user-badge">BETA</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = 'https://pratimzakon.onrender.com';
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function authHeaders() {
+    const token = localStorage.getItem('token');
+    return token ? { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' } : {};
+  }
+
+  function logout() {
+    localStorage.removeItem('token');
+    window.location.href = 'index.html';
+  }
+
+  function toggleTheme() {
+    const isDark = document.documentElement.classList.toggle('dark');
+    document.getElementById('theme-toggle').textContent = isDark ? '☾' : '☀';
+    localStorage.setItem('pz-theme', isDark ? 'dark' : 'light');
+  }
+  if (localStorage.getItem('pz-theme') === 'dark') {
+    document.documentElement.classList.add('dark');
+    document.getElementById('theme-toggle').textContent = '☾';
+  }
+
+  function openMobNav() { document.getElementById('mob-drawer-overlay').classList.add('open'); }
+  function closeMobNav() { document.getElementById('mob-drawer-overlay').classList.remove('open'); }
+
+  // ── LOAD USER ─────────────────────────────────────────────────────────────
+  async function loadUser() {
+    try {
+      const res = await fetch(`${API}/auth/me`, { headers: authHeaders() });
+      if (res.status === 401) { logout(); return; }
+      const u = await res.json();
+      const name = u.email ? u.email.split('@')[0] : '—';
+      ['sidebar-name','mob-user-name'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = name; });
+      ['sidebar-email','mob-user-email'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = u.email || '—'; });
+      const plan = (u.plan || 'free').toUpperCase();
+      ['sidebar-badge','mob-user-badge'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = plan; });
+    } catch(e) {}
+  }
+
+  // ── HELPERS ───────────────────────────────────────────────────────────────
+  function parseMatchDate(s) {
+    if (!s || s === '—') return null;
+    const m = s.match(/(\d{2})\.(\d{2})\.(\d{4})/);
+    return m ? new Date(+m[3], +m[2]-1, +m[1]) : null;
+  }
+
+  function parseTlDate(ts) {
+    // ts format: "12.04. 10:30" or "12.04.2026 10:30"
+    if (!ts || ts === '—') return null;
+    const m = ts.match(/(\d{2})\.(\d{2})\.?(\d{4})?\s+(\d{2}):(\d{2})/);
+    if (!m) return null;
+    const year = m[3] ? +m[3] : new Date().getFullYear();
+    return new Date(year, +m[2]-1, +m[1], +m[4], +m[5]);
+  }
+
+  function formatDayLabel(dateObj) {
+    if (!dateObj) return 'Nepoznat datum';
+    const today = new Date(); today.setHours(0,0,0,0);
+    const yesterday = new Date(today); yesterday.setDate(today.getDate()-1);
+    const d = new Date(dateObj); d.setHours(0,0,0,0);
+    if (d.getTime() === today.getTime()) return 'Danas';
+    if (d.getTime() === yesterday.getTime()) return 'Jučer';
+    return d.toLocaleDateString('hr', { weekday:'long', day:'2-digit', month:'long' });
+  }
+
+  function dayKey(dateObj) {
+    if (!dateObj) return '0000-00-00';
+    return dateObj.toISOString().slice(0, 10);
+  }
+
+  // ── DOT COLOR MAPPING ─────────────────────────────────────────────────────
+  const DOT_MAP = {
+    'a-green':  'green',
+    'a-orange': 'orange',
+    'a-navy':   'navy',
+    'a-red':    'red',
+  };
+
+  const TYPE_BADGE = {
+    'keyword_match':  '<span class="tl-type-badge badge-match">Match</span>',
+    'keyword_change': '<span class="tl-type-badge badge-change">Praćenje</span>',
+    'email_sent':     '<span class="tl-type-badge badge-email">Email</span>',
+    'situation_updated': '<span class="tl-type-badge badge-system">Situacija</span>',
+    'scrape':         '<span class="tl-type-badge badge-system">Tražilica</span>',
+    'scrape_error':   '<span class="tl-type-badge badge-system">Greška</span>',
+    'pref_digest':    '<span class="tl-type-badge badge-system">Digest</span>',
+    'archived':       '<span class="tl-type-badge badge-system">Arhiva</span>',
+  };
+
+  // ── KW STATUS ─────────────────────────────────────────────────────────────
+  function renderKwStatus(keywords, matches) {
+    const grid = document.getElementById('kw-grid');
+
+    // Skupi trenutne ključne riječi
+    const currentKwNames = new Set(keywords.map(kw => kw.keyword));
+
+    // Skupi sve jedinstvene ključne riječi iz matcheva (uključujući stare/obrisane)
+    const historicalKwNames = new Set(
+      matches.map(m => m.keyword).filter(k => k && !currentKwNames.has(k))
+    );
+
+    // Prikaži ukupni broj matcheva
+    const totalEl = document.getElementById('section-match-total');
+    if (totalEl) {
+      if (matches.length > 0) {
+        totalEl.textContent = matches.length + ' matcheva ukupno';
+        totalEl.style.display = 'block';
+      } else {
+        totalEl.style.display = 'none';
+      }
+    }
+
+    if (!currentKwNames.size && !historicalKwNames.size) {
+      grid.innerHTML = '<div class="empty-hint">Nema aktivnih ključnih riječi.</div>';
+      return;
+    }
+
+    // Brojači za sve ključne riječi
+    const stats = {};
+    currentKwNames.forEach(name => { stats[name] = { count: 0, lastDate: null, isCurrent: true }; });
+    historicalKwNames.forEach(name => { stats[name] = { count: 0, lastDate: null, isCurrent: false }; });
+
+    matches.forEach(m => {
+      const s = stats[m.keyword];
+      if (!s) return;
+      s.count++;
+      const d = parseMatchDate(m.matched_at);
+      if (!s.lastDate || (d && d > s.lastDate)) s.lastDate = d;
+    });
+
+    const now = new Date();
+
+    function kwCardHtml(kwName, s) {
+      const daysSince = s.lastDate ? Math.floor((now - s.lastDate) / 86400000) : null;
+      let cls = 'inactive', badge = 'inactive', badgeText = 'Bez matcheva';
+      if (s.count > 0 && daysSince !== null) {
+        if (daysSince <= 7) { cls='active'; badge='active'; badgeText='Aktivan'; }
+        else { cls='stale'; badge='stale'; badgeText=`Zadnji match ${daysSince}d ago`; }
+      }
+      if (!s.isCurrent) { cls = 'archived'; badge = 'archived'; }
+      const dateStr = s.lastDate
+        ? s.lastDate.toLocaleDateString('hr', { day:'2-digit', month:'2-digit', year:'numeric' })
+        : '—';
+      return `
+        <div class="kw-card ${cls}">
+          <div class="kw-card-name" title="${esc(kwName)}">${esc(kwName)}</div>
+          ${!s.isCurrent ? '<div class="kw-historical-label">prethodna</div>' : ''}
+          <div class="kw-card-stats">
+            <div>
+              <div class="kw-stat-num${s.count === 0 ? ' zero' : ''}">${s.count}</div>
+              <div class="kw-stat-label">matcheva</div>
+            </div>
+          </div>
+          <div class="kw-last-date">Zadnji: ${dateStr}</div>
+          <span class="kw-badge ${badge}">${s.isCurrent ? badgeText : 'Prethodna'}</span>
+        </div>`;
+    }
+
+    let html = '';
+
+    // Poruka ako postoje historijski matchevi
+    if (historicalKwNames.size > 0) {
+      html += `<div class="kw-history-note">Prikazani su i matchevi za prethodno praćene ključne riječi</div>`;
+    }
+
+    // Trenutne ključne riječi
+    keywords.forEach(kw => {
+      html += kwCardHtml(kw.keyword, stats[kw.keyword] || { count: 0, lastDate: null, isCurrent: true });
+    });
+
+    // Historijske ključne riječi (dimmed)
+    historicalKwNames.forEach(name => {
+      html += kwCardHtml(name, stats[name]);
+    });
+
+    grid.innerHTML = html;
+  }
+
+  // ── TIMELINE ──────────────────────────────────────────────────────────────
+  function renderTimeline(activities) {
+    const el = document.getElementById('timeline');
+
+    // Filter out keyword_match — they're shown aggregated in kw-status
+    // Group others by day
+    const grouped = {}; // dayKey → [{item}]
+
+    activities.forEach(a => {
+      const date = parseTlDate(a.timestamp);
+      const key = dayKey(date);
+      if (!grouped[key]) grouped[key] = { date, items: [] };
+      grouped[key].items.push(a);
+    });
+
+    const days = Object.keys(grouped).sort().reverse();
+
+    if (!days.length) {
+      el.innerHTML = '<div class="empty-hint">Još nema zabilježene aktivnosti.</div>';
+      return;
+    }
+
+    let html = '';
+    days.forEach(key => {
+      const { date, items } = grouped[key];
+
+      // Aggregate keyword_match items per day
+      const matchItems = items.filter(a => a.event_type === 'keyword_match');
+      const otherItems = items.filter(a => a.event_type !== 'keyword_match');
+
+      // Build day entries
+      const dayItems = [...otherItems];
+      if (matchItems.length > 0) {
+        // Count per keyword
+        const kwCounts = {};
+        matchItems.forEach(a => {
+          const kw = a.message.replace('Match pronađen — ', '').split(' NN')[0];
+          kwCounts[kw] = (kwCounts[kw] || 0) + 1;
+        });
+        const summary = Object.entries(kwCounts)
+          .map(([k, n]) => `${n}× <strong>${esc(k)}</strong>`)
+          .join(', ');
+        dayItems.push({
+          _synthetic: true,
+          event_type: 'keyword_match',
+          message: `${matchItems.length} novih matcheva: ${summary}`,
+          color: 'a-green',
+          timestamp: matchItems[0].timestamp,
+        });
+      }
+
+      // Sort by time descending
+      dayItems.sort((a, b) => {
+        const ta = parseTlDate(a.timestamp);
+        const tb = parseTlDate(b.timestamp);
+        return (tb || 0) - (ta || 0);
+      });
+
+      html += `<div class="tl-day-group">
+        <div class="tl-day-label"><span>${formatDayLabel(date)}</span></div>
+        <div class="tl-items">`;
+
+      dayItems.forEach((item, idx) => {
+        const dotCls = DOT_MAP[item.color] || 'muted';
+        const badge = TYPE_BADGE[item.event_type] || '';
+        const isLast = idx === dayItems.length - 1;
+        html += `
+          <div class="tl-item">
+            <div class="tl-dot-col">
+              <div class="tl-dot ${dotCls}"></div>
+              ${!isLast ? '<div class="tl-line"></div>' : ''}
+            </div>
+            <div class="tl-body">
+              <div class="tl-msg">${item._synthetic ? item.message : esc(item.message)}${badge}</div>
+              <div class="tl-time">${esc(item.timestamp)}</div>
+            </div>
+          </div>`;
+      });
+
+      html += '</div></div>';
+    });
+
+    el.innerHTML = html;
+  }
+
+  // ── EMAIL LOG ─────────────────────────────────────────────────────────────
+  function renderEmailLog(activities) {
+    const el = document.getElementById('email-log');
+    const emails = activities.filter(a => a.event_type === 'email_sent');
+
+    if (!emails.length) {
+      el.innerHTML = '<div class="empty-hint">Još nema poslanih email notifikacija.</div>';
+      return;
+    }
+
+    el.innerHTML = emails.map(e => {
+      const title = e.message.replace('Email poslan — ', '');
+      return `
+        <div class="email-log-item">
+          <div class="email-log-date">${esc(e.timestamp)}</div>
+          <div class="email-log-title">${esc(title)}</div>
+          <span class="email-log-badge">Poslano</span>
+        </div>`;
+    }).join('');
+  }
+
+  // ── INIT ──────────────────────────────────────────────────────────────────
+  async function init() {
+    if (!localStorage.getItem('token')) {
+      window.location.href = 'index.html';
+      return;
+    }
+
+    loadUser();
+
+    try {
+      const [kwRes, matchRes, actRes] = await Promise.all([
+        fetch(`${API}/keywords/`, { headers: authHeaders() }),
+        fetch(`${API}/search/matches/recent?limit=200`, { headers: authHeaders() }),
+        fetch(`${API}/search/activity/recent?limit=300`, { headers: authHeaders() }),
+      ]);
+
+      if (kwRes.status === 401 || matchRes.status === 401 || actRes.status === 401) {
+        logout(); return;
+      }
+
+      const keywords   = kwRes.ok   ? await kwRes.json()   : [];
+      const matches    = matchRes.ok ? await matchRes.json() : [];
+      const activities = actRes.ok  ? await actRes.json()  : [];
+
+      renderKwStatus(keywords, matches);
+      renderTimeline(activities);
+      renderEmailLog(activities);
+
+    } catch(e) {
+      document.getElementById('kw-grid').innerHTML     = '<div class="empty-hint" style="color:var(--orange)">Greška pri dohvatu podataka.</div>';
+      document.getElementById('timeline').innerHTML    = '';
+      document.getElementById('email-log').innerHTML   = '';
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>

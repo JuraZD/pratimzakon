@@ -3,7 +3,7 @@ Pretraga arhive Narodnih novina.
 Dostupno svim prijavljenim korisnicima.
 """
 
-from datetime import date
+from datetime import date, datetime
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -13,6 +13,7 @@ from sqlalchemy import or_, func
 from ..database import get_db
 from ..models import Document, User, Log
 from ..auth import get_current_user
+from ..email.notifier import _stem_keyword
 
 router = APIRouter(prefix="/search", tags=["search"])
 
@@ -72,7 +73,7 @@ def search_documents(
     if q:
         terms = q.strip().split()
         for term in terms:
-            query = query.filter(Document.title.ilike(f"%{term}%"))
+            query = query.filter(Document.title.ilike(f"%{_stem_keyword(term)}%"))
 
     if doc_type:
         types = [t.strip().upper() for t in doc_type.split(",")]
@@ -107,23 +108,58 @@ def get_latest_issue(
     current_user: User = Depends(get_current_user),
 ):
     """Vraća broj i datum posljednjeg broja Narodnih novina u bazi."""
+    total_docs = db.query(func.count(Document.id)).scalar() or 0
+
+    # 1. Pokušaj s issue_number + published_date
     result = (
         db.query(Document.issue_number, Document.published_date)
         .filter(Document.issue_number.isnot(None))
         .order_by(Document.published_date.desc(), Document.issue_number.desc())
         .first()
     )
-    if not result:
-        return {"issue_number": None, "published_date": None, "label": None}
+    if result:
+        issue_number, published_date = result
+        year = published_date.year if published_date else None
+        label = f"NN {issue_number}/{year}" if issue_number and year else f"NN {issue_number}"
+        return {
+            "issue_number": issue_number,
+            "published_date": str(published_date) if published_date else None,
+            "label": label,
+            "total_docs": total_docs,
+        }
 
-    issue_number, published_date = result
-    year = published_date.year if published_date else None
-    label = f"NN {issue_number}/{year}" if issue_number and year else None
-    return {
-        "issue_number": issue_number,
-        "published_date": str(published_date) if published_date else None,
-        "label": label,
-    }
+    # 2. Fallback: samo published_date
+    r2 = (
+        db.query(Document.published_date)
+        .filter(Document.published_date.isnot(None))
+        .order_by(Document.published_date.desc())
+        .first()
+    )
+    if r2:
+        return {
+            "issue_number": None,
+            "published_date": str(r2[0]),
+            "label": str(r2[0]),
+            "total_docs": total_docs,
+        }
+
+    # 3. Fallback: date_document
+    r3 = (
+        db.query(Document.date_document)
+        .filter(Document.date_document.isnot(None))
+        .order_by(Document.date_document.desc())
+        .first()
+    )
+    if r3:
+        return {
+            "issue_number": None,
+            "published_date": str(r3[0]),
+            "label": str(r3[0]),
+            "total_docs": total_docs,
+        }
+
+    # 4. Posljednji fallback: samo broj dokumenata
+    return {"issue_number": None, "published_date": None, "label": None, "total_docs": total_docs}
 
 
 @router.get("/institutions")
@@ -152,6 +188,7 @@ def get_institutions(
 @router.get("/summarize/{document_id}")
 def summarize_document(
     document_id: int,
+    keyword: Optional[str] = Query(None, description="Ključna riječ koja je okidala match"),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -163,7 +200,7 @@ def summarize_document(
         raise HTTPException(status_code=404, detail="Dokument nije pronađen.")
 
     situation = getattr(current_user, "situation", "") or ""
-    summary = generate_summary(doc, situation)
+    summary = generate_summary(doc, situation, keyword=keyword)
 
     if not summary:
         raise HTTPException(status_code=500, detail="Nije moguće generirati sažetak.")
@@ -195,7 +232,7 @@ class MatchItem(BaseModel):
 
 @router.get("/matches/recent", response_model=List[MatchItem])
 def get_recent_matches(
-    limit: int = Query(5, ge=1, le=20),
+    limit: int = Query(20, ge=1, le=500),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -236,7 +273,7 @@ class ActivityItem(BaseModel):
 
 @router.get("/activity/recent", response_model=List[ActivityItem])
 def get_recent_activity(
-    limit: int = Query(10, ge=1, le=50),
+    limit: int = Query(50, ge=1, le=300),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -250,7 +287,11 @@ def get_recent_activity(
     )
     EVENT_MAP = {
         "keyword_match": ("Match pronađen", "a-green"),
+        "keyword_change": ("Promjena praćenja", "a-orange"),
         "email_sent": ("Email poslan", "a-navy"),
+        "situation_updated": ("Situacija ažurirana", "a-navy"),
+        "pref_digest": ("Digest postavka", "a-navy"),
+        "archived": ("Arhivirano", "a-navy"),
         "scrape": ("Tražilica završila", "a-green"),
         "scrape_error": ("Tražilica — greška", "a-red"),
         "signup": ("Registracija", "a-navy"),
@@ -261,8 +302,24 @@ def get_recent_activity(
         label, color = EVENT_MAP.get(r.event_type, (r.event_type, "a-navy"))
         detail = r.detail or ""
         parts = dict(p.split(":", 1) for p in detail.split("|") if ":" in p)
-        title = parts.get("title", "")
-        message = f"{label} — {title}" if title else label
+        # Special formatting for keyword_change
+        if r.event_type == "keyword_change":
+            action = parts.get("action", "")
+            kw = parts.get("keyword", "")
+            if action == "added":
+                message = f"Dodano praćenje: {kw}"
+                color = "a-green"
+            elif action == "removed":
+                message = f"Uklonjeno praćenje: {kw}"
+                color = "a-orange"
+            else:
+                message = label
+        elif r.event_type == "pref_digest":
+            enabled = "1" in detail
+            message = "Tjedni sažetak uključen" if enabled else "Tjedni sažetak isključen"
+        else:
+            title = parts.get("title", "")
+            message = f"{label} — {title}" if title else label
         results.append(
             ActivityItem(
                 id=r.id,
@@ -273,3 +330,192 @@ def get_recent_activity(
             )
         )
     return results
+
+
+# ── ARHIVA ────────────────────────────────────────────────────────────────
+
+class ArchiveItem(BaseModel):
+    document_id: int
+    document_title: str
+    archived_at: str
+    url: str
+
+class ArchiveStatus(BaseModel):
+    archived: bool
+
+
+@router.get("/archive", response_model=List[ArchiveItem])
+def get_archive(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Dohvaća sve korisnikove arhivirane dokumente."""
+    rows = (
+        db.query(Log)
+        .filter(Log.user_id == current_user.id)
+        .filter(Log.event_type == "archived")
+        .order_by(Log.timestamp.desc())
+        .all()
+    )
+    results = []
+    for r in rows:
+        parts = dict(p.split(":", 1) for p in (r.detail or "").split("|") if ":" in p)
+        doc_id_str = parts.get("doc_id")
+        if not doc_id_str:
+            continue
+        doc_id = int(doc_id_str)
+        doc = db.query(Document).filter(Document.id == doc_id).first()
+        results.append(ArchiveItem(
+            document_id=doc_id,
+            document_title=parts.get("title", doc.title if doc else "—"),
+            archived_at=r.timestamp.strftime("%d.%m.%Y.") if r.timestamp else "—",
+            url=doc.url if doc else "",
+        ))
+    return results
+
+
+@router.get("/archive/{document_id}", response_model=ArchiveStatus)
+def check_archive(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Provjeri je li dokument u korisnikovoj arhivi."""
+    existing = (
+        db.query(Log)
+        .filter(Log.user_id == current_user.id)
+        .filter(Log.event_type == "archived")
+        .filter(Log.detail.contains(f"doc_id:{document_id}"))
+        .first()
+    )
+    return {"archived": existing is not None}
+
+
+@router.post("/archive/{document_id}", response_model=ArchiveStatus)
+def toggle_archive(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Spremi ili ukloni dokument iz arhive (toggle)."""
+    doc = db.query(Document).filter(Document.id == document_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Dokument nije pronađen.")
+
+    existing = (
+        db.query(Log)
+        .filter(Log.user_id == current_user.id)
+        .filter(Log.event_type == "archived")
+        .filter(Log.detail.contains(f"doc_id:{document_id}"))
+        .first()
+    )
+
+    if existing:
+        db.delete(existing)
+        db.commit()
+        return {"archived": False}
+    else:
+        log = Log(
+            user_id=current_user.id,
+            event_type="archived",
+            detail=f"doc_id:{document_id}|title:{doc.title[:120]}",
+        )
+        db.add(log)
+        db.commit()
+        return {"archived": True}
+
+
+# ── POVEZANI PROPISI ──────────────────────────────────────────────────────
+
+@router.get("/document/{document_id}/related", response_model=List[DocumentResult])
+def get_related_documents(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Dohvaća dokumente iste institucije, isključuje trenutni dokument."""
+    doc = db.query(Document).filter(Document.id == document_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Dokument nije pronađen.")
+
+    base = db.query(Document).filter(Document.id != document_id)
+
+    if doc.institution:
+        related = (
+            base
+            .filter(Document.institution == doc.institution)
+            .order_by(Document.published_date.desc())
+            .limit(5)
+            .all()
+        )
+    else:
+        related = (
+            base
+            .filter(Document.type == doc.type)
+            .order_by(Document.published_date.desc())
+            .limit(5)
+            .all()
+        )
+
+    return related
+
+
+# ── BILJEŠKE ──────────────────────────────────────────────────────────────────
+
+class NoteBody(BaseModel):
+    text: str
+
+
+@router.get("/notes")
+def get_all_notes(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Dohvaća sve korisnikove bilješke kao {doc_id: text}."""
+    rows = (
+        db.query(Log)
+        .filter(Log.user_id == current_user.id, Log.event_type == "note")
+        .all()
+    )
+    result = {}
+    for r in rows:
+        detail = r.detail or ""
+        if "|text:" in detail:
+            head, note_text = detail.split("|text:", 1)
+            if head.startswith("doc_id:"):
+                try:
+                    doc_id = int(head.replace("doc_id:", "").strip())
+                    result[doc_id] = note_text
+                except ValueError:
+                    pass
+    return result
+
+
+@router.post("/note/{document_id}")
+def save_note(
+    document_id: int,
+    body: NoteBody,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Spremi ili obriši bilješku za dokument (prazno tekst = brisanje)."""
+    existing = (
+        db.query(Log)
+        .filter(Log.user_id == current_user.id, Log.event_type == "note")
+        .filter(Log.detail.contains(f"doc_id:{document_id}|"))
+        .first()
+    )
+    text = (body.text or "").strip()[:500]
+    if existing:
+        if text:
+            existing.detail = f"doc_id:{document_id}|text:{text}"
+        else:
+            db.delete(existing)
+    elif text:
+        db.add(Log(
+            user_id=current_user.id,
+            event_type="note",
+            detail=f"doc_id:{document_id}|text:{text}",
+        ))
+    db.commit()
+    return {"text": text}

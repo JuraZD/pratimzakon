@@ -295,6 +295,14 @@
       main { padding: 24px 16px; }
       .nav-right { gap: 6px; }
       .btn { padding: 7px 12px; font-size: 11px; }
+      h1 { font-size: 26px; }
+    }
+    @media (max-width: 400px) {
+      nav { padding: 10px 12px; }
+      main { padding: 18px 12px; }
+      .btn { padding: 6px 10px; font-size: 10px; }
+      /* Hide Dashboard nav button, keep only Logout */
+      .nav-right a.btn { display: none; }
     }
   </style>
 </head>

@@ -1,14 +1,41 @@
+import logging
 from datetime import date, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
-from typing import List
+from typing import List, Optional
 
 from ..database import get_db
-from ..models import User, Keyword, Document
+from ..models import User, Keyword, Document, Log
 from ..schemas import KeywordCreate, KeywordOut
 from ..auth import get_current_user
 from .search import DocumentResult, SearchResponse
+
+_TOOL_SUGESTIJE = {
+    "name": "predlozi_kljucne_rijeci",
+    "description": "Predloži relevantne ključne riječi za praćenje Narodnih novina.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "kljucne_rijeci": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": (
+                    "Lista od 1 do 5 kratkih ključnih riječi (1-3 riječi svaka) "
+                    "relevantnih za hrvatsko zakonodavstvo. "
+                    "Ne smiju se ponavljati već postojeće ključne riječi."
+                ),
+                "maxItems": 5,
+            }
+        },
+        "required": ["kljucne_rijeci"],
+    },
+}
+
+
+class SugestijeOutput(BaseModel):
+    kljucne_rijeci: List[str]
 
 router = APIRouter(prefix="/keywords", tags=["keywords"])
 
@@ -51,9 +78,32 @@ def add_keyword(
         part_filter=data.part_filter or None,
     )
     db.add(kw)
+    db.add(Log(event_type="keyword_change", user_id=current_user.id,
+               detail=f"action:added|keyword:{keyword[:100]}"))
     db.commit()
     db.refresh(kw)
     return kw
+
+
+class SituationUpdate(BaseModel):
+    situation: Optional[str] = ""
+
+
+@router.post("/situation")
+def save_situation(
+    data: SituationUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Sprema korisnikovu situaciju za personalizirane AI sažetke."""
+    new_sit = data.situation.strip() if data.situation else None
+    current_user.situation = new_sit
+    db.add(current_user)
+    # Log promjene — detail sadrži novi tekst situacije
+    detail = f"title:{new_sit[:150]}" if new_sit else "title:(obrisano)"
+    db.add(Log(event_type="situation_updated", user_id=current_user.id, detail=detail))
+    db.commit()
+    return {"message": "Situacija uspješno spremljena"}
 
 
 @router.get("/activity")
@@ -156,7 +206,96 @@ def delete_keyword(
         Keyword.id == keyword_id,
         Keyword.user_id == current_user.id,
     ).first()
+
     if not kw:
         raise HTTPException(status_code=404, detail="KljuÄna rijeÄ nije pronaÄena")
+    db.add(Log(event_type="keyword_change", user_id=current_user.id,
+               detail=f"action:removed|keyword:{kw.keyword[:100]}"))
     db.delete(kw)
     db.commit()
+
+
+# ── TJEDNI DIGEST ─────────────────────────────────────────────
+
+@router.get("/digest-status")
+def get_digest_status(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Vraća je li tjedni digest uključen za korisnika."""
+    latest = (
+        db.query(Log)
+        .filter(Log.user_id == current_user.id, Log.event_type == "pref_digest")
+        .order_by(Log.timestamp.desc())
+        .first()
+    )
+    enabled = latest is not None and (latest.detail or "") == "enabled:1"
+    return {"enabled": enabled}
+
+
+@router.post("/digest-toggle")
+def toggle_digest(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Uključi/isključi tjedni digest email."""
+    latest = (
+        db.query(Log)
+        .filter(Log.user_id == current_user.id, Log.event_type == "pref_digest")
+        .order_by(Log.timestamp.desc())
+        .first()
+    )
+    currently_enabled = latest is not None and (latest.detail or "") == "enabled:1"
+    new_state = not currently_enabled
+    db.add(Log(
+        user_id=current_user.id,
+        event_type="pref_digest",
+        detail="enabled:1" if new_state else "enabled:0",
+    ))
+    db.commit()
+    return {"enabled": new_state}
+
+
+# ── AI PRIJEDLOG KLJUČNIH RIJEČI ───────────────────────────────────────────────
+
+@router.get("/suggest")
+def suggest_keywords(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """AI predlaže ključne riječi na temelju korisnikove situacije."""
+    from ..ai.matcher import client
+
+    situation = (current_user.situation or "").strip()
+    if not situation:
+        return {"suggestions": []}
+
+    existing_kws = [kw.keyword for kw in current_user.keywords]
+    existing_str = ", ".join(existing_kws) if existing_kws else "—"
+
+    try:
+        msg = client.messages.create(
+            model="claude-haiku-4-5-20251001",
+            max_tokens=120,
+            tools=[_TOOL_SUGESTIJE],
+            tool_choice={"type": "tool", "name": "predlozi_kljucne_rijeci"},
+            messages=[{
+                "role": "user",
+                "content": (
+                    "Na temelju korisnikove situacije, predloži do 5 relevantnih ključnih "
+                    "riječi za praćenje Narodnih novina RH.\n\n"
+                    f"Korisnikova situacija: {situation}\n"
+                    f"Već prate: {existing_str}\n\n"
+                    "Predloži SAMO nove ključne riječi (ne one koje već prate). "
+                    "Kratki pojmovi, 1-3 riječi, relevantni za hrvatsko zakonodavstvo."
+                ),
+            }],
+        )
+        output = SugestijeOutput(**msg.content[0].input)
+        existing_lower = {k.lower() for k in existing_kws}
+        suggestions = [s for s in output.kljucne_rijeci if s.lower() not in existing_lower][:5]
+        return {"suggestions": suggestions}
+
+    except Exception as e:
+        logging.error(f"AI suggest greška: {e}")
+        raise HTTPException(status_code=500, detail="AI nije dostupan")

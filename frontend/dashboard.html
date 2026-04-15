@@ -25,7 +25,11 @@
     --bg:#111827;--surface:#1a2436;--surface2:#1e2837;--card-head:#0e1520;
   }
 
-  html, body { height:100%; background:var(--bg); color:var(--text); font-family:var(--font-body); line-height:1.5; overflow:hidden; transition:background 0.25s,color 0.25s; }
+  html, body { height:100%; background:var(--bg); color:var(--text); font-family:var(--font-body); line-height:1.5; transition:background 0.25s,color 0.25s; }
+  /* Mobile: allow normal scrolling */
+  @media (max-width: 768px) {
+    html, body { overflow: auto !important; height: auto !important; }
+  }
 
   /* ── RESPONSIVE FONT ── */
   body { font-size: calc(13px * var(--font-scale)); }
@@ -33,52 +37,111 @@
   @media (max-width: 1024px) { :root { --font-scale: 0.88; } }
   @media (max-width: 768px)  { :root { --font-scale: 0.82; } }
 
-  .app { display:grid; grid-template-columns:210px 1fr; height:100vh; overflow:hidden; }
+  .app { display:grid; grid-template-columns:210px 1fr; height:100vh; }
+
+  /* ── MOBILE DRAWER ── */
+  .mob-hamburger { display:none; align-items:center; justify-content:center; width:36px; height:36px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-size:20px; cursor:pointer; transition:all 0.15s; flex-shrink:0; }
+  .mob-hamburger:hover { background:var(--navy); color:var(--cream); border-color:var(--navy); }
+  .mob-drawer-overlay { display:none; position:fixed; inset:0; z-index:300; }
+  .mob-drawer-overlay.open { display:block; }
+  .mob-drawer-bg { position:absolute; inset:0; background:rgba(0,0,0,0.55); }
+  .mob-drawer { position:absolute; left:0; top:0; bottom:0; width:260px; background:#1a2744; display:flex; flex-direction:column; overflow:hidden; transform:translateX(-100%); transition:transform 0.25s cubic-bezier(0.4,0,0.2,1); }
+  .mob-drawer-overlay.open .mob-drawer { transform:translateX(0); }
 
   /* ── RESPONSIVE LAYOUT ── */
+  /* NOTE: !important needed because base grid rules appear later in this file */
   @media (max-width: 768px) {
-    .app { grid-template-columns: 1fr; }
-    .sidebar { display: none; }
-    .dashboard { grid-template-columns: 1fr !important; grid-template-rows: auto !important; }
-    .stats-row { grid-column: 1 !important; grid-template-columns: repeat(2,1fr); }
-    .keywords-card, .email-card { grid-column: 1 !important; grid-row: auto !important; }
-    .matches-card { grid-column: 1 !important; }
-    .activity-card { grid-column: 1 !important; grid-row: auto !important; height: 300px; }
+    .app { grid-template-columns: 1fr !important; height: auto !important; overflow: visible !important; }
+    .sidebar { display: none !important; }
+    .main { overflow-y: auto !important; }
+    .topbar { padding: 8px 13px; flex-wrap: nowrap; }
+    .topbar-title { font-size: calc(18px * var(--font-scale)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
+    .badge-live { display: none !important; }
+    .btn-secondary { display: none !important; }
+    .font-controls { display: none !important; }
+    .mob-hamburger { display: flex !important; }
+    .scraper-panel-inner { padding: 8px 13px; }
+    .dashboard { display: block !important; padding: 8px 13px 40px !important; }
+    .stats-row { display: grid !important; grid-template-columns: repeat(2,1fr) !important; gap: 8px !important; margin-bottom: 8px; }
+    .keywords-card, .matches-card { width: 100% !important; margin-bottom: 13px; }
+    .match-cards { grid-template-columns: 1fr !important; }
+  }
+  @media (max-width: 420px) {
+    .stat-value { font-size: calc(28px * var(--font-scale)) !important; }
+    .topbar { padding: 8px 12px; }
+  }
+  /* ── TABLET (769–1280px) ── */
+  @media (max-width: 1280px) and (min-width: 769px) {
+    .app { grid-template-columns: 190px 1fr; }
+    .dashboard { padding: 14px 20px 40px !important; }
   }
   @media (max-width: 1024px) and (min-width: 769px) {
-    .app { grid-template-columns: 180px 1fr; }
-    .dashboard { grid-template-columns: 1fr 1fr 260px !important; }
+    .app { grid-template-columns: 170px 1fr; }
   }
 
   /* ── SIDEBAR ── */
-  .sidebar { background:#1a2744; display:flex; flex-direction:column; overflow:hidden; }
-  .logo { padding:22px 22px 20px; font-family:var(--font-display); font-weight:800; font-size:calc(22px * var(--font-scale)); letter-spacing:1px; text-transform:uppercase; color:#e8e4da; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; }
+  .sidebar { background:#1a2744; display:flex; flex-direction:column; overflow:hidden; position:sticky; top:0; height:100vh; }
+  .logo { padding:21px; font-family:var(--font-display); font-weight:800; font-size:calc(22px * var(--font-scale)); letter-spacing:1px; text-transform:uppercase; color:#e8e4da; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; }
   .logo-accent { color:var(--orange2); }
   .logo-dot { width:7px; height:7px; background:var(--orange2); border-radius:50%; margin-left:7px; animation:blink 2.5s ease-in-out infinite; }
   @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
-  .nav { flex:1; padding:14px 0; }
-  .nav-section-label { padding:10px 22px 6px; font-size:calc(10px * var(--font-scale)); font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:rgba(232,228,218,0.3); }
-  .nav-item { display:flex; align-items:center; gap:10px; padding:9px 22px; cursor:pointer; transition:background 0.15s; color:rgba(232,228,218,0.55); font-size:calc(13.5px * var(--font-scale)); font-weight:500; position:relative; }
+  .nav { flex:1; padding:13px 0; }
+  .nav-section-label { padding:8px 21px 5px; font-size:calc(10px * var(--font-scale)); font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:rgba(232,228,218,0.3); }
+  .nav-item { display:flex; align-items:center; gap:8px; padding:8px 21px; cursor:pointer; transition:background 0.15s; color:rgba(232,228,218,0.55); font-size:calc(13.5px * var(--font-scale)); font-weight:500; position:relative; }
   .nav-item:hover { background:rgba(255,255,255,0.06); color:var(--cream); }
   .nav-item.active { background:rgba(212,88,31,0.15); color:var(--cream); }
   .nav-item.active::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--orange2); }
   .nav-icon { font-size:13px; width:16px; text-align:center; }
-  .nav-divider { height:1px; background:rgba(255,255,255,0.07); margin:10px 22px; }
-  .user-card { padding:16px 22px; border-top:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.15); }
+  .nav-divider { height:1px; background:rgba(255,255,255,0.07); margin:8px 21px; }
+  .user-card { padding:13px 21px; border-top:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.15); }
   .user-name { font-family:var(--font-display); font-weight:700; font-size:calc(14px * var(--font-scale)); color:var(--cream); letter-spacing:0.5px; margin-bottom:2px; }
   .user-email { color:rgba(232,228,218,0.4); font-size:calc(11.5px * var(--font-scale)); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:8px; }
   .user-badge { display:inline-block; padding:2px 8px; background:rgba(46,125,82,0.2); border:1px solid rgba(46,125,82,0.35); color:#5aaf80; border-radius:2px; font-size:calc(10.5px * var(--font-scale)); font-weight:600; letter-spacing:0.5px; text-transform:uppercase; }
 
   /* ── MAIN ── */
-  .main { display:grid; grid-template-rows:auto auto 1fr; overflow:hidden; background:var(--bg); }
+  .main { display:flex; flex-direction:column; overflow-y:auto; height:100%; background:var(--bg); }
 
   /* ── TOPBAR ── */
-  .topbar { display:flex; align-items:center; justify-content:space-between; padding:16px 28px 14px; background:var(--surface); border-bottom:2px solid var(--navy); }
+  .topbar { display:flex; align-items:center; justify-content:space-between; padding:14px 24px; background:var(--surface); border-bottom:2px solid var(--navy); position:sticky; top:0; z-index:20; }
   .topbar-title { font-family:var(--font-display); font-size:calc(26px * var(--font-scale)); font-weight:800; letter-spacing:0.5px; text-transform:uppercase; color:var(--navy); }
   .topbar-title span { color:var(--orange); }
   .topbar-right { display:flex; align-items:center; gap:8px; }
   .badge-live { display:flex; align-items:center; gap:7px; padding:5px 12px; background:var(--green-dim); border:1px solid rgba(46,125,82,0.25); border-radius:var(--radius); font-size:calc(11.5px * var(--font-scale)); color:var(--green); font-weight:600; letter-spacing:0.3px; text-transform:uppercase; }
   .badge-live-dot { width:6px; height:6px; background:var(--green); border-radius:50%; animation:blink 2s ease-in-out infinite; }
+  /* ── DB STATUS BAR ── */
+  .db-statusbar { display:flex; align-items:center; justify-content:space-between; padding:6px 24px; background:var(--surface2); border-bottom:1px solid var(--border); font-size:calc(11.5px * var(--font-scale)); flex-shrink:0; flex-wrap:wrap; gap:6px; }
+  .db-statusbar-label { color:var(--muted); font-weight:500; letter-spacing:0.2px; }
+  .db-statusbar-value { color:var(--navy); font-weight:700; letter-spacing:0.3px; }
+  .db-statusbar-dot { width:6px; height:6px; background:var(--green); border-radius:50%; display:inline-block; margin-right:6px; animation:blink 3s ease-in-out infinite; }
+  .db-statusbar-dot.stale { background:var(--orange); }
+  .db-statusbar-dot.old { background:#c0392b; animation:none; }
+  .db-freshness { font-size:calc(11px * var(--font-scale)); color:var(--muted); margin-left:8px; }
+  .db-freshness.ok { color:var(--green); }
+  .db-freshness.stale { color:var(--orange); }
+
+  /* ── PERIOD FILTER ── */
+  .match-period-row { display:flex; align-items:center; gap:6px; padding:8px 16px 0; flex-shrink:0; }
+  .mpf-btn { padding:3px 12px; border:1.5px solid var(--border-strong); border-radius:20px; background:transparent; color:var(--muted); font-family:var(--font-body); font-size:calc(11.5px * var(--font-scale)); font-weight:600; cursor:pointer; transition:all 0.15s; }
+  .mpf-btn:hover { border-color:var(--navy); color:var(--navy); }
+  .mpf-btn.active { background:var(--navy); border-color:var(--navy); color:var(--cream); }
+  .mpf-count { margin-left:auto; font-size:calc(11px * var(--font-scale)); color:var(--muted); }
+
+  /* ── MATCH CHART ── */
+  .match-chart { padding:10px 16px 8px; border-bottom:1px solid var(--border); }
+  .mc-row { display:flex; align-items:center; gap:8px; margin-bottom:5px; }
+  .mc-row:last-child { margin-bottom:0; }
+  .mc-label { font-size:calc(11px * var(--font-scale)); color:var(--muted); font-weight:600; width:70px; flex-shrink:0; text-align:right; }
+  .mc-bar-wrap { flex:1; height:8px; background:var(--surface2); border-radius:4px; overflow:hidden; }
+  .mc-bar { height:100%; border-radius:4px; transition:width 0.4s ease; }
+  .mc-count { font-size:calc(11px * var(--font-scale)); font-weight:700; color:var(--text); width:28px; text-align:right; flex-shrink:0; }
+  .mc-pct { color:var(--muted); font-weight:400; }
+  .db-scraper-btn { display:none; }
+  @media (max-width: 768px) {
+    .db-statusbar { padding: 5px 13px; font-size: calc(11px * var(--font-scale)); }
+    /* Show scraper trigger in statusbar on mobile (since topbar btn is hidden) */
+    .db-scraper-btn { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; background:transparent; border:1.5px solid var(--navy); border-radius:var(--radius); color:var(--navy); font-family:var(--font-body); font-size:calc(11px * var(--font-scale)); font-weight:600; cursor:pointer; transition:all 0.15s; text-transform:uppercase; letter-spacing:0.3px; }
+    .db-scraper-btn:hover { background:var(--navy); color:var(--cream); }
+  }
   .btn-secondary { padding:7px 16px; background:transparent; border:1.5px solid var(--navy); border-radius:var(--radius); color:var(--navy); font-family:var(--font-body); font-size:calc(12.5px * var(--font-scale)); font-weight:600; cursor:pointer; transition:all 0.15s; text-transform:uppercase; letter-spacing:0.4px; }
   .btn-secondary:hover { background:var(--navy); color:var(--cream); }
   .btn-secondary:disabled { opacity:0.5; cursor:not-allowed; }
@@ -94,7 +157,7 @@
   /* ── PROGRESS BAR PANEL ── */
   .scraper-panel { overflow:hidden; max-height:0; transition:max-height 0.4s cubic-bezier(0.4,0,0.2,1); background:var(--surface); border-bottom:1px solid var(--border); }
   .scraper-panel.open { max-height:120px; }
-  .scraper-panel-inner { padding:12px 28px 14px; }
+  .scraper-panel-inner { padding:12px 24px 14px; }
   .scraper-panel-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
   .scraper-status-text { font-size:calc(12.5px * var(--font-scale)); font-weight:600; color:var(--navy); display:flex; align-items:center; gap:8px; }
   .scraper-spinner { width:14px; height:14px; border:2px solid var(--border-strong); border-top-color:var(--orange); border-radius:50%; animation:spin 0.8s linear infinite; flex-shrink:0; }
@@ -106,9 +169,9 @@
   .scraper-error { color:#c0392b !important; }
 
   /* ── DASHBOARD GRID ── */
-  .dashboard { display:grid; grid-template-columns:1fr 1fr 310px; grid-template-rows:auto auto 1fr; gap:12px; padding:16px 28px 18px; overflow:hidden; }
-  .stats-row { grid-column:1/3; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
-  .stat-card { background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--navy); border-radius:var(--radius); padding:13px 15px; }
+  .dashboard { display:flex; flex-direction:column; gap:12px; padding:16px 24px 40px; }
+  .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--navy); border-radius:var(--radius); padding:13px 16px; }
   .stat-card.orange { border-top-color:var(--orange); }
   .stat-card.green  { border-top-color:var(--green); }
   .stat-card.muted  { border-top-color:var(--muted); }
@@ -124,47 +187,73 @@
   .card-title { font-family:var(--font-display); font-size:calc(11.5px * var(--font-scale)); font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:rgba(232,228,218,0.7); }
   .card-head-action { font-size:calc(11px * var(--font-scale)); color:var(--orange2); cursor:pointer; transition:opacity 0.15s; font-weight:600; letter-spacing:0.3px; text-transform:uppercase; }
   .card-head-action:hover { opacity:0.7; }
-  .card-body { padding:13px 16px; flex:1; overflow:hidden; display:flex; flex-direction:column; }
+  .card-body { padding:13px 16px; display:flex; flex-direction:column; }
+
+  /* ── KEYWORD LIMIT BAR ── */
+  .kw-count-label { font-size:calc(10px * var(--font-scale)); color:var(--muted); margin-bottom:6px; font-weight:600; text-transform:uppercase; letter-spacing:0.4px; }
+  .kw-tip { font-size:calc(11.5px * var(--font-scale)); color:var(--muted); background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:8px 12px; margin-bottom:14px; line-height:1.5; }
 
   /* ── KEYWORDS ── */
-  .keywords-card { grid-column:1; grid-row:2; }
-  .tag-list { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:11px; }
+  .tag-list { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:13px; }
   .tag { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:2px; font-size:calc(12px * var(--font-scale)); color:var(--muted); cursor:pointer; transition:all 0.15s; user-select:none; font-weight:500; }
   .tag:hover { border-color:var(--orange); color:var(--orange); background:var(--orange-dim); }
   .tag.active { background:var(--navy); border-color:var(--navy); color:var(--cream); }
   .tag-remove { font-size:13px; line-height:1; opacity:0.5; }
   .tag:hover .tag-remove { opacity:1; }
-  .tag-input-wrap { display:flex; gap:7px; margin-bottom:11px; }
+  .tag-input-wrap { display:flex; gap:8px; margin-bottom:13px; }
   .tag-input { flex:1; padding:7px 11px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-family:var(--font-body); font-size:calc(13px * var(--font-scale)); outline:none; transition:border-color 0.15s; }
   .tag-input:focus { border-color:var(--navy); }
   .tag-input::placeholder { color:var(--muted); }
   .btn-add { padding:7px 14px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--navy); font-family:var(--font-body); font-size:calc(12.5px * var(--font-scale)); cursor:pointer; transition:all 0.15s; font-weight:600; white-space:nowrap; }
   .btn-add:hover { background:var(--navy); color:var(--cream); border-color:var(--navy); }
-  .situation-label { font-size:calc(10px * var(--font-scale)); color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; margin-bottom:5px; }
-  .situation-textarea { width:100%; padding:8px 11px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-family:var(--font-body); font-size:calc(12.5px * var(--font-scale)); outline:none; resize:none; transition:border-color 0.15s; height:66px; margin-bottom:11px; line-height:1.55; }
+  .situation-label { font-size:calc(10px * var(--font-scale)); color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; margin-bottom:8px; margin-top:4px; }
+  .situation-textarea { width:100%; padding:8px 11px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-family:var(--font-body); font-size:calc(12.5px * var(--font-scale)); outline:none; resize:none; transition:border-color 0.15s; height:66px; margin-bottom:8px; line-height:1.55; }
   .situation-textarea:focus { border-color:var(--navy); }
   .situation-textarea::placeholder { color:var(--muted); }
-  .btn-save { width:100%; padding:10px; background:var(--orange); border:none; border-radius:var(--radius); color:var(--white); font-family:var(--font-display); font-size:calc(14px * var(--font-scale)); font-weight:800; cursor:pointer; transition:all 0.15s; letter-spacing:1.5px; text-transform:uppercase; }
+  /* Situacija — box prikaz */
+  .situation-box { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:11px 13px; margin-bottom:10px; display:flex; align-items:flex-start; gap:10px; }
+  .situation-text { flex:1; font-size:calc(12.5px * var(--font-scale)); color:var(--text); line-height:1.6; min-height:18px; }
+  .situation-text.empty { color:var(--muted); font-style:italic; }
+  .btn-sit-edit { flex-shrink:0; padding:5px 12px; background:transparent; border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--muted); font-family:var(--font-body); font-size:calc(11.5px * var(--font-scale)); font-weight:600; cursor:pointer; transition:all 0.15s; white-space:nowrap; margin-top:1px; }
+  .btn-sit-edit:hover { background:var(--navy); color:var(--cream); border-color:var(--navy); }
+  .situation-edit-btns { display:flex; gap:8px; }
+  .btn-cancel-sit { flex:1; padding:9px; background:transparent; border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--muted); font-family:var(--font-display); font-size:calc(13px * var(--font-scale)); font-weight:700; cursor:pointer; transition:all 0.15s; letter-spacing:0.5px; text-transform:uppercase; }
+  .btn-cancel-sit:hover { background:var(--surface2); }
+  .btn-save { flex:1; padding:9px; background:var(--orange); border:none; border-radius:var(--radius); color:var(--white); font-family:var(--font-display); font-size:calc(13px * var(--font-scale)); font-weight:800; cursor:pointer; transition:all 0.15s; letter-spacing:1px; text-transform:uppercase; }
   .btn-save:hover { background:var(--orange2); transform:translateY(-1px); }
 
-  /* ── EMAIL ── */
-  .email-card { grid-column:2; grid-row:2; }
-  .email-status { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--green-dim); border:1px solid rgba(46,125,82,0.2); border-radius:var(--radius); margin-bottom:11px; }
-  .email-dot { width:8px; height:8px; background:var(--green); border-radius:50%; flex-shrink:0; animation:blink 2s ease-in-out infinite; }
-  .email-addr { font-size:calc(13px * var(--font-scale)); color:var(--text); font-weight:600; }
-  .email-ok { font-size:calc(10.5px * var(--font-scale)); color:var(--green); font-weight:600; letter-spacing:0.3px; text-transform:uppercase; }
-  .email-sub-label { font-size:calc(10px * var(--font-scale)); color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; margin-bottom:6px; }
-  .email-row { display:flex; align-items:flex-start; gap:10px; padding:8px 10px; background:var(--surface2); border-radius:var(--radius); border:1px solid var(--border); cursor:pointer; transition:border-color 0.15s; margin-bottom:5px; }
-  .email-row:hover { border-color:var(--border-strong); }
-  .email-row-date { font-size:calc(10.5px * var(--font-scale)); color:var(--muted); white-space:nowrap; margin-top:1px; min-width:60px; font-weight:500; }
-  .email-row-content { flex:1; overflow:hidden; }
-  .email-row-title { font-size:calc(12.5px * var(--font-scale)); font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-bottom:1px; color:var(--navy); }
-  .email-row-sub { font-size:calc(11px * var(--font-scale)); color:var(--muted); }
-  .btn-test { width:100%; margin-top:8px; padding:8px; background:transparent; border:1.5px dashed var(--border-strong); border-radius:var(--radius); color:var(--muted); font-family:var(--font-body); font-size:calc(12px * var(--font-scale)); cursor:pointer; transition:all 0.15s; font-weight:600; }
-  .btn-test:hover { background:var(--navy); color:var(--cream); border-color:var(--navy); border-style:solid; }
+  /* ── KW STATS ── */
+  .kw-stat { display:inline-flex; align-items:center; justify-content:center; min-width:18px; height:16px; padding:0 4px; background:var(--green-dim); color:var(--green); border-radius:2px; font-size:10px; font-weight:700; letter-spacing:0.2px; margin-left:4px; }
+  .kw-stat.zero { background:var(--border); color:var(--muted); }
+
+  /* ── AI SUGGEST ── */
+  .btn-suggest { width:100%; margin-top:6px; padding:8px; background:transparent; border:1.5px dashed var(--border-strong); border-radius:var(--radius); color:var(--muted); font-family:var(--font-body); font-size:calc(12px * var(--font-scale)); font-weight:600; cursor:pointer; transition:all 0.15s; }
+  .btn-suggest:hover { border-color:var(--navy); color:var(--navy); background:var(--surface2); }
+  .btn-suggest:disabled { opacity:0.5; cursor:wait; }
+  .suggest-chips { display:flex; flex-wrap:wrap; gap:5px; margin-top:8px; }
+  .suggest-chip { display:inline-flex; align-items:center; gap:5px; padding:4px 10px; background:var(--green-dim); border:1.5px solid rgba(46,125,82,0.25); border-radius:2px; font-size:calc(12px * var(--font-scale)); color:var(--green); cursor:pointer; font-weight:600; transition:all 0.15s; }
+  .suggest-chip:hover { background:var(--green); color:var(--white); border-color:var(--green); }
+
+  /* ── DIGEST TOGGLE ── */
+  .digest-row { display:flex; align-items:center; justify-content:space-between; margin-top:10px; padding:9px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); }
+  .digest-label { font-size:calc(12px * var(--font-scale)); font-weight:600; color:var(--text); }
+  .digest-sub { font-size:calc(10px * var(--font-scale)); color:var(--muted); margin-top:1px; }
+  .toggle-switch { position:relative; width:36px; height:20px; flex-shrink:0; }
+  .toggle-switch input { opacity:0; width:0; height:0; }
+  .toggle-track { position:absolute; inset:0; background:var(--border-strong); border-radius:20px; cursor:pointer; transition:background 0.2s; }
+  .toggle-track::before { content:''; position:absolute; width:14px; height:14px; left:3px; top:3px; background:#fff; border-radius:50%; transition:transform 0.2s; }
+  .toggle-switch input:checked + .toggle-track { background:var(--green); }
+  .toggle-switch input:checked + .toggle-track::before { transform:translateX(16px); }
+
+  /* ── SITUATION HISTORY ── */
+  .sit-history { margin-top:8px; }
+  .sit-history-label { font-size:calc(9.5px * var(--font-scale)); color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; margin-bottom:4px; }
+  .sit-history-row { display:flex; gap:8px; padding:4px 0; border-bottom:1px solid var(--border); font-size:calc(11px * var(--font-scale)); color:var(--muted); line-height:1.45; }
+  .sit-history-row:last-child { border-bottom:none; }
+  .sit-history-time { white-space:nowrap; flex-shrink:0; font-weight:600; color:var(--navy3); }
+  .sit-history-text { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
 
   /* ── MATCHES ── */
-  .matches-card { grid-column:1/3; grid-row:3; }
   .match-row { display:grid; grid-template-columns:1fr auto auto auto; align-items:center; gap:12px; padding:9px 0; border-bottom:1px solid var(--border); cursor:pointer; transition:padding-left 0.15s; }
   .match-row:last-child { border-bottom:none; }
   .match-row:hover { padding-left:5px; }
@@ -174,26 +263,87 @@
   .match-btn { padding:4px 12px; background:transparent; border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--navy); font-family:var(--font-body); font-size:calc(11.5px * var(--font-scale)); cursor:pointer; transition:all 0.15s; white-space:nowrap; font-weight:600; }
   .match-btn:hover { background:var(--orange); border-color:var(--orange); color:var(--white); }
 
-  /* ── ACTIVITY ── */
-  .activity-card { grid-column:3; grid-row:2/5; }
   ::-webkit-scrollbar { width:3px; }
   ::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:2px; }
-  .activity-list { display:flex; flex-direction:column; overflow-y:auto; flex:1; }
-  .activity-item { display:flex; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
-  .activity-item:last-child { border-bottom:none; }
-  .activity-dot-wrap { display:flex; flex-direction:column; align-items:center; padding-top:4px; flex-shrink:0; }
-  .activity-dot { width:7px; height:7px; border-radius:50%; }
-  .a-green { background:var(--green); }
-  .a-orange { background:var(--orange2); }
-  .a-navy { background:var(--navy3); }
-  .a-red { background:#c0392b; }
-  .activity-line { width:1px; flex:1; background:var(--border); margin-top:5px; }
-  .activity-body { flex:1; overflow:hidden; }
-  .activity-text { font-size:calc(12.5px * var(--font-scale)); line-height:1.45; margin-bottom:2px; color:var(--text); }
-  .activity-time { font-size:calc(10.5px * var(--font-scale)); color:var(--muted); font-weight:500; }
 
   .empty-msg { color:var(--muted); font-size:calc(13px * var(--font-scale)); padding:12px 0; }
 
+  /* ── PAGINATION ── */
+  .pagination { display:flex; gap:4px; align-items:center; flex-wrap:wrap; margin-top:10px; }
+  .page-btn, .pag-btn { padding:4px 10px; border:1.5px solid var(--border-strong); background:var(--surface2); color:var(--muted); font-family:var(--font-body); font-size:calc(11px * var(--font-scale)); cursor:pointer; border-radius:var(--radius); transition:all 0.15s; font-weight:600; }
+  .page-btn:hover, .pag-btn:hover { border-color:var(--navy); color:var(--navy); }
+  .page-btn.active, .pag-btn.active { background:var(--navy); color:var(--cream); border-color:var(--navy); }
+  .pag-ellipsis { color:var(--muted); font-size:calc(11px * var(--font-scale)); padding:0 2px; }
+  .page-btn:disabled { opacity:0.3; cursor:not-allowed; }
+
+  /* ── MATCH FILTER TABS ── */
+  .match-tabs { display:flex; gap:6px; flex-wrap:wrap; padding:10px 16px; flex-shrink:0; border-bottom:1px solid var(--border); }
+  .match-tab { padding:4px 13px; border:1.5px solid var(--border-strong); border-radius:20px; font-family:var(--font-body); font-size:calc(11px * var(--font-scale)); font-weight:700; cursor:pointer; transition:all 0.15s; color:var(--muted); background:var(--surface2); white-space:nowrap; letter-spacing:0.3px; }
+  .match-tab:hover { border-color:var(--navy); color:var(--navy); background:var(--surface); }
+  .match-tab.active { background:var(--navy); border-color:var(--navy); color:var(--cream); }
+  .match-tab-count { opacity:0.65; font-size:calc(10px * var(--font-scale)); margin-left:2px; }
+
+  /* ── MATCH CARD GRID ── */
+  .match-cards { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; padding:12px 16px 16px; }
+  .match-card { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); display:flex; flex-direction:column; overflow:hidden; cursor:pointer; transition:transform 0.15s,box-shadow 0.15s,border-color 0.15s; }
+  .match-card:hover { transform:translateY(-2px); box-shadow:0 6px 18px rgba(26,39,68,0.11); border-color:var(--border-strong); background:var(--surface); }
+  .match-card-accent { height:3px; flex-shrink:0; }
+  .accent-izmjena { background:var(--orange); }
+  .accent-zakon { background:var(--green); }
+  .accent-pravilnik { background:var(--navy); }
+  .accent-other { background:var(--muted); }
+  .match-card-inner { padding:10px 13px 11px; flex:1; display:flex; flex-direction:column; gap:6px; }
+  .match-card-badge { display:inline-block; padding:2px 7px; border-radius:2px; font-size:calc(9.5px * var(--font-scale)); font-weight:700; letter-spacing:0.5px; text-transform:uppercase; align-self:flex-start; }
+  .badge-izmjena-c { background:var(--orange-dim); color:var(--orange); }
+  .badge-zakon-c { background:var(--green-dim); color:var(--green); }
+  .badge-pravilnik-c { background:rgba(26,39,68,0.08); color:var(--navy); }
+  html.dark .badge-pravilnik-c { background:rgba(200,212,240,0.1); color:var(--navy2); }
+  .badge-other-c { background:var(--surface2); color:var(--muted); }
+  .match-card-title { font-size:calc(13px * var(--font-scale)); color:var(--text); font-weight:600; line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .match-card-meta { display:flex; align-items:center; gap:6px; margin-top:auto; padding-top:9px; border-top:1px solid var(--border); }
+  .match-card-date { font-size:calc(10.5px * var(--font-scale)); color:var(--muted); flex-shrink:0; }
+  .match-card-kw { padding:2px 8px; background:var(--navy); color:var(--cream); border-radius:10px; font-size:calc(10px * var(--font-scale)); font-weight:700; letter-spacing:0.3px; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; min-width:0; }
+  .match-card-arrow { font-size:13px; color:var(--muted); transition:color 0.15s,transform 0.15s; flex-shrink:0; }
+  .match-card:hover .match-card-arrow { color:var(--orange); transform:translateX(3px); }
+  .match-pag-row { display:flex; align-items:center; justify-content:center; gap:8px; padding:8px 16px 10px; border-top:1px solid var(--border); flex-shrink:0; }
+  .match-pag-btn { padding:4px 14px; border:1.5px solid var(--border-strong); background:var(--surface); color:var(--navy); font-family:var(--font-body); font-size:calc(11px * var(--font-scale)); cursor:pointer; border-radius:var(--radius); transition:all 0.15s; font-weight:700; }
+  .match-pag-btn:hover:not(:disabled) { background:var(--navy); color:var(--cream); border-color:var(--navy); }
+  .match-pag-btn:disabled { opacity:0.3; cursor:not-allowed; }
+  .match-pag-info { font-size:calc(11px * var(--font-scale)); color:var(--muted); font-weight:600; }
+  .matches-card .card-body { padding:0 !important; }
+  #matches-body { display:flex; flex-direction:column; }
+  .match-pag-row { background:var(--navy); padding:9px 16px; border-top:none; }
+  .match-pag-row .match-pag-btn { background:rgba(255,255,255,0.1); border:1.5px solid rgba(255,255,255,0.2); color:var(--cream); font-size:calc(12px * var(--font-scale)); padding:5px 16px; }
+  .match-pag-row .match-pag-btn:hover:not(:disabled) { background:var(--orange); border-color:var(--orange); color:var(--white); }
+  .match-pag-row .match-pag-btn:disabled { opacity:0.25; }
+  .match-pag-row .match-pag-info { color:rgba(232,228,218,0.75); font-size:calc(11.5px * var(--font-scale)); }
+
+  /* ── KEYWORD STATUS (activity panel top) ── */
+  .act-section-label { font-size:calc(10px * var(--font-scale)); font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+  .kw-status-list { margin-bottom:2px; }
+  .kw-status-row { display:flex; align-items:center; gap:6px; padding:5px 0; border-bottom:1px solid var(--border); }
+  .kw-status-row:last-child { border-bottom:none; }
+  .kw-status-name { flex:1; font-size:calc(12px * var(--font-scale)); font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .kw-status-name.inactive { color:var(--muted); font-weight:400; }
+  .kw-status-date { font-size:calc(10px * var(--font-scale)); color:var(--muted); white-space:nowrap; flex-shrink:0; }
+  .kw-status-count { padding:1px 7px; background:var(--navy); color:var(--cream); border-radius:10px; font-size:calc(10px * var(--font-scale)); font-weight:700; white-space:nowrap; flex-shrink:0; }
+  .kw-status-count.zero { background:var(--surface2); color:var(--muted); border:1px solid var(--border-strong); }
+  .act-divider { height:1px; background:var(--border); margin:10px 0; }
+
+  /* ── ACTIVITY FEED (activity panel bottom) ── */
+  .feed-day-label { font-size:calc(10px * var(--font-scale)); font-weight:700; letter-spacing:1px; text-transform:uppercase; color:var(--muted); padding:8px 0 5px; }
+  .feed-item { display:flex; align-items:flex-start; gap:8px; padding:7px 0; border-bottom:1px solid var(--border); cursor:pointer; transition:opacity 0.12s; }
+  .feed-item:last-child { border-bottom:none; }
+  .feed-item:hover { opacity:0.8; }
+  .feed-type-badge { padding:2px 6px; border-radius:2px; font-size:calc(9.5px * var(--font-scale)); font-weight:700; letter-spacing:0.4px; white-space:nowrap; flex-shrink:0; margin-top:1px; }
+  .feed-type-zakon     { background:var(--green-dim); color:var(--green); }
+  .feed-type-uredba    { background:var(--orange-dim); color:var(--orange); }
+  .feed-type-pravilnik { background:rgba(26,39,68,0.08); color:var(--navy3); }
+  .feed-type-other     { background:var(--surface2); color:var(--muted); }
+  .feed-body { flex:1; min-width:0; }
+  .feed-title { font-size:calc(12px * var(--font-scale)); color:var(--text); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; line-height:1.4; }
+  .feed-kw { font-size:calc(10.5px * var(--font-scale)); color:var(--muted); margin-top:1px; }
+  @media (max-width:500px) { .match-cards { grid-template-columns:1fr !important; } }
   /* ── TOAST ── */
   .toast { position:fixed; bottom:22px; right:22px; padding:11px 18px; background:var(--navy); border-left:4px solid var(--orange); color:var(--cream); font-size:calc(13px * var(--font-scale)); font-weight:500; box-shadow:0 6px 24px rgba(0,0,0,0.2); transform:translateY(70px); opacity:0; transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index:999; pointer-events:none; border-radius:var(--radius); }
   .toast.show { transform:translateY(0); opacity:1; }
@@ -206,10 +356,10 @@
     <div class="logo">PRATIM<span class="logo-accent">ZAKON</span><div class="logo-dot"></div></div>
     <nav class="nav">
       <div class="nav-section-label">Glavni izbornik</div>
-      <div class="nav-item active"><span class="nav-icon">◈</span> Dashboard</div>
-      <div class="nav-item"><span class="nav-icon">◉</span> Moje praćenje</div>
-      <div class="nav-item"><span class="nav-icon">◇</span> Matchevi</div>
-      <div class="nav-item"><span class="nav-icon">◎</span> Email arhiva</div>
+      <div class="nav-item active" onclick="scrollToSection('top')"><span class="nav-icon">◈</span> Dashboard</div>
+      <div class="nav-item" onclick="scrollToSection('matches')"><span class="nav-icon">◇</span> Matchevi</div>
+      <div class="nav-item" onclick="window.location='arhiva.html'"><span class="nav-icon">◫</span> Moja arhiva</div>
+      <div class="nav-item" onclick="window.location='aktivnost.html'"><span class="nav-icon">◎</span> Aktivnost</div>
       <div class="nav-divider"></div>
       <div class="nav-section-label">Račun</div>
       <div class="nav-item"><span class="nav-icon">○</span> Postavke</div>
@@ -226,6 +376,7 @@
 
     <!-- TOPBAR -->
     <div class="topbar">
+      <button class="mob-hamburger" onclick="openMobNav()" aria-label="Izbornik">☰</button>
       <div class="topbar-title" id="topbar-greeting">DOBRODOŠLI</div>
       <div class="topbar-right">
         <div class="badge-live"><div class="badge-live-dot"></div>Tražilica aktivna</div>
@@ -237,6 +388,17 @@
         </div>
         <button class="btn-theme" id="theme-toggle" onclick="toggleTheme()" title="Promijeni temu">☀</button>
       </div>
+    </div>
+
+    <!-- DB STATUS BAR -->
+    <div class="db-statusbar">
+      <div>
+        <span class="db-statusbar-dot" id="db-freshness-dot"></span>
+        <span class="db-statusbar-label">Zadnji broj NN u bazi: </span>
+        <span class="db-statusbar-value" id="db-latest-issue">Učitavam...</span>
+        <span class="db-freshness" id="db-freshness-label"></span>
+      </div>
+      <button class="db-scraper-btn" onclick="triggerScraper()">▷ Pokreni tražilicu</button>
     </div>
 
     <!-- PROGRESS PANEL -->
@@ -288,63 +450,115 @@
         </div>
         <div class="card-body">
           <div class="tag-list" id="tag-list"></div>
+          <div class="kw-count-label" id="limit-label">0 ključnih riječi aktivno</div>
           <div class="tag-input-wrap">
             <input class="tag-input" id="new-kw" type="text" placeholder="Dodaj ključnu riječ..." onkeydown="if(event.key==='Enter') addTag()">
             <button class="btn-add" onclick="addTag()">+ Dodaj</button>
           </div>
-          <div class="situation-label">Moja situacija — za personalizirani sažetak</div>
-          <textarea class="situation-textarea" id="situation" placeholder="Npr: Vodim restoran s 5 zaposlenika u Zagrebu..."></textarea>
-          <button class="btn-save" onclick="savePracenje()">Spremi praćenje</button>
-        </div>
-      </div>
+          <div class="kw-tip">Za optimalne rezultate odaberite 5–7 ključnih riječi. Možete koristiti višerječne pojmove: "ruralni razvoj", "investicijske potpore".</div>
 
-      <div class="card email-card">
-        <div class="card-head">
-          <div class="card-title">Email notifikacije</div>
-        </div>
-        <div class="card-body">
-          <div class="email-status">
-            <div class="email-dot"></div>
-            <div>
-              <div class="email-addr" id="email-addr">—</div>
-              <div class="email-ok">Notifikacije aktivne</div>
+          <div class="situation-label">Moja situacija — za personalizirani sažetak</div>
+
+          <!-- Uvijek vidljiv box s tekstom i gumbom Promijeni -->
+          <div class="situation-box" id="situation-box">
+            <div class="situation-text empty" id="situation-text-display">Dodajte opis vaše situacije za personalizirane sažetke...</div>
+            <button class="btn-sit-edit" onclick="editSituation()">Promijeni</button>
+          </div>
+
+          <!-- Edit forma (skrivena dok korisnik ne klikne Promijeni) -->
+          <div class="situation-edit" id="situation-edit" style="display:none">
+            <textarea class="situation-textarea" id="situation" placeholder="Npr: Vodim restoran s 5 zaposlenika u Zagrebu..."></textarea>
+            <div class="situation-edit-btns">
+              <button class="btn-save" onclick="savePracenje()">Spremi</button>
+              <button class="btn-cancel-sit" onclick="cancelSituation()">Odustani</button>
             </div>
           </div>
-          <div class="email-sub-label">Zadnji emailovi</div>
-          <div id="email-list"><div class="empty-msg">Učitavanje...</div></div>
-          <button class="btn-test" onclick="showToast('Testni email poslan!')">→ Pošalji testni email</button>
-        </div>
-      </div>
-
-      <div class="card matches-card">
-        <div class="card-head">
-          <div class="card-title">Zadnji matchevi</div>
-          <div class="card-head-action">Vidi sve →</div>
-        </div>
-        <div class="card-body" style="padding-top:8px;padding-bottom:6px;" id="matches-body">
-          <div class="empty-msg">Učitavanje...</div>
-        </div>
-      </div>
-
-      <div class="card activity-card">
-        <div class="card-head">
-          <div class="card-title">Aktivnost</div>
-        </div>
-        <div class="card-body" style="padding:10px 16px;overflow-y:auto;">
-          <div class="activity-list" id="activity-list">
-            <div class="empty-msg">Učitavanje...</div>
+          <button class="btn-suggest" id="btn-suggest" onclick="suggestKeywords()">◈ Predloži ključne riječi na temelju situacije</button>
+          <div class="suggest-chips" id="suggest-chips" style="display:none"></div>
+          <div class="digest-row">
+            <div>
+              <div class="digest-label">Tjedni sažetak emailom</div>
+              <div class="digest-sub">Jedan email ponedjeljkom s novim pronalascima</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="digest-toggle" onchange="toggleDigest()">
+              <span class="toggle-track"></span>
+            </label>
           </div>
+          <div id="situation-history"></div>
         </div>
       </div>
+
+
+      <div class="card matches-card" id="card-matches">
+        <div class="card-head">
+          <div class="card-title">Matchevi</div>
+          <div class="card-head-action" id="match-count"></div>
+        </div>
+        <div class="match-period-row">
+          <button class="mpf-btn active" id="mpf-all"  onclick="setMatchPeriod('all')">Sve</button>
+          <button class="mpf-btn" id="mpf-month" onclick="setMatchPeriod('month')">Ovaj mjesec</button>
+          <button class="mpf-btn" id="mpf-week"  onclick="setMatchPeriod('week')">Ovaj tjedan</button>
+          <span class="mpf-count" id="mpf-count"></span>
+        </div>
+        <div class="card-body">
+          <div id="matches-body"><div style="padding:16px"><div class="empty-msg">Učitavanje...</div></div></div>
+        </div>
+      </div>
+
 
     </div>
   </div>
+</div>
+
+<!-- MOBILE NAVIGATION DRAWER -->
+<div class="mob-drawer-overlay" id="mob-drawer-overlay">
+  <div class="mob-drawer-bg" onclick="closeMobNav()"></div>
+  <div class="mob-drawer">
+    <div class="logo">PRATIM<span class="logo-accent">ZAKON</span><div class="logo-dot"></div></div>
+    <nav class="nav">
+      <div class="nav-section-label">Glavni izbornik</div>
+      <div class="nav-item active" onclick="closeMobNav()"><span class="nav-icon">◈</span> Dashboard</div>
+      <div class="nav-item" onclick="closeMobNav();setTimeout(()=>scrollToSection('matches'),200)"><span class="nav-icon">◇</span> Matchevi</div>
+      <div class="nav-item" onclick="closeMobNav();window.location.href='arhiva.html'"><span class="nav-icon">◫</span> Moja arhiva</div>
+      <div class="nav-item" onclick="closeMobNav();window.location.href='aktivnost.html'"><span class="nav-icon">◎</span> Aktivnost</div>
+      <div class="nav-divider"></div>
+      <div class="nav-section-label">Račun</div>
+      <div class="nav-item" onclick="closeMobNav();showToast('Postavke — uskoro dostupno')"><span class="nav-icon">○</span> Postavke</div>
+      <div class="nav-item" onclick="logout()"><span class="nav-icon">→</span> Odjava</div>
+    </nav>
+    <div class="user-card">
+      <div class="user-name" id="mob-user-name">—</div>
+      <div class="user-email" id="mob-user-email">—</div>
+      <div class="user-badge" id="mob-user-badge">BETA</div>
+      <div style="display:flex;align-items:center;gap:6px;margin-top:10px;">
+        <span style="font-size:10px;color:rgba(232,228,218,0.4);text-transform:uppercase;letter-spacing:1px;font-weight:600;">Veličina teksta</span>
+        <button class="font-btn" style="color:rgba(232,228,218,0.7);background:rgba(255,255,255,0.06);border:none;width:28px;height:28px;border-radius:2px;cursor:pointer;font-size:13px;font-weight:700;" onclick="changeFontSize(-1)">A−</button>
+        <span id="mob-font-label" style="font-size:10px;color:rgba(232,228,218,0.4);min-width:28px;text-align:center;"></span>
+        <button class="font-btn" style="color:rgba(232,228,218,0.7);background:rgba(255,255,255,0.06);border:none;width:28px;height:28px;border-radius:2px;cursor:pointer;font-size:13px;font-weight:700;" onclick="changeFontSize(1)">A+</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Floating font size FAB (mobile only — topbar font controls are hidden on mobile) -->
+<div id="font-fab-mob" style="display:none;position:fixed;bottom:90px;left:16px;z-index:9000;background:#1a2744;border-radius:24px;padding:6px 10px;box-shadow:0 4px 14px rgba(0,0,0,0.35);flex-direction:row;gap:8px;align-items:center;">
+  <span style="font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:rgba(232,228,218,0.5);">Tekst</span>
+  <button onclick="changeFontSize(-1)" style="width:36px;height:36px;background:rgba(255,255,255,0.1);color:#e8e4da;border:1.5px solid rgba(255,255,255,0.2);border-radius:50%;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Smanji">A−</button>
+  <button onclick="changeFontSize(1)"  style="width:36px;height:36px;background:rgba(255,255,255,0.1);color:#e8e4da;border:1.5px solid rgba(255,255,255,0.2);border-radius:50%;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Povećaj">A+</button>
 </div>
 
 <div class="toast" id="toast"></div>
 
 <script>
   const API = 'https://pratimzakon.onrender.com';
+  let userKwLimit = 5;
+  let allMatches = [];
+  let allKeywords = [];
+  let kwPages = {};
+  let _kwGroupOrder = [];
+  let _activeKw = null;
+  const KW_PER_PAGE = 10;
 
   // ── TEMA ──────────────────────────────────────────────────────────────────
   function toggleTheme() {
@@ -365,8 +579,18 @@
   function applyFontSize() {
     document.documentElement.style.setProperty('--font-scale', FONT_STEPS[fontIdx]);
     document.getElementById('font-label').textContent = FONT_LABELS[fontIdx];
+    const mobLbl = document.getElementById('mob-font-label');
+    if (mobLbl) mobLbl.textContent = FONT_LABELS[fontIdx];
     localStorage.setItem('pz-font-idx', fontIdx);
   }
+
+  // Show floating font FAB on mobile
+  function updateFontFabVisibility() {
+    const fab = document.getElementById('font-fab-mob');
+    if (fab) fab.style.display = window.innerWidth <= 768 ? 'flex' : 'none';
+  }
+  updateFontFabVisibility();
+  window.addEventListener('resize', updateFontFabVisibility);
 
   function changeFontSize(dir) {
     fontIdx = Math.max(0, Math.min(FONT_STEPS.length - 1, fontIdx + dir));
@@ -379,15 +603,46 @@
   function getToken() { return localStorage.getItem('token'); }
   function authHeaders() { return { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' }; }
   function logout() { localStorage.removeItem('token'); window.location.href = 'index.html'; }
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+  // ── MOBILE NAVIGATION ────────────────────────────────────────────────────
+  function openMobNav() {
+    document.getElementById('mob-drawer-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMobNav() {
+    document.getElementById('mob-drawer-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobNav(); });
 
   document.querySelectorAll('.nav-item').forEach(item => {
     const text = item.textContent.trim();
-    if (text.includes('Odjava'))        item.onclick = logout;
-    if (text.includes('Postavke'))      item.onclick = () => showToast('Postavke — uskoro dostupno');
-    if (text.includes('Matchevi'))      item.onclick = () => showToast('Matchevi — uskoro dostupno');
-    if (text.includes('Email arhiva'))  item.onclick = () => showToast('Email arhiva — uskoro dostupno');
-    if (text.includes('Moje praćenje')) item.onclick = () => window.location.href = 'moje-pracenje.html';
-    });
+    if (text.includes('Odjava'))    item.onclick = logout;
+    if (text.includes('Postavke')) item.onclick = () => showToast('Postavke — uskoro dostupno');
+  });
+
+  function scrollToSection(section) {
+    const main = document.querySelector('.main');
+    const targets = {
+      top:     document.querySelector('.dashboard'),
+      matches: document.getElementById('card-matches'),
+      emails:  document.getElementById('card-emails'),
+    };
+    const el = targets[section];
+    if (!el) return;
+    // Na mobitelu main nema overflow — koristi window scroll
+    if (window.innerWidth <= 768) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      // Desktop/tablet: main div je onaj koji skrola
+      el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      main.scrollTop = el.offsetTop - 20;
+    }
+    // Highlight aktivnog nav itema
+    document.querySelectorAll('.sidebar .nav-item').forEach(n => n.classList.remove('active'));
+    event.currentTarget && event.currentTarget.classList.add('active');
+  }
 
   function showToast(msg) {
     const t = document.getElementById('toast');
@@ -408,6 +663,15 @@
       document.getElementById('sidebar-email').textContent = user.email;
       document.getElementById('sidebar-badge').textContent = user.plan === 'free' ? 'BETA' : user.plan.toUpperCase();
       document.getElementById('email-addr').textContent = user.email;
+      // Populate mobile drawer user info
+      const planLabel = user.plan === 'free' ? 'BETA' : user.plan.toUpperCase();
+      document.getElementById('mob-user-name').textContent = namePart;
+      document.getElementById('mob-user-email').textContent = user.email;
+      document.getElementById('mob-user-badge').textContent = planLabel;
+      userKwLimit = user.keyword_limit || 5;
+      // Postavi situacija prikaz
+      _currentSituation = user.situation || '';
+      _setSituationView(_currentSituation);
       const h = new Date().getHours();
       const g = h < 12 ? 'DOBRO JUTRO' : h < 18 ? 'DOBAR DAN' : 'DOBRA VEČER';
       document.getElementById('topbar-greeting').innerHTML = g + ', <span>' + namePart.toUpperCase() + '</span>';
@@ -420,13 +684,15 @@
     try {
       const res = await fetch(API + '/keywords/', { headers: authHeaders() });
       const data = await res.json();
+      allKeywords = data;
       const list = document.getElementById('tag-list');
       if (!list) return;
       list.innerHTML = '';
       data.forEach(kw => {
         const tag = document.createElement('div');
         tag.className = 'tag active';
-        tag.innerHTML = kw.keyword + ' <span class="tag-remove">×</span>';
+        tag.dataset.kwname = kw.keyword;
+        tag.innerHTML = kw.keyword + ' <span class="tag-remove">×</span><span class="kw-stat zero" id="kw-stat-' + encodeURIComponent(kw.keyword) + '"></span>';
         tag.onclick = function() { deleteKeyword(kw.id, tag); };
         list.appendChild(tag);
       });
@@ -447,19 +713,16 @@
     const input = document.getElementById('new-kw');
     const val = input.value.trim();
     if (!val) return;
-    const current = document.querySelectorAll('.tag').length;
     try {
-      const userRes = await fetch(API + '/auth/me', { headers: authHeaders() });
-      const user = await userRes.json();
-      if (current >= user.keyword_limit) {
-        showToast('Dostigli ste limit od ' + user.keyword_limit + ' ključnih riječi');
-        return;
-      }
       const res = await fetch(API + '/keywords/', {
         method: 'POST', headers: authHeaders(),
         body: JSON.stringify({ keyword: val, doc_type_filter: null, institution_filter: null, part_filter: null })
       });
-      if (!res.ok) { showToast('Greška pri dodavanju'); return; }
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        showToast(errData.detail || 'Greška pri dodavanju');
+        return;
+      }
       const kw = await res.json();
       const tag = document.createElement('div');
       tag.className = 'tag active';
@@ -474,36 +737,195 @@
 
   function clearTags() { showToast('Koristite × na svakoj ključnoj riječi za brisanje'); }
   function updateKwCount() {
+    const count = document.querySelectorAll('.tag').length;
     const el = document.getElementById('stat-kw');
-    if (el) el.textContent = document.querySelectorAll('.tag').length;
+    if (el) el.textContent = count;
+    const lbl = document.getElementById('limit-label');
+    if (lbl) lbl.textContent = count + ' ključnih riječi aktivno';
   }
-  function savePracenje() { showToast('Ključne riječi se automatski spremaju'); }
+  let _currentSituation = '';
+
+  function _setSituationView(situation) {
+    const textEl = document.getElementById('situation-text-display');
+    const boxEl  = document.getElementById('situation-box');
+    const editEl = document.getElementById('situation-edit');
+    if (!textEl) return;
+    if (situation) {
+      textEl.textContent = situation;
+      textEl.classList.remove('empty');
+    } else {
+      textEl.textContent = 'Dodajte opis vaše situacije za personalizirane sažetke...';
+      textEl.classList.add('empty');
+    }
+    if (boxEl)  boxEl.style.display  = 'flex';
+    if (editEl) editEl.style.display = 'none';
+  }
+
+  function editSituation() {
+    const sit   = document.getElementById('situation');
+    const boxEl = document.getElementById('situation-box');
+    const editEl = document.getElementById('situation-edit');
+    if (sit) sit.value = _currentSituation;
+    if (boxEl)  boxEl.style.display  = 'none';
+    if (editEl) editEl.style.display = 'block';
+    if (sit) sit.focus();
+  }
+
+  function cancelSituation() {
+    _setSituationView(_currentSituation);
+  }
+
+  async function savePracenje() {
+    const sit = (document.getElementById('situation').value || '').trim();
+    try {
+      const res = await fetch(API + '/keywords/situation', {
+        method: 'POST', headers: authHeaders(),
+        body: JSON.stringify({ situation: sit })
+      });
+      if (res.ok) {
+        _currentSituation = sit;
+        _setSituationView(sit);
+        showToast('Situacija uspješno spremljena!');
+      } else {
+        showToast('Greška pri spremanju');
+      }
+    } catch(e) {
+      showToast('Greška pri spremanju');
+    }
+  }
 
   // ── LOAD MATCHES ──────────────────────────────────────────────────────────
   async function loadMatches() {
     try {
-      const res = await fetch(API + '/search/matches/recent?limit=5', { headers: authHeaders() });
-      if (!res.ok) return;
-      const matches = await res.json();
-      const list = document.getElementById('matches-body');
-      if (!list) return;
-      if (matches.length === 0) {
-        list.innerHTML = '<div class="empty-msg">Još nema matcheva — tražilica će ih pronaći pri sljedećem skeniranju.</div>';
-        document.getElementById('stat-week').textContent = '0';
-        document.getElementById('stat-last-match').textContent = '—';
+      const res = await fetch(API + '/search/matches/recent?limit=100', { headers: authHeaders() });
+      if (!res.ok) {
+        document.getElementById('matches-body').innerHTML = '<div class="empty-msg">Nije moguće dohvatiti matcheve — pokušaj ponovno.</div>';
         return;
       }
-      list.innerHTML = matches.map(m => `
-        <div class="match-row">
-          <div class="match-title">${m.document_title}</div>
-          <div class="match-kw">${m.keyword}</div>
-          <div class="match-date">${m.matched_at}</div>
-          <button class="match-btn" onclick="window.location='sazetak.html?id=${m.document_id}'">Vidi sažetak</button>
-        </div>
-      `).join('');
-      document.getElementById('stat-week').textContent = matches.length;
-      document.getElementById('stat-last-match').textContent = matches[0].matched_at;
+      allMatches = await res.json();
+      const list = document.getElementById('matches-body');
+      if (!list) return;
+      document.getElementById('stat-week').textContent = allMatches.length || '0';
+      document.getElementById('match-count').textContent = allMatches.length > 0 ? allMatches.length + ' ukupno' : '';
+      document.getElementById('stat-last-match').textContent = allMatches.length > 0 ? (allMatches[0].matched_at || '').split(' ')[0] || '—' : '—';
+      renderMatchesByKeyword(getFilteredMatches());
+      applyKwStats(allMatches);
+      renderActivityPanel();
     } catch(e) { console.error('Greška matchevi:', e); }
+  }
+
+  function classifyMatch(title) {
+    const t = (title || '').toLowerCase();
+    if (t.includes('zakon') && !t.includes('izmjen') && !t.includes('dopun')) return 'zakon';
+    if (t.includes('izmjen') || t.includes('dopun')) return 'izmjena';
+    if (t.includes('pravilnik') || t.includes('uredba') || t.includes('odluk') || t.includes('naredba')) return 'pravilnik';
+    return 'other';
+  }
+
+  function renderMatchesByKeyword(matches) {
+    const list = document.getElementById('matches-body');
+    if (!matches.length) {
+      list.innerHTML = '<div style="padding:16px"><div class="empty-msg">Još nema matcheva — pokreni tražilicu za prve rezultate.</div></div>';
+      return;
+    }
+
+    // Group all matches by keyword
+    const groups = {};
+    _kwGroupOrder = [];
+    matches.forEach(m => {
+      const kw = m.keyword || '—';
+      if (!groups[kw]) { groups[kw] = []; _kwGroupOrder.push(kw); }
+      groups[kw].push(m);
+    });
+
+    // ── Bar chart by document type ──
+    const typeCounts = { zakon: 0, izmjena: 0, pravilnik: 0, other: 0 };
+    matches.forEach(m => typeCounts[classifyMatch(m.document_title)]++);
+    const maxCount = Math.max(...Object.values(typeCounts), 1);
+    const typeRows = [
+      { key:'zakon',    label:'Zakoni',    color:'var(--green)' },
+      { key:'izmjena',  label:'Izmjene',   color:'var(--orange)' },
+      { key:'pravilnik',label:'Pravilnici',color:'var(--navy)' },
+      { key:'other',    label:'Ostalo',    color:'var(--muted)' },
+    ].filter(r => typeCounts[r.key] > 0);
+    let chartHtml = '<div class="match-chart">';
+    typeRows.forEach(r => {
+      const pct   = Math.round(typeCounts[r.key] / matches.length * 100);
+      const width = Math.round(typeCounts[r.key] / maxCount * 100);
+      chartHtml += `<div class="mc-row">
+        <div class="mc-label">${r.label}</div>
+        <div class="mc-bar-wrap"><div class="mc-bar" style="width:${width}%;background:${r.color}"></div></div>
+        <div class="mc-count">${typeCounts[r.key]} <span class="mc-pct">${pct}%</span></div>
+      </div>`;
+    });
+    chartHtml += '</div>';
+
+    // Active set (null = all)
+    const activeMatches = (_activeKw !== null && groups[_kwGroupOrder[_activeKw]])
+      ? groups[_kwGroupOrder[_activeKw]]
+      : matches;
+    const pageKey = _activeKw !== null ? 'kw_' + _activeKw : '__all__';
+    const page = kwPages[pageKey] || 1;
+    const totalPages = Math.ceil(activeMatches.length / KW_PER_PAGE);
+    const slice = activeMatches.slice((page - 1) * KW_PER_PAGE, page * KW_PER_PAGE);
+
+    // Filter tabs
+    let html = chartHtml + '<div class="match-tabs">';
+    html += `<div class="match-tab${_activeKw === null ? ' active' : ''}" onclick="setKwFilter(-1)">Svi <span class="match-tab-count">×${matches.length}</span></div>`;
+    _kwGroupOrder.forEach((kw, idx) => {
+      html += `<div class="match-tab${_activeKw === idx ? ' active' : ''}" onclick="setKwFilter(${idx})">${esc(kw)} <span class="match-tab-count">×${groups[kw].length}</span></div>`;
+    });
+    html += '</div>';
+
+    // Card grid
+    const accentMap  = { izmjena:'accent-izmjena', zakon:'accent-zakon', pravilnik:'accent-pravilnik', other:'accent-other' };
+    const badgeMap   = { izmjena:'badge-izmjena-c', zakon:'badge-zakon-c', pravilnik:'badge-pravilnik-c', other:'badge-other-c' };
+    const labelMap   = { izmjena:'Izmjena', zakon:'Zakon', pravilnik:'Pravilnik', other:'Propis' };
+
+    html += '<div class="match-cards">';
+    slice.forEach(m => {
+      const date = (m.matched_at || '').split(' ')[0];
+      const type  = classifyMatch(m.document_title);
+      html += `<div class="match-card" onclick="window.location='sazetak.html?id=${m.document_id}&kw=${encodeURIComponent(m.keyword)}'">
+        <div class="match-card-accent ${accentMap[type]}"></div>
+        <div class="match-card-inner">
+          <span class="match-card-badge ${badgeMap[type]}">${labelMap[type]}</span>
+          <div class="match-card-title" title="${esc(m.document_title)}">${esc(m.document_title)}</div>
+          <div class="match-card-meta">
+            <span class="match-card-date">${esc(date)}</span>
+            <span class="match-card-kw">${esc(m.keyword)}</span>
+            <span class="match-card-arrow">→</span>
+          </div>
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+
+    // Pagination — always show if more than one page
+    if (totalPages > 1) {
+      const from = (page - 1) * KW_PER_PAGE + 1;
+      const to   = Math.min(page * KW_PER_PAGE, activeMatches.length);
+      html += `<div class="match-pag-row">
+        <button class="match-pag-btn" onclick="matchGoPage(${page - 1})" ${page <= 1 ? 'disabled' : ''}>← Prethodna</button>
+        <span class="match-pag-info">Prikazano ${from}–${to} od ${activeMatches.length}</span>
+        <button class="match-pag-btn" onclick="matchGoPage(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>Sljedeća →</button>
+      </div>`;
+    }
+
+    list.innerHTML = html;
+  }
+
+  function setKwFilter(idx) {
+    _activeKw = idx === -1 ? null : idx;
+    const pageKey = _activeKw !== null ? 'kw_' + _activeKw : '__all__';
+    kwPages[pageKey] = 1;
+    renderMatchesByKeyword(allMatches);
+  }
+
+  function matchGoPage(page) {
+    const pageKey = _activeKw !== null ? 'kw_' + _activeKw : '__all__';
+    kwPages[pageKey] = page;
+    renderMatchesByKeyword(allMatches);
   }
 
   // ── LOAD ACTIVITY ─────────────────────────────────────────────────────────
@@ -513,48 +935,159 @@
       if (!res.ok) return;
       const activities = await res.json();
 
+      // Email kartica — samo email_sent eventi
       const emails = activities.filter(a => a.event_type === 'email_sent');
       const emailList = document.getElementById('email-list');
       if (emailList) {
         emailList.innerHTML = emails.length === 0
           ? '<div class="empty-msg">Još nema poslanih emailova — pokreni tražilicu za prve rezultate.</div>'
-          : emails.slice(0, 3).map(e => `
+          : emails.map(e => `
               <div class="email-row">
-                <div class="email-row-date">${e.timestamp.split(' ')[0]}</div>
+                <div class="email-row-date">${esc(e.timestamp.split(' ')[0])}</div>
                 <div class="email-row-content">
-                  <div class="email-row-title">${e.message.replace('Email poslan — ', '')}</div>
+                  <div class="email-row-title">${esc(e.message.replace('Email poslan — ', ''))}</div>
                   <div class="email-row-sub">Email notifikacija</div>
                 </div>
               </div>`).join('');
         document.getElementById('stat-emails').textContent = emails.length;
       }
 
-      const actList = document.getElementById('activity-list');
-      if (actList) {
-        actList.innerHTML = activities.length === 0
-          ? '<div class="empty-msg">Još nema aktivnosti.</div>'
-          : activities.map((a, i) => `
-              <div class="activity-item">
-                <div class="activity-dot-wrap">
-                  <div class="activity-dot ${a.color}"></div>
-                  ${i < activities.length - 1 ? '<div class="activity-line"></div>' : ''}
-                </div>
-                <div class="activity-body">
-                  <div class="activity-text">${a.message}</div>
-                  <div class="activity-time">${a.timestamp}</div>
-                </div>
-              </div>`).join('');
+      // Historija promjena situacije — ispod textarea
+      const sitChanges = activities.filter(a => a.event_type === 'situation_updated');
+      const histEl = document.getElementById('situation-history');
+      if (histEl) {
+        if (sitChanges.length) {
+          let h = '<div class="sit-history"><div class="sit-history-label">Prethodne promjene</div>';
+          sitChanges.slice(0, 5).forEach(s => {
+            const text = s.message.replace('Ažurirana situacija — ', '') || '(prazno)';
+            h += `<div class="sit-history-row">
+              <span class="sit-history-time">${esc(s.timestamp)}</span>
+              <span class="sit-history-text" title="${esc(text)}">${esc(text)}</span>
+            </div>`;
+          });
+          h += '</div>';
+          histEl.innerHTML = h;
+        } else {
+          histEl.innerHTML = '';
+        }
       }
     } catch(e) { console.error('Greška aktivnost:', e); }
+
+    // Aktivnost panel renderira se iz allMatches + allKeywords
+    renderActivityPanel();
+  }
+
+  // ── ACTIVITY PANEL ────────────────────────────────────────────────────────
+  function parseMatchDate(s) {
+    if (!s || s === '—') return null;
+    const m = s.match(/(\d{2})\.(\d{2})\.(\d{4})/);
+    return m ? new Date(+m[3], +m[2] - 1, +m[1]) : null;
+  }
+
+  function dayLabel(d) {
+    if (!d) return 'Starije';
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+    const weekAgo = new Date(today); weekAgo.setDate(today.getDate() - 7);
+    const t = new Date(d); t.setHours(0, 0, 0, 0);
+    if (t.getTime() === today.getTime()) return 'Danas';
+    if (t.getTime() === yesterday.getTime()) return 'Jučer';
+    if (t >= weekAgo) return 'Ovaj tjedan';
+    return 'Starije';
+  }
+
+  function docTypeFromTitle(title) {
+    const t = (title || '').toLowerCase();
+    if (/^zakon/.test(t))      return { label: 'ZAKON',      cls: 'zakon' };
+    if (/^uredba/.test(t))     return { label: 'UREDBA',     cls: 'uredba' };
+    if (/^pravilnik/.test(t))  return { label: 'PRAVILNIK',  cls: 'pravilnik' };
+    if (/^odluka/.test(t))     return { label: 'ODLUKA',     cls: 'pravilnik' };
+    if (/^naredba/.test(t))    return { label: 'NAREDBA',    cls: 'other' };
+    if (/^rješenje/.test(t))   return { label: 'RJEŠENJE',   cls: 'other' };
+    if (/^obavijest/.test(t))  return { label: 'OBAVIJEST',  cls: 'other' };
+    return { label: 'DOKUMENT', cls: 'other' };
+  }
+
+  function renderActivityPanel() {
+    // ── Gornji dio: status svake ključne riječi ──
+    const kwSection = document.getElementById('kw-status-section');
+    if (kwSection) {
+      if (!allKeywords.length) {
+        kwSection.innerHTML = '';
+      } else {
+        const stats = {};
+        allKeywords.forEach(kw => { stats[kw.keyword] = { count: 0, lastDate: null }; });
+        allMatches.forEach(m => {
+          const kw = m.keyword;
+          if (!stats[kw]) return;
+          stats[kw].count++;
+          const d = parseMatchDate(m.matched_at);
+          if (!stats[kw].lastDate || (d && d > stats[kw].lastDate)) stats[kw].lastDate = d;
+        });
+
+        let html = '<div class="act-section-label">Status praćenja</div><div class="kw-status-list">';
+        allKeywords.forEach(kw => {
+          const s = stats[kw.keyword] || { count: 0, lastDate: null };
+          const inactive = s.count === 0;
+          const dateStr = s.lastDate
+            ? s.lastDate.toLocaleDateString('hr', { day: '2-digit', month: '2-digit' })
+            : '—';
+          html += `<div class="kw-status-row">
+            <span class="kw-status-name${inactive ? ' inactive' : ''}" title="${esc(kw.keyword)}">${esc(kw.keyword)}</span>
+            <span class="kw-status-date">${dateStr}</span>
+            <span class="kw-status-count${s.count === 0 ? ' zero' : ''}">${s.count}</span>
+          </div>`;
+        });
+        html += '</div><div class="act-divider"></div>';
+        kwSection.innerHTML = html;
+      }
+    }
+
+    // ── Donji dio: feed po danu ──
+    const feedEl = document.getElementById('activity-list');
+    if (!feedEl) return;
+
+    if (!allMatches.length) {
+      feedEl.innerHTML = '<div class="empty-msg">Još nema aktivnosti — pokreni tražilicu.</div>';
+      return;
+    }
+
+    const days = {};
+    const DAY_ORDER = ['Danas', 'Jučer', 'Ovaj tjedan', 'Starije'];
+    allMatches.slice(0, 50).forEach(m => {
+      const label = dayLabel(parseMatchDate(m.matched_at));
+      if (!days[label]) days[label] = [];
+      days[label].push(m);
+    });
+
+    let html = '<div class="act-section-label">Nedavne novosti</div>';
+    let anyDay = false;
+    DAY_ORDER.forEach(dl => {
+      if (!days[dl]) return;
+      anyDay = true;
+      html += `<div class="feed-day-label">${dl}</div>`;
+      days[dl].forEach(m => {
+        const type = docTypeFromTitle(m.document_title);
+        html += `<div class="feed-item" onclick="window.location='sazetak.html?id=${esc(m.document_id)}&kw=${encodeURIComponent(m.keyword)}'">
+          <span class="feed-type-badge feed-type-${type.cls}">${type.label}</span>
+          <div class="feed-body">
+            <div class="feed-title" title="${esc(m.document_title)}">${esc(m.document_title)}</div>
+            <div class="feed-kw">${esc(m.keyword)}</div>
+          </div>
+        </div>`;
+      });
+    });
+    if (!anyDay) html += '<div class="empty-msg">Još nema aktivnosti.</div>';
+    feedEl.innerHTML = html;
   }
 
   // ── PROGRESS BAR ──────────────────────────────────────────────────────────
   const SCRAPER_STEPS = [
-    { pct: 10, msg: 'Spajanje na Narodne novine...', step: 'Korak 1/5' },
-    { pct: 25, msg: 'Dohvat popisa novih dokumenata...', step: 'Korak 2/5' },
-    { pct: 50, msg: 'Analiza dokumenata...', step: 'Korak 3/5' },
-    { pct: 72, msg: 'Provjera ključnih riječi...', step: 'Korak 4/5' },
-    { pct: 90, msg: 'Slanje notifikacija...', step: 'Korak 5/5' },
+    { pct: 10, msg: 'Pokretanje skeniranja arhive...', step: 'Korak 1/5' },
+    { pct: 25, msg: 'Pretraživanje baze dokumenata...', step: 'Korak 2/5' },
+    { pct: 50, msg: 'Uspoređivanje s ključnim riječima...', step: 'Korak 3/5' },
+    { pct: 72, msg: 'Bilježenje pronalazaka...', step: 'Korak 4/5' },
+    { pct: 90, msg: 'Završna provjera...', step: 'Korak 5/5' },
   ];
 
   let scraperPolling = null;
@@ -626,17 +1159,19 @@
     }, 8000);
 
     try {
-      const res = await fetch(API + '/admin/trigger-scraper', {
+      const res = await fetch(API + '/admin/trigger-user-scan', {
         method: 'POST', headers: authHeaders()
       });
 
       if (res.ok) {
-        // Osvježi podatke nakon 30 sekundi
+        // Osvježi matcheve u više navrata — skeniranje može trajati dulje
+        setTimeout(() => { loadMatches(); }, 10000);
+        setTimeout(() => { loadMatches(); }, 30000);
         setTimeout(() => {
           loadActivity();
           loadMatches();
           finishScraperPanel(true);
-        }, 30000);
+        }, 60000);
       } else {
         finishScraperPanel(false);
       }
@@ -650,12 +1185,250 @@
     }
   }
 
+  // ── ZADNJI BROJ NN ────────────────────────────────────────────────────────
+  async function loadLatestIssue(retries) {
+    if (retries === undefined) retries = 3;
+    try {
+      const res = await fetch(API + '/search/latest-issue', { headers: authHeaders() });
+      if (!res.ok) throw new Error('status ' + res.status);
+      const data = await res.json();
+      const el = document.getElementById('db-latest-issue');
+      const count = data.total_docs ? data.total_docs.toLocaleString('hr') + ' dokumenata' : '';
+      if (data.label) {
+        el.textContent = data.label + (count ? ' · ' + count : '');
+      } else if (count) {
+        el.textContent = count + ' u bazi';
+      } else {
+        el.textContent = 'Baza se puni...';
+      }
+      // Staleness indicator
+      const dot   = document.getElementById('db-freshness-dot');
+      const label = document.getElementById('db-freshness-label');
+      if (data.published_date) {
+        const pub  = new Date(data.published_date);
+        const now  = new Date();
+        const days = Math.floor((now - pub) / 86400000);
+        if (days <= 1) {
+          dot.className = 'db-statusbar-dot';
+          label.className = 'db-freshness ok';
+          label.textContent = days === 0 ? '· ažurirano danas' : '· ažurirano jučer';
+        } else if (days <= 4) {
+          dot.className = 'db-statusbar-dot stale';
+          label.className = 'db-freshness stale';
+          label.textContent = `· zadnje ažuriranje: ${pub.getDate()}.${pub.getMonth()+1}.`;
+        } else {
+          dot.className = 'db-statusbar-dot old';
+          label.className = 'db-freshness stale';
+          label.textContent = `· nema ažuriranja od ${pub.getDate()}.${pub.getMonth()+1}.`;
+        }
+      }
+    } catch(e) {
+      if (retries > 0) {
+        setTimeout(() => loadLatestIssue(retries - 1), 20000);
+      } else {
+        document.getElementById('db-latest-issue').textContent = 'Nije dostupno';
+      }
+    }
+  }
+
+  // ── PERIOD FILTER ─────────────────────────────────────────────────────────
+  let _matchPeriod = 'all';
+
+  function parseMatchDate(str) {
+    const p = (str || '').split('.').filter(Boolean);
+    return p.length >= 3 ? new Date(+p[2], +p[1] - 1, +p[0]) : null;
+  }
+
+  function getFilteredMatches() {
+    if (_matchPeriod === 'all') return allMatches;
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - (_matchPeriod === 'week' ? 7 : 30));
+    cutoff.setHours(0, 0, 0, 0);
+    return allMatches.filter(m => { const d = parseMatchDate(m.matched_at); return d && d >= cutoff; });
+  }
+
+  function setMatchPeriod(period) {
+    _matchPeriod = period;
+    ['all','month','week'].forEach(p => {
+      const b = document.getElementById('mpf-' + p);
+      if (b) b.classList.toggle('active', p === period);
+    });
+    const filtered = getFilteredMatches();
+    const cnt = document.getElementById('mpf-count');
+    if (cnt) cnt.textContent = filtered.length < allMatches.length ? filtered.length + ' od ' + allMatches.length : '';
+    renderMatchesByKeyword(filtered);
+  }
+
+  // ── PRETRAGA ARHIVE ────────────────────────────────────────────────────────
+  let _dashSearchPage = 1;
+
+  async function dashSearch(page) {
+    const q = document.getElementById('dash-search-q').value.trim();
+    if (!q) return;
+    _dashSearchPage = page;
+    const resultsEl = document.getElementById('dash-search-results');
+    const pagEl     = document.getElementById('dash-search-pag');
+    resultsEl.innerHTML = '<div class="empty-msg">Pretraživanje...</div>';
+    pagEl.innerHTML = '';
+
+    try {
+      const res = await fetch(
+        API + '/search/?q=' + encodeURIComponent(q) + '&per_page=10&page=' + page,
+        { headers: authHeaders() }
+      );
+      if (!res.ok) {
+        resultsEl.innerHTML = '<div class="empty-msg">Greška pri pretrazi.</div>';
+        return;
+      }
+      const data = await res.json();
+      if (!data.results || !data.results.length) {
+        resultsEl.innerHTML = '<div class="empty-msg">Nema rezultata za "' + esc(q) + '".</div>';
+        return;
+      }
+
+      resultsEl.innerHTML = data.results.map(doc => `
+        <div class="search-result">
+          <div>
+            <div class="search-result-title">${esc(doc.title)}</div>
+            <div class="search-result-meta">
+              ${doc.institution ? esc(doc.institution) + ' · ' : ''}
+              ${doc.published_date ? esc(doc.published_date) : ''}
+              ${doc.issue_number ? ' · NN ' + doc.issue_number : ''}
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;flex-shrink:0;">
+            ${doc.type ? '<span class="search-result-badge">' + esc(doc.type) + '</span>' : ''}
+            <button class="btn-search-view" onclick="window.location='sazetak.html?id=${doc.id}'">Vidi →</button>
+          </div>
+        </div>
+      `).join('');
+
+      const totalPages = Math.ceil(data.total / 10);
+      if (totalPages > 1) {
+        let h = '<div class="pagination" style="margin-top:10px;">';
+        const start = Math.max(1, page - 2);
+        const end   = Math.min(totalPages, start + 4);
+        if (start > 1) h += '<button class="pag-btn" onclick="dashSearch(1)">1</button><span class="pag-ellipsis">…</span>';
+        for (let i = start; i <= end; i++) {
+          h += '<button class="pag-btn' + (i === page ? ' active' : '') + '" onclick="dashSearch(' + i + ')">' + i + '</button>';
+        }
+        if (end < totalPages) h += '<span class="pag-ellipsis">…</span><button class="pag-btn" onclick="dashSearch(' + totalPages + ')">' + totalPages + '</button>';
+        h += '<span style="font-size:calc(11px * var(--font-scale));color:var(--muted);margin-left:8px;">' + data.total + ' ukupno</span></div>';
+        pagEl.innerHTML = h;
+      }
+    } catch(e) {
+      resultsEl.innerHTML = '<div class="empty-msg">Greška pri pretrazi.</div>';
+    }
+  }
+
+  // ── STATISTIKE PO KLJUČNOJ RIJEČI ─────────────────────────────────────────
+  function applyKwStats(matches) {
+    // Grupiraj matcheve po ključnoj riječi
+    const stats = {};
+    for (const m of matches) {
+      if (!stats[m.keyword]) stats[m.keyword] = { count: 0, last: null };
+      stats[m.keyword].count++;
+      if (!stats[m.keyword].last) stats[m.keyword].last = m.matched_at;
+    }
+    document.querySelectorAll('.tag[data-kwname]').forEach(tag => {
+      const kw = tag.dataset.kwname;
+      const stat = stats[kw];
+      const el = document.getElementById('kw-stat-' + encodeURIComponent(kw));
+      if (!el) return;
+      if (stat && stat.count > 0) {
+        el.textContent = stat.count;
+        el.className = 'kw-stat';
+        el.title = `Zadnji: ${stat.last}`;
+      } else {
+        el.textContent = '0';
+        el.className = 'kw-stat zero';
+      }
+    });
+  }
+
+  // ── AI PRIJEDLOG KLJUČNIH RIJEČI ──────────────────────────────────────────
+  async function suggestKeywords() {
+    const btn = document.getElementById('btn-suggest');
+    const chips = document.getElementById('suggest-chips');
+    btn.disabled = true;
+    btn.textContent = '⟳ Generira prijedloge...';
+    chips.style.display = 'none';
+    chips.innerHTML = '';
+    try {
+      const res = await fetch(API + '/keywords/suggest', { headers: authHeaders() });
+      if (!res.ok) { showToast('Greška pri generiranju prijedloga'); return; }
+      const data = await res.json();
+      if (!data.suggestions || !data.suggestions.length) {
+        showToast('Nema prijedloga — dodajte opis situacije');
+        return;
+      }
+      chips.innerHTML = data.suggestions.map(s =>
+        `<div class="suggest-chip" onclick="addSuggested(this,'${s.replace(/'/g,"\\'")}')">+ ${esc(s)}</div>`
+      ).join('');
+      chips.style.display = 'flex';
+    } catch(e) {
+      showToast('AI nije dostupan');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '◈ Predloži ključne riječi na temelju situacije';
+    }
+  }
+
+  async function addSuggested(el, keyword) {
+    const current = document.querySelectorAll('.tag').length;
+    try {
+      const userRes = await fetch(API + '/auth/me', { headers: authHeaders() });
+      const user = await userRes.json();
+      if (current >= user.keyword_limit) {
+        showToast('Dostigli ste limit od ' + user.keyword_limit + ' ključnih riječi');
+        return;
+      }
+      const res = await fetch(API + '/keywords/', {
+        method: 'POST', headers: authHeaders(),
+        body: JSON.stringify({ keyword: keyword, doc_type_filter: null, institution_filter: null, part_filter: null })
+      });
+      if (!res.ok) { showToast('Greška pri dodavanju'); return; }
+      const kw = await res.json();
+      const tag = document.createElement('div');
+      tag.className = 'tag active';
+      tag.dataset.kwname = kw.keyword;
+      tag.innerHTML = kw.keyword + ' <span class="tag-remove">×</span><span class="kw-stat zero" id="kw-stat-' + encodeURIComponent(kw.keyword) + '"></span>';
+      tag.onclick = function() { deleteKeyword(kw.id, tag); };
+      document.getElementById('tag-list').appendChild(tag);
+      updateKwCount();
+      el.remove();
+      showToast('Dodana ključna riječ: ' + keyword);
+    } catch(e) { showToast('Greška pri dodavanju'); }
+  }
+
+  // ── TJEDNI DIGEST ─────────────────────────────────────────────────────────
+  async function loadDigestStatus() {
+    try {
+      const res = await fetch(API + '/keywords/digest-status', { headers: authHeaders() });
+      if (!res.ok) return;
+      const data = await res.json();
+      const cb = document.getElementById('digest-toggle');
+      if (cb) cb.checked = data.enabled;
+    } catch(e) {}
+  }
+
+  async function toggleDigest() {
+    try {
+      const res = await fetch(API + '/keywords/digest-toggle', { method: 'POST', headers: authHeaders() });
+      if (!res.ok) { showToast('Greška pri promjeni postavke'); return; }
+      const data = await res.json();
+      showToast(data.enabled ? 'Tjedni sažetak uključen' : 'Tjedni sažetak isključen');
+    } catch(e) { showToast('Greška'); }
+  }
+
   // ── INIT ──────────────────────────────────────────────────────────────────
   async function init() {
     await loadUser();
+    loadLatestIssue();
     await loadKeywords();
     await loadMatches();
     await loadActivity();
+    loadDigestStatus();
   }
 
   init();

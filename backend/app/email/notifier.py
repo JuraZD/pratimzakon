@@ -20,6 +20,43 @@ SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 FROM_EMAIL = os.getenv("FROM_EMAIL", SMTP_USERNAME)
 FROM_NAME = os.getenv("FROM_NAME", "PratimZakon")
 
+# ── JEDNOSTAVNO STEMMANJE ZA HRVATSKI ─────────────────────────────────────────
+_HR_SUFFIXES = sorted(
+    [
+        "icama", "stvima", "stvima",
+        "stvo", "stva", "stvu", "stvom",
+        "nika", "nice", "nici", "niku",
+        "ama", "ima", "ski", "ska", "sko",
+        "ni", "na", "no", "ne",
+        "om", "og",
+        "a", "e", "i", "o", "u",
+    ],
+    key=len,
+    reverse=True,
+)
+_MIN_STEM_LEN = 4
+_MIN_KW_LEN   = 6
+
+
+def _stem_keyword(keyword: str) -> str:
+    """
+    Jednostavni stemmer za hrvatski jezik.
+    Uklanja tipični nastavak samo za riječi dulje od _MIN_KW_LEN znakova.
+    Primjeri:
+      'poljoprivreda' → 'poljoprivred'
+      'zdravstvo'     → 'zdravstv'
+      'osiguranje'    → 'osiguranJ' wait... 'osiguranj'
+      'porez'         → 'porez'   (≤5 znakova, bez promjene)
+      'PDV'           → 'PDV'     (≤5 znakova, bez promjene)
+    """
+    kw = keyword.strip().lower()
+    if len(kw) <= _MIN_KW_LEN:
+        return kw
+    for suffix in _HR_SUFFIXES:
+        if kw.endswith(suffix) and (len(kw) - len(suffix)) >= _MIN_STEM_LEN:
+            return kw[: -len(suffix)]
+    return kw
+
 
 def _send_smtp(to_email: str, subject: str, html_body: str, text_body: str) -> bool:
     """Šalje email putem SMTP-a. Vraća True ako je uspješno."""
@@ -44,10 +81,12 @@ def _send_smtp(to_email: str, subject: str, html_body: str, text_body: str) -> b
 def _keyword_matches_document(kw_obj, doc) -> bool:
     """
     Provjerava odgovara li keyword filtrima za dani dokument.
+    Koristi stem ključne riječi — 'poljoprivreda' pronalazi i
+    'poljoprivrednik', 'poljoprivredno' itd.
     Ako filter nije postavljen (None), prolazi sve.
     """
-    # Provjera teksta
-    if kw_obj.keyword.lower() not in doc.title.lower():
+    stem = _stem_keyword(kw_obj.keyword)
+    if stem not in doc.title.lower():
         return False
 
     # Filter po dijelu (SL/MU)
@@ -215,6 +254,93 @@ def _build_email(user, matches: List[Dict], show_pdf: bool = False) -> tuple[str
 </html>"""
 
     return html, plain
+
+
+def scan_documents_for_user(user_id: int, db: Session) -> int:
+    """
+    Skenira SVE dokumente u bazi za ključne riječi jednog korisnika.
+    Koristi SQL ILIKE pretragu — brzo i efikasno za velike baze.
+    Sprema keyword_match logove bez slanja emaila.
+    Preskače već postojeće matcheve (ne duplikira).
+    Vraća broj novih podudaranja.
+    """
+    from app.models import User, Document, Log
+
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        logging.warning(f"scan_documents_for_user: korisnik {user_id} nije pronađen")
+        return 0
+
+    # Eagerly učitaj keywords unutar iste sesije
+    keywords = list(user.keywords)
+    if not keywords:
+        logging.info(f"scan_documents_for_user({user_id}): nema ključnih riječi")
+        return 0
+
+    # Dohvati skup (kw_text, doc_id) koji već postoje — izbjegni duplikate
+    existing_rows = (
+        db.query(Log.detail)
+        .filter(Log.user_id == user_id, Log.event_type == "keyword_match")
+        .all()
+    )
+    # Izvuci (keyword, doc_id) parove iz detalja
+    existing_pairs: set = set()
+    for (detail,) in existing_rows:
+        if not detail:
+            continue
+        parts = dict(p.split(":", 1) for p in detail.split("|") if ":" in p)
+        kw_text = parts.get("keyword", "")
+        doc_id = parts.get("doc_id", "")
+        if kw_text and doc_id:
+            existing_pairs.add((kw_text.lower(), doc_id))
+
+    new_count = 0
+
+    for kw in keywords:
+        # Stem ključne riječi za pretragu: 'poljoprivreda' → 'poljoprivred'
+        search_term = _stem_keyword(kw.keyword)
+        # SQL ILIKE — baza pretražuje, ne Python
+        query = db.query(Document).filter(Document.title.ilike(f"%{search_term}%"))
+
+        if kw.part_filter:
+            query = query.filter(Document.part == kw.part_filter.upper())
+
+        if kw.doc_type_filter:
+            from sqlalchemy import or_ as sql_or
+            types = [t.strip().upper() for t in kw.doc_type_filter.split(",")]
+            query = query.filter(sql_or(*[Document.type.ilike(t) for t in types]))
+
+        if kw.institution_filter:
+            query = query.filter(
+                Document.institution.ilike(f"%{kw.institution_filter}%")
+            )
+
+        docs = query.all()
+        logging.info(
+            f"scan_documents_for_user({user_id}): keyword='{kw.keyword}' "
+            f"→ {len(docs)} dokumenata u bazi"
+        )
+
+        for doc in docs:
+            pair = (kw.keyword.lower(), str(doc.id))
+            if pair in existing_pairs:
+                continue
+            detail = f"keyword:{kw.keyword}|doc_id:{doc.id}|title:{doc.title[:100]}"
+            db.add(
+                Log(
+                    event_type="keyword_match",
+                    user_id=user_id,
+                    detail=detail,
+                )
+            )
+            existing_pairs.add(pair)
+            new_count += 1
+
+    if new_count > 0:
+        db.commit()
+
+    logging.info(f"scan_documents_for_user({user_id}): {new_count} novih podudaranja ukupno")
+    return new_count
 
 
 def send_keyword_notifications(

@@ -68,7 +68,7 @@
   /* ─── SIDEBAR ─── */
   .sidebar { background: var(--card-head); display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; }
 
-  .logo { padding: 22px 22px 20px; font-family: var(--font-display); font-weight: 800; font-size: 22px; letter-spacing: 1px; text-transform: uppercase; color: var(--cream2); border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; }
+  .logo { padding: 21px; font-family: var(--font-display); font-weight: 800; font-size: 22px; letter-spacing: 1px; text-transform: uppercase; color: var(--cream2); border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; align-items: center; }
 
   html.dark .logo { color: #d0daf0; }
 
@@ -76,11 +76,11 @@
 
   .logo-dot { width: 7px; height: 7px; background: var(--orange2); border-radius: 50%; margin-left: 7px; animation: blink 2.5s ease-in-out infinite; }
 
-  .nav { flex: 1; padding: 14px 0; }
+  .nav { flex: 1; padding: 13px 0; }
 
-  .nav-section-label { padding: 10px 22px 6px; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(232,228,218,0.3); }
+  .nav-section-label { padding: 8px 21px 5px; font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(232,228,218,0.3); }
 
-  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 22px; cursor: pointer; transition: background 0.15s; color: rgba(232,228,218,0.55); font-size: 13.5px; font-weight: 500; position: relative; }
+  .nav-item { display: flex; align-items: center; gap: 8px; padding: 8px 21px; cursor: pointer; transition: background 0.15s; color: rgba(232,228,218,0.55); font-size: 13.5px; font-weight: 500; position: relative; }
 
   .nav-item:hover { background: rgba(255,255,255,0.06); color: rgba(232,228,218,0.9); }
 
@@ -90,9 +90,9 @@
 
   .nav-icon { font-size: 13px; width: 16px; text-align: center; }
 
-  .nav-divider { height:1px; background:rgba(255,255,255,0.07); margin:10px 22px; }
+  .nav-divider { height:1px; background:rgba(255,255,255,0.07); margin:8px 21px; }
 
-  .user-card { padding: 16px 22px; border-top: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.15); }
+  .user-card { padding: 13px 21px; border-top: 1px solid rgba(255,255,255,0.08); background: rgba(0,0,0,0.15); }
 
   .user-name { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: rgba(232,228,218,0.9); letter-spacing: 0.5px; margin-bottom: 2px; }
 
@@ -104,7 +104,7 @@
   .main { display: flex; flex-direction: column; min-height: 100vh; overflow: hidden; }
 
   /* ─── TOPBAR ─── */
-  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 36px 12px; background: var(--surface); border-bottom: 2px solid var(--navy); position: sticky; top: 0; z-index: 10; flex-shrink: 0; }
+  .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px 12px; background: var(--surface); border-bottom: 2px solid var(--navy); position: sticky; top: 0; z-index: 10; flex-shrink: 0; }
 
   .topbar-left { display: flex; align-items: center; gap: 14px; }
 
@@ -242,6 +242,9 @@
 
   .action-btn:last-child { margin-bottom: 0; }
 
+  .archive-viewlink { display:block; text-align:center; font-size:12px; color:var(--muted); margin-top:8px; text-decoration:none; transition:color 0.15s; }
+  .archive-viewlink:hover { color:var(--navy); text-decoration:underline; }
+
   .action-btn:hover { background: var(--navy); color: var(--surface); border-color: var(--navy); }
 
   .action-btn.primary { background: var(--orange); border-color: var(--orange); color: var(--white); }
@@ -271,6 +274,34 @@
   /* ─── SCROLLBAR ─── */
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
+
+  /* ─── MOBILE HAMBURGER ─── */
+  .mob-hamburger { display: none; align-items: center; justify-content: center; width: 36px; height: 36px; background: var(--surface2); border: 1.5px solid var(--border-strong); border-radius: var(--radius); color: var(--text); font-size: 20px; cursor: pointer; transition: all 0.15s; flex-shrink: 0; }
+  .mob-hamburger:hover { background: var(--navy); color: var(--surface); border-color: var(--navy); }
+  .mob-drawer-overlay { display: none; position: fixed; inset: 0; z-index: 300; }
+  .mob-drawer-overlay.open { display: block; }
+  .mob-drawer-bg { position: absolute; inset: 0; background: rgba(0,0,0,0.55); }
+  .mob-drawer { position: absolute; left: 0; top: 0; bottom: 0; width: 260px; background: var(--card-head); display: flex; flex-direction: column; overflow: hidden; transform: translateX(-100%); transition: transform 0.25s cubic-bezier(0.4,0,0.2,1); }
+  .mob-drawer-overlay.open .mob-drawer { transform: translateX(0); }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 768px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .main { overflow: visible; min-height: 100vh; }
+    .topbar { padding: 10px 14px; }
+    .topbar-crumb { display: none; }
+    .mob-hamburger { display: flex; }
+    .content { padding: 18px 14px 40px; }
+    .layout { grid-template-columns: 1fr; }
+    .sidebar-stack { margin-top: 0; }
+    .doc-title { font-size: 24px; }
+  }
+  @media (max-width: 400px) {
+    .topbar { padding: 8px 12px; }
+    .content { padding: 14px 12px 32px; }
+    .doc-title { font-size: 20px; }
+  }
 </style>
 </head>
 <body>
@@ -282,9 +313,8 @@
     <nav class="nav">
       <div class="nav-section-label">Glavni izbornik</div>
       <div class="nav-item" onclick="window.location='dashboard.html'"><span class="nav-icon">◈</span> Dashboard</div>
-      <div class="nav-item" onclick="window.location='moje-pracenje.html'"><span class="nav-icon">◉</span> Moje praćenje</div>
-      <div class="nav-item active"><span class="nav-icon">◇</span> Matchevi</div>
-      <div class="nav-item"><span class="nav-icon">◎</span> Email arhiva</div>
+      <div class="nav-item active"><span class="nav-icon">◇</span> Sažetak zakona</div>
+      <div class="nav-item" onclick="window.location='arhiva.html'"><span class="nav-icon">◫</span> Moja arhiva</div>
       <div class="nav-divider"></div>
       <div class="nav-section-label">Račun</div>
       <div class="nav-item"><span class="nav-icon">○</span> Postavke</div>
@@ -302,6 +332,7 @@
 
     <!-- TOPBAR -->
     <div class="topbar">
+      <button class="mob-hamburger" onclick="openMobNav()" aria-label="Izbornik">☰</button>
       <div class="topbar-left">
         <a class="btn-back" href="dashboard.html">← Natrag</a>
         <div class="topbar-crumb">Matchevi <span>/ Sažetak zakona</span></div>
@@ -316,18 +347,14 @@
 
       <!-- DOC HEADER -->
       <div class="doc-header">
-        <div class="doc-meta">
-          <span class="doc-badge badge-izmjena">Izmjena propisa</span>
-          <span class="doc-nn">NN 18/2026</span>
-          <span class="doc-date">02. travnja 2026.</span>
+        <div class="doc-meta" id="doc-meta">
+          <span style="color:var(--muted);font-size:13px;">⟳ Učitavam podatke...</span>
         </div>
 
-        <div class="doc-title">Pravilnik o izmjeni Pravilnika o porezu na dohodak od samostalne djelatnosti</div>
+        <div class="doc-title" id="doc-title" style="color:var(--muted);font-size:22px;font-weight:400;">Učitavam dokument...</div>
 
-        <div class="doc-kw-row">
+        <div class="doc-kw-row" id="doc-kw-row" style="display:none;">
           <span class="doc-kw-label">Pronađeno po ključnoj riječi:</span>
-          <span class="doc-kw-tag">porez</span>
-          <span class="doc-kw-tag">PDV</span>
         </div>
       </div>
 
@@ -344,42 +371,13 @@
           </div>
           <div class="summary-body">
 
-            <div class="situation-context">
+            <div class="situation-context" id="situation-context" style="display:none;">
               <div class="situation-context-icon">◎</div>
-              <div class="situation-context-text">
-                Sažetak je prilagođen vašoj situaciji: <strong>restoran, 5 zaposlenika, Zagreb, obveznik PDV-a, obrt od 2019.</strong>
-              </div>
+              <div class="situation-context-text" id="situation-context-text"></div>
             </div>
 
-            <div class="summary-text">
-              <p>Ovaj pravilnik mijenja način utvrđivanja porezne osnovice za obrtnike koji vode poslovne knjige. Konkretno za vas kao ugostitelja — <strong>uvode se novi pragovi za paušalno oporezivanje</strong> koji se povećavaju s 300.000 na 400.000 kuna godišnjeg prihoda, što znači da imate šire mogućnosti za odabir načina oporezivanja.</p>
-              <p>Budući da ste obveznik PDV-a od 2019. i imate 5 zaposlenika, ove izmjene vas <strong>izravno dotiču u dijelu koji se odnosi na obrasce za prijavu dohotka</strong>. Od 1. srpnja 2026. koristit ćete novi obrazac DOH-Z/N umjesto dosadašnjeg DOH-Z.</p>
-              <p>Za vaš obrt nema obveze retroaktivnih ispravaka — izmjena se primjenjuje <strong>isključivo na prihode ostvarene od 1. srpnja 2026. nadalje.</strong></p>
-            </div>
-
-            <div class="key-points">
-              <div class="key-points-title">Što trebate znati</div>
-              <div class="key-point">
-                <div class="key-point-dot"></div>
-                <div class="key-point-text">Novi obrazac DOH-Z/N obvezan od 1. srpnja 2026. — zamijenite stari DOH-Z</div>
-              </div>
-              <div class="key-point">
-                <div class="key-point-dot"></div>
-                <div class="key-point-text">Prag za paušal raste na 400.000 kn — nije relevantno za vas jer ste PDV obveznik, ali bitno za eventualno restrukturiranje</div>
-              </div>
-              <div class="key-point">
-                <div class="key-point-dot"></div>
-                <div class="key-point-text">Nema retroaktivnih izmjena — svi prihodi do 30.6.2026. se prijavljuju po starom obrascu</div>
-              </div>
-              <div class="key-point">
-                <div class="key-point-dot"></div>
-                <div class="key-point-text">Rok za predaju novog obrasca DOH-Z/N je 28. veljače 2027. za prihode iz 2026.</div>
-              </div>
-            </div>
-
-            <div class="amendment-box">
-              <div class="amendment-box-title">⚠ Izmjena postojećeg propisa</div>
-              <div class="amendment-box-text">Ovaj dokument mijenja Pravilnik o porezu na dohodak od samostalne djelatnosti (NN 132/2022). Za cjeloviti tekst originalnog propisa posjetite Zakon.hr.</div>
+            <div class="summary-text" id="summary-text">
+              <p style="color:var(--muted)">⟳ Generiram personalizirani sažetak...</p>
             </div>
 
           </div>
@@ -396,23 +394,19 @@
             <div class="side-card-body">
               <div class="info-row">
                 <div class="info-label">NN broj</div>
-                <div class="info-value">18/2026</div>
+                <div class="info-value" id="info-nn">—</div>
               </div>
               <div class="info-row">
                 <div class="info-label">Datum objave</div>
-                <div class="info-value">02.04.2026.</div>
+                <div class="info-value" id="info-date">—</div>
               </div>
               <div class="info-row">
                 <div class="info-label">Tip dokumenta</div>
-                <div class="info-value">Pravilnik — izmjena</div>
+                <div class="info-value" id="info-type">—</div>
               </div>
               <div class="info-row">
                 <div class="info-label">Donijelo</div>
-                <div class="info-value">Ministarstvo financija</div>
-              </div>
-              <div class="info-row">
-                <div class="info-label">Na snazi od</div>
-                <div class="info-value">01.07.2026.</div>
+                <div class="info-value" id="info-institution">—</div>
               </div>
             </div>
           </div>
@@ -423,52 +417,47 @@
               <div class="side-card-title">Akcije</div>
             </div>
             <div class="side-card-body">
-              <button class="action-btn primary" id = "btn-email-action"></button>                <span>Pošalji na email</span>
+              <button class="action-btn primary" id="btn-email-action">
+                <span>Pošalji na email</span>
                 <span class="action-btn-icon">→</span>
               </button>
               <button class="action-btn" onclick="openNN()">
                 <span>Puni tekst na NN.hr</span>
                 <span class="action-btn-icon">↗</span>
               </button>
-              <button class="action-btn" onclick="showToast('Dokument dodan u arhivu')">
-                <span>Spremi u arhivu</span>
-                <span class="action-btn-icon">◎</span>
+              <button class="action-btn" id="btn-archive" onclick="toggleArchive()">
+                <span id="btn-archive-label">Spremi u arhivu</span>
+                <span class="action-btn-icon" id="btn-archive-icon">◎</span>
               </button>
-            </div>
-          </div>
-
-          <!-- Related docs -->
-          <div class="side-card">
-            <div class="side-card-head">
-              <div class="side-card-title">Povezani propisi</div>
-            </div>
-            <div class="side-card-body">
-              <div class="related-doc">
-                <div class="related-doc-dot"></div>
-                <div>
-                  <div class="related-doc-title">Zakon o porezu na dohodak — pročišćeni tekst</div>
-                  <div class="related-doc-date">NN 115/2016 · Porez</div>
-                </div>
-              </div>
-              <div class="related-doc">
-                <div class="related-doc-dot"></div>
-                <div>
-                  <div class="related-doc-title">Pravilnik o porezu na dohodak — original</div>
-                  <div class="related-doc-date">NN 132/2022 · Porez</div>
-                </div>
-              </div>
-              <div class="related-doc">
-                <div class="related-doc-dot"></div>
-                <div>
-                  <div class="related-doc-title">Izmjena Zakona o PDV-u NN 21/2026</div>
-                  <div class="related-doc-date">NN 21/2026 · PDV</div>
-                </div>
-              </div>
+              <a class="archive-viewlink" href="arhiva.html">Pogledaj moju arhivu →</a>
             </div>
           </div>
 
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- MOBILE NAVIGATION DRAWER -->
+<div class="mob-drawer-overlay" id="mob-drawer-overlay">
+  <div class="mob-drawer-bg" onclick="closeMobNav()"></div>
+  <div class="mob-drawer">
+    <div class="logo">PRATIM<span class="logo-accent">ZAKON</span><div class="logo-dot"></div></div>
+    <nav class="nav">
+      <div class="nav-section-label">Glavni izbornik</div>
+      <div class="nav-item" onclick="closeMobNav();window.location.href='dashboard.html'"><span class="nav-icon">◈</span> Dashboard</div>
+      <div class="nav-item active"><span class="nav-icon">◇</span> Sažetak zakona</div>
+      <div class="nav-item" onclick="closeMobNav();window.location.href='arhiva.html'"><span class="nav-icon">◫</span> Moja arhiva</div>
+      <div class="nav-divider"></div>
+      <div class="nav-section-label">Račun</div>
+      <div class="nav-item" onclick="closeMobNav()"><span class="nav-icon">○</span> Postavke</div>
+      <div class="nav-item" onclick="logout()"><span class="nav-icon">→</span> Odjava</div>
+    </nav>
+    <div class="user-card">
+      <div class="user-name" id="mob-user-name">—</div>
+      <div class="user-email" id="mob-user-email">—</div>
+      <div class="user-badge" id="mob-user-badge">BETA</div>
     </div>
   </div>
 </div>
@@ -504,6 +493,19 @@
     return { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' };
   }
 
+  function logout() { localStorage.removeItem('token'); window.location.href = 'index.html'; }
+
+  // ── MOBILE NAVIGATION ────────────────────────────────────────────────────
+  function openMobNav() {
+    document.getElementById('mob-drawer-overlay').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeMobNav() {
+    document.getElementById('mob-drawer-overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMobNav(); });
+
   function getDocId() {
     const params = new URLSearchParams(window.location.search);
     return params.get('id');
@@ -528,75 +530,160 @@
     return d.toLocaleDateString('hr-HR', { day: '2-digit', month: 'long', year: 'numeric' });
   }
 
+  function getKw() {
+    return new URLSearchParams(window.location.search).get('kw') || '';
+  }
+
   async function loadPage() {
     const docId = getDocId();
-    if (!docId) { showToast('Nema ID dokumenta u URL-u'); return; }
+    const kw = getKw();
+    if (!docId) {
+      document.getElementById('doc-title').textContent = 'Nema ID dokumenta u URL-u.';
+      return;
+    }
     if (!getToken()) { window.location.href = 'index.html'; return; }
 
-    // Dohvati korisnika
-    try {
-        const userRes = await fetch(API + '/auth/me', { headers: authHeaders() });
-        if (userRes.status === 401) { window.location.href = 'index.html'; return; }
-        const user = await userRes.json();
-        const namePart = user.email.split('@')[0];
-        document.getElementById('sidebar-name').textContent = namePart;
-        document.getElementById('sidebar-email').textContent = user.email;
-        document.getElementById('sidebar-badge').textContent = user.plan === 'free' ? 'BETA' : user.plan.toUpperCase();
+    // Prikaži ključnu riječ iz URL-a odmah
+    if (kw) {
+      const kwRow = document.getElementById('doc-kw-row');
+      kwRow.style.display = 'flex';
+      kwRow.innerHTML = `<span class="doc-kw-label">Pronađeno po ključnoj riječi:</span><span class="doc-kw-tag">${kw}</span>`;
+    }
 
-        // Pravi email u gumbu
-        document.querySelector('.action-btn.primary').onclick =
-            () => showToast('Email poslan na ' + user.email);
-    } catch(e) { showToast('Greška pri dohvatu korisnika'); }
+    // Dohvati korisnika
+    let userSituation = '';
+    try {
+      const userRes = await fetch(API + '/auth/me', { headers: authHeaders() });
+      if (userRes.status === 401) { window.location.href = 'index.html'; return; }
+      const user = await userRes.json();
+      const namePart = user.email.split('@')[0];
+      document.getElementById('sidebar-name').textContent = namePart;
+      document.getElementById('sidebar-email').textContent = user.email;
+      const planLabel = user.plan === 'free' ? 'BETA' : user.plan.toUpperCase();
+      document.getElementById('sidebar-badge').textContent = planLabel;
+      document.getElementById('mob-user-name').textContent = namePart;
+      document.getElementById('mob-user-email').textContent = user.email;
+      document.getElementById('mob-user-badge').textContent = planLabel;
+      document.getElementById('btn-email-action').onclick =
+        () => showToast('Email poslan na ' + user.email);
+
+      userSituation = user.situation || '';
+      if (userSituation) {
+        const ctx = document.getElementById('situation-context');
+        document.getElementById('situation-context-text').innerHTML =
+          'Sažetak je prilagođen vašoj situaciji: <strong>' + userSituation + '</strong>';
+        ctx.style.display = 'flex';
+      }
+    } catch(e) { /* nastavak bez korisničkih podataka */ }
 
     // Dohvati podatke dokumenta
     try {
       const res = await fetch(`${API}/search/document/${docId}`, { headers: authHeaders() });
-      if (res.status === 401) { window.location.href = 'index.html'; return; }
+      if (!res.ok) throw new Error(res.status);
       const doc = await res.json();
 
       const docClass = classifyTitle(doc.title);
 
-      // Popuni header
-      document.querySelector('.doc-meta').innerHTML =
+      document.getElementById('doc-meta').innerHTML =
         badgeHTML(docClass) +
         `<span class="doc-nn">NN ${doc.issue_number || '—'}/${doc.published_date ? doc.published_date.substring(0,4) : '—'}</span>` +
         `<span class="doc-date">${formatDate(doc.published_date)}</span>`;
 
-      document.querySelector('.doc-title').textContent = doc.title;
+      const titleEl = document.getElementById('doc-title');
+      titleEl.textContent = doc.title;
+      titleEl.style.color = '';
+      titleEl.style.fontSize = '';
+      titleEl.style.fontWeight = '';
 
-      // Info sidebar
-      document.querySelectorAll('.info-value')[0].textContent = doc.issue_number ? `${doc.issue_number}/${doc.published_date ? doc.published_date.substring(0,4) : ''}` : '—';
-      document.querySelectorAll('.info-value')[1].textContent = doc.published_date ? formatDate(doc.published_date) : '—';
-      document.querySelectorAll('.info-value')[2].textContent = doc.type ? doc.type.charAt(0).toUpperCase() + doc.type.slice(1) : '—';
-      document.querySelectorAll('.info-value')[3].textContent = doc.institution || '—';
+      document.getElementById('info-nn').textContent =
+        doc.issue_number ? `${doc.issue_number}/${doc.published_date ? doc.published_date.substring(0,4) : ''}` : '—';
+      document.getElementById('info-date').textContent =
+        doc.published_date ? formatDate(doc.published_date) : '—';
+      document.getElementById('info-type').textContent =
+        doc.type ? doc.type.charAt(0).toUpperCase() + doc.type.slice(1) : '—';
+      document.getElementById('info-institution').textContent = doc.institution || '—';
 
-      // NN link
-      document.querySelector('.action-btn:nth-child(2)').onclick = () => window.open(doc.url, '_blank');
+      document.querySelector('.action-btn:not(.primary)').onclick =
+        () => window.open(doc.url, '_blank');
 
     } catch(e) {
-      showToast('Greška pri dohvatu dokumenta');
+      document.getElementById('doc-title').textContent = 'Greška pri dohvatu dokumenta.';
+      document.getElementById('doc-meta').innerHTML = '';
     }
 
-    // Dohvati AI sažetak
-    const summaryBody = document.querySelector('.summary-text');
-    summaryBody.innerHTML = '<p style="color:var(--muted)">⟳ Generiram sažetak...</p>';
+    // Provjeri arhivni status
+    checkArchive(docId);
 
+    // Dohvati AI sažetak — proslijedi ključnu riječ radi personalizacije
+    const summaryText = document.getElementById('summary-text');
     try {
-      const res = await fetch(`${API}/search/summarize/${docId}`, { headers: authHeaders() });
+      const kwParam = kw ? `?keyword=${encodeURIComponent(kw)}` : '';
+      const res = await fetch(`${API}/search/summarize/${docId}${kwParam}`, { headers: authHeaders() });
+      if (!res.ok) throw new Error(res.status);
       const data = await res.json();
 
       if (data.summary) {
-        const paragraphs = data.summary.split('
-
-').filter(p => p.trim());
-        summaryBody.innerHTML = paragraphs.map(p => `<p>${p}</p>`).join('');
+        const paragraphs = data.summary.split('\n\n').filter(p => p.trim());
+        summaryText.innerHTML = paragraphs.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
       } else {
-        summaryBody.innerHTML = '<p style="color:var(--muted)">Sažetak nije dostupan.</p>';
+        summaryText.innerHTML = '<p style="color:var(--muted)">Sažetak nije dostupan.</p>';
       }
     } catch(e) {
-      summaryBody.innerHTML = '<p style="color:var(--muted)">Greška pri generiranju sažetka.</p>';
+      summaryText.innerHTML = '<p style="color:var(--muted)">Greška pri generiranju sažetka.</p>';
     }
   }
+
+  // ── ARHIVA ──────────────────────────────────────────────────────────────
+  let _isArchived = false;
+
+  function setArchiveBtn(archived) {
+    _isArchived = archived;
+    const btn = document.getElementById('btn-archive');
+    const label = document.getElementById('btn-archive-label');
+    const icon = document.getElementById('btn-archive-icon');
+    if (!btn) return;
+    if (archived) {
+      btn.style.background = 'var(--green-dim)';
+      btn.style.borderColor = 'var(--green)';
+      btn.style.color = 'var(--green)';
+      label.textContent = 'U arhivi';
+      icon.textContent = '✓';
+    } else {
+      btn.style.background = '';
+      btn.style.borderColor = '';
+      btn.style.color = '';
+      label.textContent = 'Spremi u arhivu';
+      icon.textContent = '◎';
+    }
+  }
+
+  async function checkArchive(docId) {
+    try {
+      const res = await fetch(`${API}/search/archive/${docId}`, { headers: authHeaders() });
+      if (!res.ok) return;
+      const data = await res.json();
+      setArchiveBtn(data.archived);
+    } catch(e) { /* ignore */ }
+  }
+
+  async function toggleArchive() {
+    const docId = getDocId();
+    if (!docId) return;
+    try {
+      const res = await fetch(`${API}/search/archive/${docId}`, {
+        method: 'POST',
+        headers: authHeaders(),
+      });
+      if (!res.ok) { showToast('Greška pri spremanju'); return; }
+      const data = await res.json();
+      setArchiveBtn(data.archived);
+      showToast(data.archived ? 'Dokument spremljen u arhivu' : 'Dokument uklonjen iz arhive');
+    } catch(e) {
+      showToast('Greška pri spremanju u arhivu');
+    }
+  }
+
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   loadPage();
 </script>
