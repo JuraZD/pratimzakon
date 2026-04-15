@@ -616,7 +616,7 @@
   // ── AUTH ──────────────────────────────────────────────────────────────────
   function getToken() { return localStorage.getItem('token'); }
   function authHeaders() { return { 'Authorization': 'Bearer ' + getToken(), 'Content-Type': 'application/json' }; }
-  function logout() { localStorage.removeItem('token'); window.location.href = 'index.html'; }
+  function logout() { cacheClear(); localStorage.removeItem('token'); window.location.href = 'index.html'; }
   function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
   // ── MOBILE NAVIGATION ────────────────────────────────────────────────────
@@ -668,50 +668,80 @@
   // ── LOAD USER ─────────────────────────────────────────────────────────────
   async function loadUser() {
     if (!getToken()) { window.location.href = 'index.html'; return; }
+    const cached = cacheGet('user');
+    if (cached) {
+      _applyUser(cached);
+      // Background refresh — don't block init()
+      _refreshUserBg();
+      return cached;
+    }
+    // No cache — must wait for API
     try {
-      const res = await fetch(API + '/auth/me', { headers: authHeaders() });
+      const res = await fetchWithRetry(API + '/auth/me', { headers: authHeaders() });
       if (res.status === 401) { logout(); return; }
       const user = await res.json();
-      const namePart = user.email.split('@')[0];
-      document.getElementById('sidebar-name').textContent = namePart;
-      document.getElementById('sidebar-email').textContent = user.email;
-      document.getElementById('sidebar-badge').textContent = user.plan === 'free' ? 'BETA' : user.plan.toUpperCase();
-      document.getElementById('email-addr').textContent = user.email;
-      // Populate mobile drawer user info
-      const planLabel = user.plan === 'free' ? 'BETA' : user.plan.toUpperCase();
-      document.getElementById('mob-user-name').textContent = namePart;
-      document.getElementById('mob-user-email').textContent = user.email;
-      document.getElementById('mob-user-badge').textContent = planLabel;
-      userKwLimit = user.keyword_limit || 5;
-      // Postavi situacija prikaz
-      _currentSituation = user.situation || '';
-      _setSituationView(_currentSituation);
-      const h = new Date().getHours();
-      const g = h < 12 ? 'DOBRO JUTRO' : h < 18 ? 'DOBAR DAN' : 'DOBRA VEČER';
-      document.getElementById('topbar-greeting').innerHTML = g + ', <span>' + namePart.toUpperCase() + '</span>';
+      cacheSet('user', user);
+      _applyUser(user);
       return user;
-    } catch(e) { showToast('Greška pri dohvatu podataka'); }
+    } catch(e) {
+      showToast('Backend se pokreće — pokušaj za trenutak');
+    }
+  }
+
+  async function _refreshUserBg() {
+    try {
+      const res = await fetchWithRetry(API + '/auth/me', { headers: authHeaders() });
+      if (!res || res.status === 401) { logout(); return; }
+      const user = await res.json();
+      cacheSet('user', user);
+      _applyUser(user);
+    } catch(e) { /* silent — cached data already shown */ }
+  }
+
+  function _applyUser(user) {
+    const namePart = user.email.split('@')[0];
+    document.getElementById('sidebar-name').textContent = namePart;
+    document.getElementById('sidebar-email').textContent = user.email;
+    document.getElementById('sidebar-badge').textContent = user.plan === 'free' ? 'BETA' : user.plan.toUpperCase();
+    document.getElementById('email-addr').textContent = user.email;
+    const planLabel = user.plan === 'free' ? 'BETA' : user.plan.toUpperCase();
+    document.getElementById('mob-user-name').textContent = namePart;
+    document.getElementById('mob-user-email').textContent = user.email;
+    document.getElementById('mob-user-badge').textContent = planLabel;
+    userKwLimit = user.keyword_limit || 5;
+    _currentSituation = user.situation || '';
+    _setSituationView(_currentSituation);
+    const h = new Date().getHours();
+    const g = h < 12 ? 'DOBRO JUTRO' : h < 18 ? 'DOBAR DAN' : 'DOBRA VEČER';
+    document.getElementById('topbar-greeting').innerHTML = g + ', <span>' + namePart.toUpperCase() + '</span>';
   }
 
   // ── KEYWORDS ─────────────────────────────────────────────────────────────
   async function loadKeywords() {
+    const cached = cacheGet('keywords');
+    if (cached) { allKeywords = cached; _renderKeywords(cached); }
     try {
       const res = await fetch(API + '/keywords/', { headers: authHeaders() });
       const data = await res.json();
       allKeywords = data;
-      const list = document.getElementById('tag-list');
-      if (!list) return;
-      list.innerHTML = '';
-      data.forEach(kw => {
-        const tag = document.createElement('div');
-        tag.className = 'tag active';
-        tag.dataset.kwname = kw.keyword;
-        tag.innerHTML = kw.keyword + ' <span class="tag-remove">×</span><span class="kw-stat zero" id="kw-stat-' + encodeURIComponent(kw.keyword) + '"></span>';
-        tag.onclick = function() { deleteKeyword(kw.id, tag); };
-        list.appendChild(tag);
-      });
-      updateKwCount();
-    } catch(e) { showToast('Greška pri dohvatu ključnih riječi'); }
+      cacheSet('keywords', data);
+      _renderKeywords(data);
+    } catch(e) { if (!cached) showToast('Greška pri dohvatu ključnih riječi'); }
+  }
+
+  function _renderKeywords(data) {
+    const list = document.getElementById('tag-list');
+    if (!list) return;
+    list.innerHTML = '';
+    data.forEach(kw => {
+      const tag = document.createElement('div');
+      tag.className = 'tag active';
+      tag.dataset.kwname = kw.keyword;
+      tag.innerHTML = kw.keyword + ' <span class="tag-remove">×</span><span class="kw-stat zero" id="kw-stat-' + encodeURIComponent(kw.keyword) + '"></span>';
+      tag.onclick = function() { deleteKeyword(kw.id, tag); };
+      list.appendChild(tag);
+    });
+    updateKwCount();
   }
 
   async function deleteKeyword(id, el) {
@@ -810,22 +840,29 @@
 
   // ── LOAD MATCHES ──────────────────────────────────────────────────────────
   async function loadMatches() {
+    const cached = cacheGet('matches');
+    if (cached) { allMatches = cached; _applyMatches(); }
     try {
       const res = await fetch(API + '/search/matches/recent?limit=100', { headers: authHeaders() });
       if (!res.ok) {
-        document.getElementById('matches-body').innerHTML = '<div class="empty-msg">Nije moguće dohvatiti matcheve — pokušaj ponovno.</div>';
+        if (!cached) document.getElementById('matches-body').innerHTML = '<div class="empty-msg">Nije moguće dohvatiti matcheve — pokušaj ponovno.</div>';
         return;
       }
       allMatches = await res.json();
-      const list = document.getElementById('matches-body');
-      if (!list) return;
-      document.getElementById('stat-week').textContent = allMatches.length || '0';
-      document.getElementById('match-count').textContent = allMatches.length > 0 ? allMatches.length + ' ukupno' : '';
-      document.getElementById('stat-last-match').textContent = allMatches.length > 0 ? (allMatches[0].matched_at || '').split(' ')[0] || '—' : '—';
-      renderMatchesByKeyword(getFilteredMatches());
-      applyKwStats(allMatches);
-      renderActivityPanel();
+      cacheSet('matches', allMatches);
+      _applyMatches();
     } catch(e) { console.error('Greška matchevi:', e); }
+  }
+
+  function _applyMatches() {
+    const list = document.getElementById('matches-body');
+    if (!list) return;
+    document.getElementById('stat-week').textContent = allMatches.length || '0';
+    document.getElementById('match-count').textContent = allMatches.length > 0 ? allMatches.length + ' ukupno' : '';
+    document.getElementById('stat-last-match').textContent = allMatches.length > 0 ? (allMatches[0].matched_at || '').split(' ')[0] || '—' : '—';
+    renderMatchesByKeyword(getFilteredMatches());
+    applyKwStats(allMatches);
+    renderActivityPanel();
   }
 
   function classifyMatch(title) {
@@ -922,48 +959,54 @@
 
   // ── LOAD ACTIVITY ─────────────────────────────────────────────────────────
   async function loadActivity() {
+    const cached = cacheGet('activity');
+    if (cached) _applyActivity(cached);
     try {
       const res = await fetch(API + '/search/activity/recent?limit=50', { headers: authHeaders() });
-      if (!res.ok) return;
+      if (!res.ok) { renderActivityPanel(); return; }
       const activities = await res.json();
+      cacheSet('activity', activities);
+      _applyActivity(activities);
+    } catch(e) { console.error('Greška aktivnost:', e); renderActivityPanel(); }
+  }
 
-      // Email kartica — samo email_sent eventi
-      const emails = activities.filter(a => a.event_type === 'email_sent');
-      const emailList = document.getElementById('email-list');
-      if (emailList) {
-        emailList.innerHTML = emails.length === 0
-          ? '<div class="empty-msg">Još nema poslanih emailova — pokreni tražilicu za prve rezultate.</div>'
-          : emails.map(e => `
-              <div class="email-row">
-                <div class="email-row-date">${esc(e.timestamp.split(' ')[0])}</div>
-                <div class="email-row-content">
-                  <div class="email-row-title">${esc(e.message.replace('Email poslan — ', ''))}</div>
-                  <div class="email-row-sub">Email notifikacija</div>
-                </div>
-              </div>`).join('');
-        document.getElementById('stat-emails').textContent = emails.length;
-      }
+  function _applyActivity(activities) {
+    // Email kartica — samo email_sent eventi
+    const emails = activities.filter(a => a.event_type === 'email_sent');
+    const emailList = document.getElementById('email-list');
+    if (emailList) {
+      emailList.innerHTML = emails.length === 0
+        ? '<div class="empty-msg">Još nema poslanih emailova — pokreni tražilicu za prve rezultate.</div>'
+        : emails.map(e => `
+            <div class="email-row">
+              <div class="email-row-date">${esc(e.timestamp.split(' ')[0])}</div>
+              <div class="email-row-content">
+                <div class="email-row-title">${esc(e.message.replace('Email poslan — ', ''))}</div>
+                <div class="email-row-sub">Email notifikacija</div>
+              </div>
+            </div>`).join('');
+      document.getElementById('stat-emails').textContent = emails.length;
+    }
 
-      // Historija promjena situacije — ispod textarea
-      const sitChanges = activities.filter(a => a.event_type === 'situation_updated');
-      const histEl = document.getElementById('situation-history');
-      if (histEl) {
-        if (sitChanges.length) {
-          let h = '<div class="sit-history"><div class="sit-history-label">Prethodne promjene</div>';
-          sitChanges.slice(0, 5).forEach(s => {
-            const text = s.message.replace('Ažurirana situacija — ', '') || '(prazno)';
-            h += `<div class="sit-history-row">
-              <span class="sit-history-time">${esc(s.timestamp)}</span>
-              <span class="sit-history-text" title="${esc(text)}">${esc(text)}</span>
-            </div>`;
-          });
-          h += '</div>';
-          histEl.innerHTML = h;
-        } else {
-          histEl.innerHTML = '';
-        }
+    // Historija promjena situacije — ispod textarea
+    const sitChanges = activities.filter(a => a.event_type === 'situation_updated');
+    const histEl = document.getElementById('situation-history');
+    if (histEl) {
+      if (sitChanges.length) {
+        let h = '<div class="sit-history"><div class="sit-history-label">Prethodne promjene</div>';
+        sitChanges.slice(0, 5).forEach(s => {
+          const text = s.message.replace('Ažurirana situacija — ', '') || '(prazno)';
+          h += `<div class="sit-history-row">
+            <span class="sit-history-time">${esc(s.timestamp)}</span>
+            <span class="sit-history-text" title="${esc(text)}">${esc(text)}</span>
+          </div>`;
+        });
+        h += '</div>';
+        histEl.innerHTML = h;
+      } else {
+        histEl.innerHTML = '';
       }
-    } catch(e) { console.error('Greška aktivnost:', e); }
+    }
 
     // Aktivnost panel renderira se iz allMatches + allKeywords
     renderActivityPanel();
@@ -1411,6 +1454,35 @@
       const data = await res.json();
       showToast(data.enabled ? 'Tjedni sažetak uključen' : 'Tjedni sažetak isključen');
     } catch(e) { showToast('Greška'); }
+  }
+
+  // ── CACHE HELPERS ─────────────────────────────────────────────────────────
+  const CACHE_TTL = { user: 600000, matches: 300000, keywords: 300000, activity: 300000 };
+  function cacheGet(key) {
+    try {
+      const raw = localStorage.getItem('pz_' + key);
+      if (!raw) return null;
+      const { data, ts } = JSON.parse(raw);
+      return (Date.now() - ts < CACHE_TTL[key]) ? data : null;
+    } catch { return null; }
+  }
+  function cacheSet(key, data) {
+    try { localStorage.setItem('pz_' + key, JSON.stringify({ data, ts: Date.now() })); } catch {}
+  }
+  function cacheClear() {
+    ['user','matches','keywords','activity'].forEach(k => localStorage.removeItem('pz_' + k));
+  }
+
+  async function fetchWithRetry(url, opts, retries, delays) {
+    if (retries === undefined) retries = 3;
+    if (delays === undefined) delays = [3000, 6000, 12000];
+    for (let i = 0; i <= retries; i++) {
+      try { return await fetch(url, opts); }
+      catch (e) {
+        if (i < retries) await new Promise(r => setTimeout(r, delays[i]));
+        else throw e;
+      }
+    }
   }
 
   // ── INIT ──────────────────────────────────────────────────────────────────
