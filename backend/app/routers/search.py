@@ -231,7 +231,7 @@ class MatchItem(BaseModel):
 
 @router.get("/matches/recent", response_model=List[MatchItem])
 def get_recent_matches(
-    limit: int = Query(20, ge=1, le=200),
+    limit: int = Query(20, ge=1, le=500),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
