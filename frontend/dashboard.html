@@ -190,11 +190,8 @@
   .card-body { padding:13px 16px; display:flex; flex-direction:column; }
 
   /* ── KEYWORD LIMIT BAR ── */
-  .limit-track { height:3px; background:var(--border-strong); border-radius:2px; margin-bottom:4px; }
-  .limit-fill { height:100%; background:var(--green); border-radius:2px; transition:width 0.4s ease; }
-  .limit-fill.warn { background:var(--orange); }
-  .limit-fill.full { background:#c0392b; }
-  .limit-label { font-size:calc(10px * var(--font-scale)); color:var(--muted); margin-bottom:8px; }
+  .kw-count-label { font-size:calc(10px * var(--font-scale)); color:var(--muted); margin-bottom:6px; font-weight:600; text-transform:uppercase; letter-spacing:0.4px; }
+  .kw-tip { font-size:calc(11.5px * var(--font-scale)); color:var(--muted); background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:8px 12px; margin-bottom:14px; line-height:1.5; }
 
   /* ── KEYWORDS ── */
   .tag-list { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:13px; }
@@ -209,11 +206,22 @@
   .tag-input::placeholder { color:var(--muted); }
   .btn-add { padding:7px 14px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--navy); font-family:var(--font-body); font-size:calc(12.5px * var(--font-scale)); cursor:pointer; transition:all 0.15s; font-weight:600; white-space:nowrap; }
   .btn-add:hover { background:var(--navy); color:var(--cream); border-color:var(--navy); }
-  .situation-label { font-size:calc(10px * var(--font-scale)); color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; margin-bottom:5px; }
-  .situation-textarea { width:100%; padding:8px 11px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-family:var(--font-body); font-size:calc(12.5px * var(--font-scale)); outline:none; resize:none; transition:border-color 0.15s; height:66px; margin-bottom:11px; line-height:1.55; }
+  .situation-label { font-size:calc(10px * var(--font-scale)); color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; margin-bottom:8px; margin-top:4px; }
+  .situation-textarea { width:100%; padding:8px 11px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-family:var(--font-body); font-size:calc(12.5px * var(--font-scale)); outline:none; resize:none; transition:border-color 0.15s; height:66px; margin-bottom:8px; line-height:1.55; }
   .situation-textarea:focus { border-color:var(--navy); }
   .situation-textarea::placeholder { color:var(--muted); }
-  .btn-save { width:100%; padding:10px; background:var(--orange); border:none; border-radius:var(--radius); color:var(--white); font-family:var(--font-display); font-size:calc(14px * var(--font-scale)); font-weight:800; cursor:pointer; transition:all 0.15s; letter-spacing:1.5px; text-transform:uppercase; }
+  /* Situacija — display prikaz */
+  .situation-display { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:10px 12px; margin-bottom:10px; }
+  .situation-display-inner { display:flex; align-items:flex-start; gap:10px; }
+  .situation-text { flex:1; font-size:calc(12.5px * var(--font-scale)); color:var(--text); line-height:1.55; }
+  .situation-empty { display:flex; align-items:center; gap:10px; padding:8px 0; margin-bottom:10px; }
+  .situation-empty-hint { flex:1; font-size:calc(12px * var(--font-scale)); color:var(--muted); font-style:italic; }
+  .btn-sit-edit { flex-shrink:0; padding:5px 12px; background:transparent; border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--muted); font-family:var(--font-body); font-size:calc(11.5px * var(--font-scale)); font-weight:600; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+  .btn-sit-edit:hover { background:var(--navy); color:var(--cream); border-color:var(--navy); }
+  .situation-edit-btns { display:flex; gap:8px; }
+  .btn-cancel-sit { flex:1; padding:9px; background:transparent; border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--muted); font-family:var(--font-display); font-size:calc(13px * var(--font-scale)); font-weight:700; cursor:pointer; transition:all 0.15s; letter-spacing:0.5px; text-transform:uppercase; }
+  .btn-cancel-sit:hover { background:var(--surface2); }
+  .btn-save { flex:1; padding:9px; background:var(--orange); border:none; border-radius:var(--radius); color:var(--white); font-family:var(--font-display); font-size:calc(13px * var(--font-scale)); font-weight:800; cursor:pointer; transition:all 0.15s; letter-spacing:1px; text-transform:uppercase; }
   .btn-save:hover { background:var(--orange2); transform:translateY(-1px); }
 
   /* ── KW STATS ── */
@@ -444,15 +452,37 @@
         </div>
         <div class="card-body">
           <div class="tag-list" id="tag-list"></div>
-          <div class="limit-track"><div class="limit-fill" id="limit-fill" style="width:0%"></div></div>
-          <div class="limit-label" id="limit-label">0 / — ključnih riječi</div>
+          <div class="kw-count-label" id="limit-label">0 ključnih riječi aktivno</div>
           <div class="tag-input-wrap">
             <input class="tag-input" id="new-kw" type="text" placeholder="Dodaj ključnu riječ..." onkeydown="if(event.key==='Enter') addTag()">
             <button class="btn-add" onclick="addTag()">+ Dodaj</button>
           </div>
+          <div class="kw-tip">Za optimalne rezultate odaberite 5–7 ključnih riječi. Možete koristiti višerječne pojmove: "ruralni razvoj", "investicijske potpore".</div>
+
           <div class="situation-label">Moja situacija — za personalizirani sažetak</div>
-          <textarea class="situation-textarea" id="situation" placeholder="Npr: Vodim restoran s 5 zaposlenika u Zagrebu..."></textarea>
-          <button class="btn-save" onclick="savePracenje()">Spremi praćenje</button>
+
+          <!-- Prikaz kad situacija postoji -->
+          <div class="situation-display" id="situation-display" style="display:none">
+            <div class="situation-display-inner">
+              <div class="situation-text" id="situation-text-display"></div>
+              <button class="btn-sit-edit" onclick="editSituation()">Uredi</button>
+            </div>
+          </div>
+
+          <!-- Prikaz kad situacija ne postoji -->
+          <div class="situation-empty" id="situation-empty" style="display:none">
+            <span class="situation-empty-hint">Dodajte opis vaše situacije za personalizirane sažetke</span>
+            <button class="btn-sit-edit" onclick="editSituation()">+ Dodaj</button>
+          </div>
+
+          <!-- Edit forma -->
+          <div class="situation-edit" id="situation-edit" style="display:none">
+            <textarea class="situation-textarea" id="situation" placeholder="Npr: Vodim restoran s 5 zaposlenika u Zagrebu..."></textarea>
+            <div class="situation-edit-btns">
+              <button class="btn-save" onclick="savePracenje()">Spremi</button>
+              <button class="btn-cancel-sit" onclick="cancelSituation()">Odustani</button>
+            </div>
+          </div>
           <button class="btn-suggest" id="btn-suggest" onclick="suggestKeywords()">◈ Predloži ključne riječi na temelju situacije</button>
           <div class="suggest-chips" id="suggest-chips" style="display:none"></div>
           <div class="digest-row">
@@ -649,9 +679,9 @@
       document.getElementById('mob-user-email').textContent = user.email;
       document.getElementById('mob-user-badge').textContent = planLabel;
       userKwLimit = user.keyword_limit || 5;
-      // Predpuni situaciju iz baze
-      const sitEl = document.getElementById('situation');
-      if (sitEl && user.situation) sitEl.value = user.situation;
+      // Postavi situacija prikaz
+      _currentSituation = user.situation || '';
+      _setSituationView(_currentSituation);
       const h = new Date().getHours();
       const g = h < 12 ? 'DOBRO JUTRO' : h < 18 ? 'DOBAR DAN' : 'DOBRA VEČER';
       document.getElementById('topbar-greeting').innerHTML = g + ', <span>' + namePart.toUpperCase() + '</span>';
@@ -693,19 +723,16 @@
     const input = document.getElementById('new-kw');
     const val = input.value.trim();
     if (!val) return;
-    const current = document.querySelectorAll('.tag').length;
     try {
-      const userRes = await fetch(API + '/auth/me', { headers: authHeaders() });
-      const user = await userRes.json();
-      if (current >= user.keyword_limit) {
-        showToast('Dostigli ste limit od ' + user.keyword_limit + ' ključnih riječi');
-        return;
-      }
       const res = await fetch(API + '/keywords/', {
         method: 'POST', headers: authHeaders(),
         body: JSON.stringify({ keyword: val, doc_type_filter: null, institution_filter: null, part_filter: null })
       });
-      if (!res.ok) { showToast('Greška pri dodavanju'); return; }
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        showToast(errData.detail || 'Greška pri dodavanju');
+        return;
+      }
       const kw = await res.json();
       const tag = document.createElement('div');
       tag.className = 'tag active';
@@ -723,23 +750,54 @@
     const count = document.querySelectorAll('.tag').length;
     const el = document.getElementById('stat-kw');
     if (el) el.textContent = count;
-    const fill = document.getElementById('limit-fill');
-    if (fill && userKwLimit) {
-      const pct = Math.min((count / userKwLimit) * 100, 100);
-      fill.style.width = pct + '%';
-      fill.className = 'limit-fill' + (pct >= 100 ? ' full' : pct >= 75 ? ' warn' : '');
-      const lbl = document.getElementById('limit-label');
-      if (lbl) lbl.textContent = count + ' / ' + userKwLimit + ' ključnih riječi';
-    }
+    const lbl = document.getElementById('limit-label');
+    if (lbl) lbl.textContent = count + ' ključnih riječi aktivno';
   }
+  let _currentSituation = '';
+
+  function _setSituationView(situation) {
+    const displayEl = document.getElementById('situation-display');
+    const emptyEl   = document.getElementById('situation-empty');
+    const editEl    = document.getElementById('situation-edit');
+    if (!displayEl) return;
+    if (situation) {
+      document.getElementById('situation-text-display').textContent = situation;
+      displayEl.style.display = 'block';
+      emptyEl.style.display   = 'none';
+    } else {
+      displayEl.style.display = 'none';
+      emptyEl.style.display   = 'flex';
+    }
+    editEl.style.display = 'none';
+  }
+
+  function editSituation() {
+    const sit = document.getElementById('situation');
+    if (sit) sit.value = _currentSituation;
+    document.getElementById('situation-display').style.display = 'none';
+    document.getElementById('situation-empty').style.display   = 'none';
+    document.getElementById('situation-edit').style.display    = 'block';
+    if (sit) sit.focus();
+  }
+
+  function cancelSituation() {
+    _setSituationView(_currentSituation);
+  }
+
   async function savePracenje() {
-    const sit = document.getElementById('situation').value.trim();
+    const sit = (document.getElementById('situation').value || '').trim();
     try {
       const res = await fetch(API + '/keywords/situation', {
         method: 'POST', headers: authHeaders(),
         body: JSON.stringify({ situation: sit })
       });
-      showToast(res.ok ? 'Situacija uspješno spremljena!' : 'Greška pri spremanju');
+      if (res.ok) {
+        _currentSituation = sit;
+        _setSituationView(sit);
+        showToast('Situacija uspješno spremljena!');
+      } else {
+        showToast('Greška pri spremanju');
+      }
     } catch(e) {
       showToast('Greška pri spremanju');
     }
