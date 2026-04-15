@@ -268,6 +268,19 @@
 
   .empty-msg { color:var(--muted); font-size:calc(13px * var(--font-scale)); padding:12px 0; }
 
+  /* ── NN ARCHIVE SEARCH ── */
+  .search-input { flex:1; padding:7px 11px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface2); color:var(--text); font-family:var(--font-body); font-size:calc(13px * var(--font-scale)); outline:none; transition:border-color 0.15s; min-width:0; }
+  .search-input:focus { border-color:var(--navy); }
+  .btn-search-go { padding:7px 14px; background:var(--navy); color:var(--cream); border:none; border-radius:var(--radius); font-family:var(--font-body); font-size:calc(12px * var(--font-scale)); font-weight:700; cursor:pointer; letter-spacing:0.5px; white-space:nowrap; transition:opacity 0.15s; flex-shrink:0; }
+  .btn-search-go:hover { opacity:0.8; }
+  .search-result { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); }
+  .search-result:last-child { border-bottom:none; padding-bottom:0; }
+  .search-result-title { font-size:calc(13px * var(--font-scale)); color:var(--text); font-weight:600; line-height:1.45; margin-bottom:4px; }
+  .search-result-meta { font-size:calc(11px * var(--font-scale)); color:var(--muted); }
+  .search-result-badge { display:inline-block; padding:2px 7px; background:var(--navy); color:var(--cream); border-radius:2px; font-size:calc(9.5px * var(--font-scale)); font-weight:700; letter-spacing:0.5px; text-transform:uppercase; margin-bottom:4px; }
+  .btn-search-view { padding:5px 12px; background:var(--orange); color:var(--white); border:none; border-radius:var(--radius); font-family:var(--font-body); font-size:calc(11px * var(--font-scale)); font-weight:700; cursor:pointer; transition:opacity 0.15s; white-space:nowrap; }
+  .btn-search-view:hover { opacity:0.8; }
+
   /* ── PAGINATION ── */
   .pagination { display:flex; gap:4px; align-items:center; flex-wrap:wrap; margin-top:10px; }
   .page-btn, .pag-btn { padding:4px 10px; border:1.5px solid var(--border-strong); background:var(--surface2); color:var(--muted); font-family:var(--font-body); font-size:calc(11px * var(--font-scale)); cursor:pointer; border-radius:var(--radius); transition:all 0.15s; font-weight:600; }
@@ -503,6 +516,24 @@
         </div>
         <div class="card-body">
           <div id="matches-body"><div style="padding:16px"><div class="empty-msg">Učitavanje...</div></div></div>
+        </div>
+      </div>
+
+
+      <div class="card" id="card-nn-search" style="margin-top:13px;">
+        <div class="card-head">
+          <div class="card-title">Pretraži NN arhivu</div>
+        </div>
+        <div class="card-body" style="gap:10px;">
+          <div style="font-size:calc(11.5px * var(--font-scale));color:var(--muted);margin-bottom:2px;">Baza podataka pokriva objave od 1. siječnja 2026. godine.</div>
+          <div style="display:flex;gap:8px;">
+            <input id="dash-search-q" class="search-input" type="text"
+              placeholder="Upiši pojam (npr. porez, zakon o radu)..."
+              onkeydown="if(event.key==='Enter') dashSearch(1)">
+            <button class="btn-search-go" onclick="dashSearch(1)">Pretraži</button>
+          </div>
+          <div id="dash-search-results"></div>
+          <div id="dash-search-pag"></div>
         </div>
       </div>
 

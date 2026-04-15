@@ -23,12 +23,12 @@ FROM_NAME = os.getenv("FROM_NAME", "PratimZakon")
 # ── JEDNOSTAVNO STEMMANJE ZA HRVATSKI ─────────────────────────────────────────
 _HR_SUFFIXES = sorted(
     [
-        "icama", "stvima", "stvima",
+        "icama", "stvima",
         "stvo", "stva", "stvu", "stvom",
         "nika", "nice", "nici", "niku",
         "ama", "ima", "ski", "ska", "sko",
         "ni", "na", "no", "ne",
-        "om", "og",
+        "om", "og", "em", "ih", "im",
         "a", "e", "i", "o", "u",
     ],
     key=len,
@@ -41,16 +41,20 @@ _MIN_KW_LEN   = 6
 def _stem_keyword(keyword: str) -> str:
     """
     Jednostavni stemmer za hrvatski jezik.
-    Uklanja tipični nastavak samo za riječi dulje od _MIN_KW_LEN znakova.
+    Uklanja tipični nastavak samo za riječi dulje od _MIN_KW_LEN znakova
+    (striktno manje, pa se i 6-slovne inačice stemmaju: 'poreza' → 'porez').
     Primjeri:
-      'poljoprivreda' → 'poljoprivred'
-      'zdravstvo'     → 'zdravstv'
-      'osiguranje'    → 'osiguranJ' wait... 'osiguranj'
-      'porez'         → 'porez'   (≤5 znakova, bez promjene)
-      'PDV'           → 'PDV'     (≤5 znakova, bez promjene)
+      'poljoprivreda'  → 'poljoprivred'
+      'zdravstvo'      → 'zdravstv'
+      'zemljište'      → 'zemljišt'   (pronalazi 'zemljišta', 'zemljištu'...)
+      'zemljištem'     → 'zemljišt'   (sufiks 'em')
+      'pravnih'        → 'pravn'      (sufiks 'ih')
+      'poreza'         → 'porez'      (6 slova — sada se stemmaju)
+      'porez'          → 'porez'      (5 slova, bez promjene)
+      'PDV'            → 'pdv'        (≤5 znakova, bez promjene)
     """
     kw = keyword.strip().lower()
-    if len(kw) <= _MIN_KW_LEN:
+    if len(kw) < _MIN_KW_LEN:
         return kw
     for suffix in _HR_SUFFIXES:
         if kw.endswith(suffix) and (len(kw) - len(suffix)) >= _MIN_STEM_LEN:
