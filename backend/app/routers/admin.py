@@ -150,14 +150,14 @@ def trigger_user_scan(
         ["icama", "stvima", "stvo", "stva", "stvu", "stvom",
          "nika", "nice", "nici", "niku",
          "ama", "ima", "ski", "ska", "sko",
-         "ni", "na", "no", "ne", "om", "og",
+         "ni", "na", "no", "ne", "om", "og", "em", "ih", "im",
          "a", "e", "i", "o", "u"],
         key=len, reverse=True,
     )
 
     def _stem(kw: str) -> str:
         s = kw.strip().lower()
-        if len(s) <= 6:
+        if len(s) < 6:
             return s
         for suf in _SUFFIXES:
             if s.endswith(suf) and (len(s) - len(suf)) >= 4:

@@ -566,7 +566,7 @@
 
 <script>
   const API = 'https://pratimzakon.onrender.com';
-  let userKwLimit = 5;
+  let userKwLimit = 7;
   let allMatches = [];
   let allKeywords = [];
   let kwPages = {};
@@ -708,7 +708,7 @@
     document.getElementById('mob-user-name').textContent = namePart;
     document.getElementById('mob-user-email').textContent = user.email;
     document.getElementById('mob-user-badge').textContent = planLabel;
-    userKwLimit = user.keyword_limit || 5;
+    userKwLimit = user.keyword_limit || 7;
     _currentSituation = user.situation || '';
     _setSituationView(_currentSituation);
     const h = new Date().getHours();
@@ -776,7 +776,21 @@
       input.value = '';
       updateKwCount();
       showToast('Dodana ključna riječ: ' + val);
+      _triggerScanAfterKw();
     } catch(e) { showToast('Greška pri dodavanju'); }
+  }
+
+  let _scanDebounce = null;
+  function _triggerScanAfterKw() {
+    clearTimeout(_scanDebounce);
+    _scanDebounce = setTimeout(async () => {
+      showToast('Pretraživanje arhive za nove ključne riječi...');
+      try {
+        await fetch(API + '/admin/trigger-user-scan', { method: 'POST', headers: authHeaders() });
+        setTimeout(() => { localStorage.removeItem('pz_matches'); loadMatches(); }, 15000);
+        setTimeout(() => loadMatches(), 35000);
+      } catch(e) { /* silent */ }
+    }, 2000);
   }
 
   function clearTags() { showToast('Koristite × na svakoj ključnoj riječi za brisanje'); }
