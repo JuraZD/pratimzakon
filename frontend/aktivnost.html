@@ -579,6 +579,15 @@
   }
 
   // ── INIT ──────────────────────────────────────────────────────────────────
+  async function fetchWithRetry(url, opts, retries = 3, delayMs = 1500) {
+    for (let i = 0; i < retries; i++) {
+      const res = await fetch(url, opts);
+      if (res.status === 401) return res;
+      if (res.ok || i === retries - 1) return res;
+      await new Promise(r => setTimeout(r, delayMs * Math.pow(2, i)));
+    }
+  }
+
   async function init() {
     if (!localStorage.getItem('token')) {
       window.location.href = 'index.html';
@@ -587,11 +596,13 @@
 
     loadUser();
 
+    document.getElementById('kw-grid').innerHTML = '<div class="empty-hint">Učitavanje…</div>';
+
     try {
       const [kwRes, matchRes, actRes] = await Promise.all([
-        fetch(`${API}/keywords/`, { headers: authHeaders() }),
-        fetch(`${API}/search/matches/recent?limit=200`, { headers: authHeaders() }),
-        fetch(`${API}/search/activity/recent?limit=300`, { headers: authHeaders() }),
+        fetchWithRetry(`${API}/keywords/`, { headers: authHeaders() }),
+        fetchWithRetry(`${API}/search/matches/recent?limit=200`, { headers: authHeaders() }),
+        fetchWithRetry(`${API}/search/activity/recent?limit=300`, { headers: authHeaders() }),
       ]);
 
       if (kwRes.status === 401 || matchRes.status === 401 || actRes.status === 401) {

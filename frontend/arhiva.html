@@ -411,12 +411,22 @@
   let archivePage = 1;
   const ARCHIVE_PER_PAGE = 10;
 
+  async function fetchWithRetry(url, opts, retries = 3, delayMs = 1500) {
+    for (let i = 0; i < retries; i++) {
+      const res = await fetch(url, opts);
+      if (res.status === 401) return res;
+      if (res.ok || i === retries - 1) return res;
+      await new Promise(r => setTimeout(r, delayMs * Math.pow(2, i)));
+    }
+  }
+
   async function loadArchive() {
     const list = document.getElementById('archive-list');
+    list.innerHTML = '<div class="loading-row">Učitavanje arhive…</div>';
     try {
       const [archiveRes, notesRes] = await Promise.all([
-        fetch(`${API}/search/archive`, { headers: authHeaders() }),
-        fetch(`${API}/search/notes`,   { headers: authHeaders() }),
+        fetchWithRetry(`${API}/search/archive`, { headers: authHeaders() }),
+        fetchWithRetry(`${API}/search/notes`,   { headers: authHeaders() }),
       ]);
       if (archiveRes.status === 401) { logout(); return; }
       if (!archiveRes.ok) throw new Error();

@@ -72,6 +72,7 @@ END $$;
     ("sync: plan expert→plus", "UPDATE users SET plan = 'plus', plan_type = 'plus' WHERE plan = 'expert'"),
     ("sync: keyword_limit za basic", "UPDATE users SET keyword_limit = 5 WHERE plan = 'basic' AND keyword_limit < 5"),
     ("sync: keyword_limit za plus", "UPDATE users SET keyword_limit = 20 WHERE plan = 'plus' AND keyword_limit < 20"),
+    ("sync: keyword_limit za free plan na 7", "UPDATE users SET keyword_limit = 7 WHERE plan = 'free' AND keyword_limit < 7"),
     (
         "fix: cap basic keyword_limit to 5",
         "UPDATE users SET keyword_limit = 5 WHERE plan = 'basic' AND keyword_limit > 5",

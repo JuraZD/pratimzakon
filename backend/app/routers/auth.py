@@ -472,7 +472,7 @@ def cancel_subscription(current_user: User = Depends(get_current_user), db: Sess
     # Odmah spusti na besplatni plan u bazi
     current_user.plan = "free"
     current_user.plan_type = "free"
-    current_user.keyword_limit = 5
+    current_user.keyword_limit = 7
     current_user.email_notifications_enabled = False
     current_user.subscription_status = "free"
     current_user.stripe_subscription_id = None
@@ -498,17 +498,17 @@ def downgrade_to_free(current_user: User = Depends(get_current_user), db: Sessio
         except Exception as e:
             logging.warning(f"Stripe cancel failed for {current_user.email}: {e}")
 
-    # Ukloni ključne riječi iznad limita od 3 (zadrži prvih 3 po ID-u)
+    # Ukloni ključne riječi iznad limita od 7 (zadrži prvih 7 po ID-u)
     user_keywords = db.query(Keyword).filter(
         Keyword.user_id == current_user.id
     ).order_by(Keyword.id).all()
-    for kw in user_keywords[3:]:
+    for kw in user_keywords[7:]:
         db.delete(kw)
 
     # Spusti plan na besplatni — email obavijesti ostaju aktivne
     current_user.plan = "free"
     current_user.plan_type = "free"
-    current_user.keyword_limit = 5
+    current_user.keyword_limit = 7
     current_user.subscription_status = "free"
     current_user.stripe_subscription_id = None
     db.add(Log(event_type="subscription_cancelled", user_id=current_user.id, detail=f"{current_user.email} [downgrade-to-free]"))
