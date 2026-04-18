@@ -135,7 +135,7 @@ def _build_email(user, matches: List[Dict], show_pdf: bool = False) -> tuple[str
         "pro": "Pro plan",
         "expert": "Expert plan",
     }
-    plan_name = plan_labels.get(getattr(user, "plan_type", "free"), "Besplatni plan")
+    plan_name = plan_labels.get(getattr(user, "plan", "free"), "Besplatni plan")
     if user.subscription_status == "active" and user.subscription_end:
         status_text = (
             f"{plan_name} · aktivna do {user.subscription_end.strftime('%d.%m.%Y.')}"
@@ -381,7 +381,7 @@ def send_keyword_notifications(
         if not user.keywords and not getattr(user, "situation", None):
             continue
 
-        plan = getattr(user, "plan_type", "free")
+        plan = getattr(user, "plan", "free")
         show_pdf = plan in ("pro", "expert")
         situation = getattr(user, "situation", "") or ""
 

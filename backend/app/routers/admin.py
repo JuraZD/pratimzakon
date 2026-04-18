@@ -54,9 +54,9 @@ class SetPlanRequest(BaseModel):
 
 
 PLAN_CONFIG = {
-    "free":  {"subscription_status": "free",   "plan_type": "free",  "keyword_limit": PLAN_LIMITS["free"]},
-    "basic": {"subscription_status": "active", "plan_type": "basic", "keyword_limit": PLAN_LIMITS["basic"]},
-    "plus":  {"subscription_status": "active", "plan_type": "plus",  "keyword_limit": PLAN_LIMITS["plus"]},
+    "free":  {"subscription_status": "free",   "keyword_limit": PLAN_LIMITS["free"]},
+    "basic": {"subscription_status": "active", "keyword_limit": PLAN_LIMITS["basic"]},
+    "plus":  {"subscription_status": "active", "keyword_limit": PLAN_LIMITS["plus"]},
 }
 
 
@@ -75,7 +75,6 @@ def set_plan(
         raise HTTPException(status_code=404, detail="Korisnik nije pronađen")
     cfg = PLAN_CONFIG[data.plan]
     user.subscription_status = cfg["subscription_status"]
-    user.plan_type = cfg["plan_type"]
     user.keyword_limit = cfg["keyword_limit"]
     if data.plan != "free":
         user.subscription_end = date.today() + timedelta(days=30 * data.months)
@@ -100,7 +99,6 @@ def list_users(db: Session = Depends(get_db), _: User = Depends(require_admin)):
             "id": u.id,
             "email": u.email,
             "subscription_status": u.subscription_status,
-            "plan_type": u.plan_type,
             "keyword_limit": u.keyword_limit,
             "subscription_end": u.subscription_end,
             "created_at": u.created_at,

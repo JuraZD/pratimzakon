@@ -32,7 +32,6 @@ class UserOut(BaseModel):
     keyword_limit: int
     plan: str
     include_mu: bool
-    plan_type: str
     situation: Optional[str] = None
     created_at: datetime
 
