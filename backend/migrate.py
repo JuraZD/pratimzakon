@@ -134,6 +134,20 @@ CREATE TABLE IF NOT EXISTS user_settings (
         """,
     ),
     (
+        "keyword_groups: create table",
+        """
+CREATE TABLE IF NOT EXISTS keyword_groups (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    name VARCHAR NOT NULL
+)
+        """,
+    ),
+    (
+        "keywords.group_id: add column",
+        "ALTER TABLE keywords ADD COLUMN IF NOT EXISTS group_id INTEGER REFERENCES keyword_groups(id) ON DELETE SET NULL",
+    ),
+    (
         "user_settings: migracija pref_digest iz logs tablice",
         """
 INSERT INTO user_settings (user_id, weekly_digest_enabled)
