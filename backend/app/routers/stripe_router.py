@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import User, Log
+from ..models import User, Log, PLAN_LIMITS
 from ..auth import get_current_user
 
 router = APIRouter(prefix="/stripe", tags=["stripe"])
@@ -17,8 +17,8 @@ PRICE_PLUS = os.getenv("STRIPE_PRICE_PLUS", "")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost")
 
 PLAN_CONFIG = {
-    "basic": {"price_id": PRICE_BASIC, "keyword_limit": 5},
-    "plus":  {"price_id": PRICE_PLUS,  "keyword_limit": 20},
+    "basic": {"price_id": PRICE_BASIC, "keyword_limit": PLAN_LIMITS["basic"]},
+    "plus":  {"price_id": PRICE_PLUS,  "keyword_limit": PLAN_LIMITS["plus"]},
 }
 
 
@@ -114,7 +114,7 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
             user = db.query(User).filter(User.email == customer_email).first()
             if user:
                 user.subscription_status = "expired"
-                user.keyword_limit = 3
+                user.keyword_limit = PLAN_LIMITS["free"]
                 user.plan = "free"
                 user.plan_type = "free"
                 db.add(Log(event_type="subscription_cancelled", user_id=user.id))

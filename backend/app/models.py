@@ -13,6 +13,13 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from .database import Base
 
+# Jedini izvor istine za limite ključnih riječi po planu
+PLAN_LIMITS: dict[str, int] = {
+    "free": 7,
+    "basic": 5,
+    "plus": 20,
+}
+
 
 class User(Base):
     __tablename__ = "users"

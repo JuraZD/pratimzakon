@@ -9,7 +9,7 @@ import threading
 from ..scraper.nn_scraper import run_check
 
 from ..database import get_db
-from ..models import User, Log
+from ..models import User, Log, PLAN_LIMITS
 from ..schemas import AdminStats
 from ..auth import get_current_user
 
@@ -54,13 +54,9 @@ class SetPlanRequest(BaseModel):
 
 
 PLAN_CONFIG = {
-    "free": {"subscription_status": "free", "plan_type": "free", "keyword_limit": 3},
-    "basic": {
-        "subscription_status": "active",
-        "plan_type": "basic",
-        "keyword_limit": 10,
-    },
-    "plus": {"subscription_status": "active", "plan_type": "plus", "keyword_limit": 20},
+    "free":  {"subscription_status": "free",   "plan_type": "free",  "keyword_limit": PLAN_LIMITS["free"]},
+    "basic": {"subscription_status": "active", "plan_type": "basic", "keyword_limit": PLAN_LIMITS["basic"]},
+    "plus":  {"subscription_status": "active", "plan_type": "plus",  "keyword_limit": PLAN_LIMITS["plus"]},
 }
 
 

@@ -119,7 +119,10 @@ WHERE id IN (
         "one-time: set keyword_limit=7 for dalmatiaevents365@gmail.com",
         "UPDATE users SET keyword_limit = 7 WHERE email = 'dalmatiaevents365@gmail.com'",
     ),
-
+    (
+        "fix: ispravak free keyword_limit 3->7 (bug u stripe webhook-u)",
+        "UPDATE users SET keyword_limit = 7 WHERE plan = 'free' AND keyword_limit = 3",
+    ),
 ]
 
 
