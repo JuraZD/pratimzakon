@@ -158,30 +158,22 @@ def run():
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../"))
 
     from app.database import SessionLocal
-    from app.models import User, Log
+    from app.models import User, Log, UserSettings
 
     db = SessionLocal()
     cutoff = datetime.utcnow() - timedelta(days=7)
     sent_count = 0
 
     try:
-        # Korisnici s digest uključenim — najnovija pref_digest log stavka je "enabled:1"
-        all_users = (
+        digest_users = (
             db.query(User)
-            .filter(User.email_notifications_enabled == True)
+            .join(UserSettings, UserSettings.user_id == User.id)
+            .filter(
+                User.email_notifications_enabled == True,
+                UserSettings.weekly_digest_enabled == True,
+            )
             .all()
         )
-
-        digest_users = []
-        for user in all_users:
-            latest_pref = (
-                db.query(Log)
-                .filter(Log.user_id == user.id, Log.event_type == "pref_digest")
-                .order_by(Log.timestamp.desc())
-                .first()
-            )
-            if latest_pref and latest_pref.detail == "enabled:1":
-                digest_users.append(user)
 
         logging.info(f"Digest šaljem za {len(digest_users)} korisnika")
 

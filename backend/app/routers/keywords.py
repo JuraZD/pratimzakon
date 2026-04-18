@@ -7,7 +7,7 @@ from sqlalchemy import func, or_
 from typing import List, Optional
 
 from ..database import get_db
-from ..models import User, Keyword, Document, Log
+from ..models import User, Keyword, Document, Log, UserSettings
 from ..schemas import KeywordCreate, KeywordOut
 from ..auth import get_current_user
 from .search import DocumentResult, SearchResponse
@@ -223,14 +223,8 @@ def get_digest_status(
     current_user: User = Depends(get_current_user),
 ):
     """Vraća je li tjedni digest uključen za korisnika."""
-    latest = (
-        db.query(Log)
-        .filter(Log.user_id == current_user.id, Log.event_type == "pref_digest")
-        .order_by(Log.timestamp.desc())
-        .first()
-    )
-    enabled = latest is not None and (latest.detail or "") == "enabled:1"
-    return {"enabled": enabled}
+    us = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+    return {"enabled": us.weekly_digest_enabled if us else False}
 
 
 @router.post("/digest-toggle")
@@ -239,21 +233,14 @@ def toggle_digest(
     current_user: User = Depends(get_current_user),
 ):
     """Uključi/isključi tjedni digest email."""
-    latest = (
-        db.query(Log)
-        .filter(Log.user_id == current_user.id, Log.event_type == "pref_digest")
-        .order_by(Log.timestamp.desc())
-        .first()
-    )
-    currently_enabled = latest is not None and (latest.detail or "") == "enabled:1"
-    new_state = not currently_enabled
-    db.add(Log(
-        user_id=current_user.id,
-        event_type="pref_digest",
-        detail="enabled:1" if new_state else "enabled:0",
-    ))
+    us = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+    if us is None:
+        us = UserSettings(user_id=current_user.id, weekly_digest_enabled=True)
+        db.add(us)
+    else:
+        us.weekly_digest_enabled = not us.weekly_digest_enabled
     db.commit()
-    return {"enabled": new_state}
+    return {"enabled": us.weekly_digest_enabled}
 
 
 # ── AI PRIJEDLOG KLJUČNIH RIJEČI ───────────────────────────────────────────────

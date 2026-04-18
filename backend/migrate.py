@@ -123,6 +123,30 @@ WHERE id IN (
         "fix: ispravak free keyword_limit 3->7 (bug u stripe webhook-u)",
         "UPDATE users SET keyword_limit = 7 WHERE plan = 'free' AND keyword_limit = 3",
     ),
+    (
+        "user_settings: create table",
+        """
+CREATE TABLE IF NOT EXISTS user_settings (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+    weekly_digest_enabled BOOLEAN NOT NULL DEFAULT FALSE
+)
+        """,
+    ),
+    (
+        "user_settings: migracija pref_digest iz logs tablice",
+        """
+INSERT INTO user_settings (user_id, weekly_digest_enabled)
+SELECT DISTINCT ON (user_id)
+    user_id,
+    (detail = 'enabled:1') AS weekly_digest_enabled
+FROM logs
+WHERE event_type = 'pref_digest'
+  AND user_id IS NOT NULL
+ORDER BY user_id, timestamp DESC
+ON CONFLICT (user_id) DO NOTHING
+        """,
+    ),
 ]
 
 
