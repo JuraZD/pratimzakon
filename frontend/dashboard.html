@@ -539,6 +539,16 @@
               <span class="toggle-track"></span>
             </label>
           </div>
+          <div class="digest-row" style="margin-top:6px;">
+            <div>
+              <div class="digest-label">RSS / Atom feed</div>
+              <div class="digest-sub">Pratite matcheve u svom čitaču vijesti</div>
+            </div>
+            <a id="feed-link" href="#" target="_blank" rel="noopener"
+               style="font-size:11px;font-weight:700;color:var(--orange);text-decoration:none;white-space:nowrap;padding:4px 10px;border:1.5px solid var(--orange);border-radius:2px;">
+              ⊞ Feed
+            </a>
+          </div>
           <div id="situation-history"></div>
         </div>
       </div>
@@ -888,6 +898,11 @@
       document.getElementById('mob-user-email').textContent = user.email;
       document.getElementById('mob-user-badge').textContent = planLabel;
       userKwLimit = user.keyword_limit || 5;
+      // RSS feed link
+      if (user.unsubscribe_token) {
+        const feedEl = document.getElementById('feed-link');
+        if (feedEl) feedEl.href = `${API}/feed/${user.unsubscribe_token}`;
+      }
       // Postavi situacija prikaz
       _currentSituation = user.situation || '';
       _setSituationView(_currentSituation);
