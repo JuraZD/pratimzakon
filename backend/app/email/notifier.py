@@ -441,8 +441,8 @@ def send_keyword_notifications(
                 url="https://jurazd.github.io/pratimzakon/frontend/dashboard.html",
                 db=db,
             )
-        except Exception:
-            pass
+        except Exception as push_err:
+            logging.debug("Push send skip za %s: %s", user.email, push_err)
 
     db.commit()
     logging.info(f"Email notifikacije: {sent} poslano, {failed} neuspješno")

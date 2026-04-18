@@ -55,7 +55,7 @@ Kontaktirajte korisnika za aktivaciju plana.
             s.login(smtp_user, smtp_pass)
             s.sendmail(from_email, [admin_email], msg.as_string())
     except Exception:
-        pass
+        logging.error("SMTP greška (Email slanje): %s", exc_info=True)
 
 
 def _smtp_cfg():
@@ -83,7 +83,7 @@ def _send_multipart(to_email: str, subject: str, html: str, plain: str):
             s.login(cfg["user"], cfg["password"])
             s.sendmail(cfg["from_email"], [to_email], msg.as_string())
     except Exception:
-        pass
+        logging.error("SMTP greška (Email slanje): %s", exc_info=True)
 
 
 def _send_verification_email(email: str, token: str):
