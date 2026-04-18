@@ -23,6 +23,7 @@ from datetime import date, timedelta
 import anthropic
 from pydantic import BaseModel
 
+from .ai.matcher import CLAUDE_MODEL
 from .models import Document, User
 from .tools.definitions import TOOLS
 from .tools.executor import execute_tool
@@ -97,7 +98,7 @@ def _analyse(db, docs: list, users: list) -> list[MatchResult]:
 
     for iteration in range(MAX_ITERATIONS):
         response = client.messages.create(
-            model="claude-haiku-4-5-20251001",
+            model=CLAUDE_MODEL,
             max_tokens=2048,
             tools=TOOLS,
             messages=messages,

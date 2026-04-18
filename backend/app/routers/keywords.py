@@ -380,7 +380,7 @@ def suggest_keywords(
     current_user: User = Depends(get_current_user),
 ):
     """AI predlaže ključne riječi na temelju korisnikove situacije."""
-    from ..ai.matcher import client
+    from ..ai.matcher import client, CLAUDE_MODEL
 
     situation = (current_user.situation or "").strip()
     if not situation:
@@ -391,7 +391,7 @@ def suggest_keywords(
 
     try:
         msg = client.messages.create(
-            model="claude-haiku-4-5-20251001",
+            model=CLAUDE_MODEL,
             max_tokens=120,
             tools=[_TOOL_SUGESTIJE],
             tool_choice={"type": "tool", "name": "predlozi_kljucne_rijeci"},

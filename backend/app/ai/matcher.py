@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 
+CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-haiku-4-5-20251001")
 _MAX_RETRIES = 3
 
 # ── Cached system prompti ─────────────────────────────────────────────────────
@@ -187,7 +188,7 @@ def ai_quick_check(doc, situation: str, keywords: list[str]) -> bool:
         doc_context = _build_doc_context(doc)
 
         msg = _retry(lambda: client.messages.create(
-            model="claude-haiku-4-5-20251001",
+            model=CLAUDE_MODEL,
             max_tokens=5,
             system=_SYSTEM_MATCHER,
             messages=[{
@@ -229,7 +230,7 @@ def ai_deep_check(doc, situation: str, keywords: list[str]) -> tuple[bool, str]:
             type_note = "Ovo je novi propis."
 
         msg = _retry(lambda: client.messages.create(
-            model="claude-haiku-4-5-20251001",
+            model=CLAUDE_MODEL,
             max_tokens=150,
             system=_SYSTEM_MATCHER,
             tools=[_TOOL_PROCJENA],
@@ -295,7 +296,7 @@ def generate_summary(doc, situation: str, keyword: str = None) -> str:
         }
 
         msg = _retry(lambda: client.messages.create(
-            model="claude-haiku-4-5-20251001",
+            model=CLAUDE_MODEL,
             max_tokens=300,
             system=_SYSTEM_SUMMARY,
             messages=[{"role": "user", "content": [doc_block, user_block]}],
