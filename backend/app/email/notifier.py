@@ -429,6 +429,21 @@ def send_keyword_notifications(
         else:
             failed += 1
 
+        # Web push uz email
+        try:
+            from app.routers.push import send_push_to_user
+            first_kw = matches[0]["keyword"] if matches else ""
+            push_body = f"{len(matches)} novih pronalazaka — {first_kw}" if len(matches) > 1 else matches[0]["document_title"][:80]
+            send_push_to_user(
+                user.id,
+                title="PratimZakon — novi match",
+                body=push_body,
+                url="https://jurazd.github.io/pratimzakon/frontend/dashboard.html",
+                db=db,
+            )
+        except Exception:
+            pass
+
     db.commit()
     logging.info(f"Email notifikacije: {sent} poslano, {failed} neuspješno")
     return {"sent": sent, "failed": failed}

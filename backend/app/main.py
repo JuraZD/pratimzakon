@@ -12,7 +12,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 
 from .limiter import limiter
-from .routers import admin, auth, feed, keywords, search, stats, stripe_router
+from .routers import admin, auth, feed, keywords, push, search, stats, stripe_router
 
 load_dotenv()
 
@@ -73,6 +73,7 @@ app.include_router(admin.router)
 app.include_router(search.router)
 app.include_router(stats.router)
 app.include_router(feed.router)
+app.include_router(push.router)
 
 
 @app.get("/health")
