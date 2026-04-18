@@ -245,6 +245,64 @@ def toggle_digest(
 
 # ── AI PRIJEDLOG KLJUČNIH RIJEČI ───────────────────────────────────────────────
 
+@router.get("/dashboard")
+def get_dashboard(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Konsolidovani podaci za activity dashboard: keyword stats + recent matches."""
+    cutoff_7d = date.today() - timedelta(days=7)
+    cutoff_30d = date.today() - timedelta(days=30)
+
+    keywords = current_user.keywords
+    kw_stats = []
+    for kw in keywords:
+        hits_7d = (
+            db.query(func.count(Document.id))
+            .filter(Document.title.ilike(f"%{kw.keyword}%"), Document.published_date >= cutoff_7d)
+            .scalar()
+        ) or 0
+        hits_30d = (
+            db.query(func.count(Document.id))
+            .filter(Document.title.ilike(f"%{kw.keyword}%"), Document.published_date >= cutoff_30d)
+            .scalar()
+        ) or 0
+        kw_stats.append({
+            "id": kw.id,
+            "keyword": kw.keyword,
+            "doc_type_filter": kw.doc_type_filter,
+            "institution_filter": kw.institution_filter,
+            "part_filter": kw.part_filter,
+            "hits_7d": hits_7d,
+            "hits_30d": hits_30d,
+        })
+
+    match_logs = (
+        db.query(Log)
+        .filter(Log.user_id == current_user.id, Log.event_type == "keyword_match")
+        .order_by(Log.timestamp.desc())
+        .limit(200)
+        .all()
+    )
+    recent_matches = []
+    for log in match_logs:
+        detail = log.detail or ""
+        parts = dict(p.split(":", 1) for p in detail.split("|") if ":" in p)
+        recent_matches.append({
+            "keyword": parts.get("keyword", "—"),
+            "doc_id": parts.get("doc_id", ""),
+            "title": parts.get("title", "Nepoznat dokument"),
+            "matched_at": log.timestamp.strftime("%d.%m.%Y.") if log.timestamp else "—",
+        })
+
+    return {
+        "keywords": kw_stats,
+        "recent_matches": recent_matches,
+        "total_hits_7d": sum(k["hits_7d"] for k in kw_stats),
+        "total_hits_30d": sum(k["hits_30d"] for k in kw_stats),
+    }
+
+
 @router.get("/suggest")
 def suggest_keywords(
     db: Session = Depends(get_db),
