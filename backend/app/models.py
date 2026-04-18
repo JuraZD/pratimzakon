@@ -48,6 +48,9 @@ class User(Base):
         "Keyword", back_populates="user", cascade="all, delete-orphan"
     )
     logs = relationship("Log", back_populates="user")
+    settings = relationship(
+        "UserSettings", back_populates="user", uselist=False, cascade="all, delete-orphan"
+    )
 
 
 class Keyword(Base):
@@ -93,3 +96,13 @@ class Log(Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="logs")
+
+
+class UserSettings(Base):
+    __tablename__ = "user_settings"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
+    weekly_digest_enabled = Column(Boolean, default=False)
+
+    user = relationship("User", back_populates="settings")
