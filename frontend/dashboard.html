@@ -541,6 +541,16 @@
           </div>
           <div class="digest-row" style="margin-top:6px;">
             <div>
+              <div class="digest-label">Push notifikacije</div>
+              <div class="digest-sub">Instant obavijest u browseru pri novom matchu</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="push-toggle" onchange="togglePush()">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+          <div class="digest-row" style="margin-top:6px;">
+            <div>
               <div class="digest-label">RSS / Atom feed</div>
               <div class="digest-sub">Pratite matcheve u svom čitaču vijesti</div>
             </div>
@@ -646,6 +656,84 @@
   let allGroups = [];
   let activeGroupFilter = '';
   let _pickerKwId = null;
+
+  // ── SERVICE WORKER + WEB PUSH ────────────────────────────────────────────
+  const PUSH_API = 'https://pratimzakon.onrender.com';
+  let _swReg = null;
+  let _pushEndpoint = null;
+
+  async function initServiceWorker() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    try {
+      _swReg = await navigator.serviceWorker.register('./sw.js');
+      const sub = await _swReg.pushManager.getSubscription();
+      if (sub) _pushEndpoint = sub.endpoint;
+      renderPushToggle();
+    } catch(e) {}
+  }
+
+  function renderPushToggle() {
+    const toggle = document.getElementById('push-toggle');
+    if (toggle) toggle.checked = !!_pushEndpoint;
+  }
+
+  async function togglePush() {
+    const toggle = document.getElementById('push-toggle');
+    if (!_swReg) { if (toggle) toggle.checked = false; return; }
+    if (toggle && toggle.checked) {
+      await subscribePush();
+    } else {
+      await unsubscribePush();
+    }
+  }
+
+  async function subscribePush() {
+    try {
+      const keyRes = await fetch(`${PUSH_API}/push/vapid-public-key`, { headers: authHeaders() });
+      if (!keyRes.ok) { showToast('Push nije konfiguriran na serveru'); renderPushToggle(); return; }
+      const { public_key } = await keyRes.json();
+      const sub = await _swReg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(public_key),
+      });
+      _pushEndpoint = sub.endpoint;
+      const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh'))));
+      const auth = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))));
+      await fetch(`${PUSH_API}/push/subscribe`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ endpoint: sub.endpoint, keys: { p256dh, auth } }),
+      });
+      showToast('Push notifikacije aktivirane');
+    } catch(e) {
+      showToast('Nije moguće aktivirati push notifikacije');
+      _pushEndpoint = null;
+      renderPushToggle();
+    }
+  }
+
+  async function unsubscribePush() {
+    try {
+      const sub = await _swReg.pushManager.getSubscription();
+      if (sub) {
+        await fetch(`${PUSH_API}/push/unsubscribe`, {
+          method: 'DELETE',
+          headers: authHeaders(),
+          body: JSON.stringify({ endpoint: sub.endpoint }),
+        });
+        await sub.unsubscribe();
+      }
+      _pushEndpoint = null;
+      showToast('Push notifikacije isključene');
+    } catch(e) { showToast('Greška pri isključivanju push-a'); }
+  }
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(base64);
+    return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+  }
 
   // ── GROUP COLORS ────────────────────────────────────────────────────────
   const GRP_COLORS = ['#b84d1b','#2e7d52','#1a5276','#7d3c98','#c0392b','#17a589'];
@@ -1652,6 +1740,7 @@
     await loadMatches();
     await loadActivity();
     loadDigestStatus();
+    initServiceWorker();
   }
 
   init();
