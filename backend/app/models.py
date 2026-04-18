@@ -47,10 +47,24 @@ class User(Base):
     keywords = relationship(
         "Keyword", back_populates="user", cascade="all, delete-orphan"
     )
+    keyword_groups = relationship(
+        "KeywordGroup", back_populates="user", cascade="all, delete-orphan"
+    )
     logs = relationship("Log", back_populates="user")
     settings = relationship(
         "UserSettings", back_populates="user", uselist=False, cascade="all, delete-orphan"
     )
+
+
+class KeywordGroup(Base):
+    __tablename__ = "keyword_groups"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    name = Column(String, nullable=False)
+
+    user = relationship("User", back_populates="keyword_groups")
+    keywords = relationship("Keyword", back_populates="group", passive_deletes=True)
 
 
 class Keyword(Base):
@@ -63,8 +77,10 @@ class Keyword(Base):
     doc_type_filter = Column(String, nullable=True)  # npr. "ZAKON,UREDBA" ili NULL
     institution_filter = Column(String, nullable=True)  # npr. "Vlada RH" ili NULL
     part_filter = Column(String, nullable=True)  # "SL" | "MU" | NULL (= oba)
+    group_id = Column(Integer, ForeignKey("keyword_groups.id", ondelete="SET NULL"), nullable=True)
 
     user = relationship("User", back_populates="keywords")
+    group = relationship("KeywordGroup", back_populates="keywords")
 
 
 class Document(Base):

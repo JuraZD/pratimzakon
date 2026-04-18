@@ -204,6 +204,42 @@
   .tag-input { flex:1; padding:7px 11px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-family:var(--font-body); font-size:calc(13px * var(--font-scale)); outline:none; transition:border-color 0.15s; }
   .tag-input:focus { border-color:var(--navy); }
   .tag-input::placeholder { color:var(--muted); }
+
+  /* ── KEYWORD GROUPS ── */
+  .group-bar { display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin-bottom:10px; }
+  .grp-chip { padding:3px 10px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:12px; font-size:calc(11px * var(--font-scale)); font-weight:600; color:var(--muted); cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+  .grp-chip:hover { border-color:var(--navy); color:var(--navy); }
+  .grp-chip.active { background:var(--navy); border-color:var(--navy); color:var(--cream); }
+  .grp-chip-add { padding:3px 10px; background:transparent; border:1.5px dashed var(--border-strong); border-radius:12px; font-size:calc(11px * var(--font-scale)); font-weight:600; color:var(--muted); cursor:pointer; transition:all 0.15s; }
+  .grp-chip-add:hover { border-color:var(--orange); color:var(--orange); }
+  .tag-grp-dot { display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:2px; flex-shrink:0; }
+
+  /* ── GROUP MODAL ── */
+  .grp-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:500; align-items:center; justify-content:center; }
+  .grp-modal-overlay.open { display:flex; }
+  .grp-modal { background:var(--surface); border-radius:var(--radius); padding:24px; width:380px; max-width:calc(100vw - 32px); box-shadow:0 8px 32px rgba(0,0,0,0.2); }
+  .grp-modal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+  .grp-modal-title { font-family:var(--font-display); font-size:16px; font-weight:800; color:var(--navy); letter-spacing:0.5px; text-transform:uppercase; }
+  .grp-modal-close { background:none; border:none; font-size:18px; color:var(--muted); cursor:pointer; line-height:1; }
+  .grp-modal-close:hover { color:var(--navy); }
+  .grp-row { display:flex; align-items:center; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--border); }
+  .grp-row-name { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:var(--text); }
+  .grp-row-count { font-size:11px; color:var(--muted); margin-left:auto; margin-right:10px; }
+  .grp-row-del { background:none; border:none; color:var(--muted); cursor:pointer; font-size:14px; padding:2px 4px; }
+  .grp-row-del:hover { color:#c0392b; }
+  .grp-new-row { display:flex; gap:8px; margin-top:14px; }
+  .grp-new-input { flex:1; padding:7px 10px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-family:var(--font-body); font-size:13px; outline:none; }
+  .grp-new-input:focus { border-color:var(--navy); }
+  .grp-new-btn { padding:7px 14px; background:var(--navy); border:none; border-radius:var(--radius); color:var(--cream); font-family:var(--font-body); font-size:12px; font-weight:700; cursor:pointer; }
+  .grp-new-btn:hover { background:var(--navy2); }
+
+  /* ── GROUP PICKER (floating) ── */
+  .grp-picker { position:fixed; background:var(--surface); border:1.5px solid var(--border-strong); border-radius:var(--radius); box-shadow:0 4px 16px rgba(0,0,0,0.15); z-index:600; min-width:160px; overflow:hidden; display:none; }
+  .grp-picker.open { display:block; }
+  .grp-picker-item { padding:7px 14px; font-size:12.5px; color:var(--text); cursor:pointer; display:flex; align-items:center; gap:7px; }
+  .grp-picker-item:hover { background:var(--surface2); }
+  .grp-picker-item.selected { color:var(--orange); font-weight:600; }
+
   .btn-add { padding:7px 14px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--navy); font-family:var(--font-body); font-size:calc(12.5px * var(--font-scale)); cursor:pointer; transition:all 0.15s; font-weight:600; white-space:nowrap; }
   .btn-add:hover { background:var(--navy); color:var(--cream); border-color:var(--navy); }
   .situation-label { font-size:calc(10px * var(--font-scale)); color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; margin-bottom:8px; margin-top:4px; }
@@ -462,6 +498,11 @@
           <div class="card-head-action" onclick="clearTags()">Obriši sve</div>
         </div>
         <div class="card-body">
+          <div class="group-bar" id="group-bar" style="display:none">
+            <button class="grp-chip active" data-gid="" onclick="filterByGroup(this,'')">Sve</button>
+            <div id="group-chips"></div>
+            <button class="grp-chip-add" onclick="openGroupModal()">+ Grupe</button>
+          </div>
           <div class="tag-list" id="tag-list"></div>
           <div class="kw-count-label" id="limit-label">0 ključnih riječi aktivno</div>
           <div class="tag-input-wrap">
@@ -562,6 +603,25 @@
   <button onclick="changeFontSize(1)"  style="width:36px;height:36px;background:rgba(255,255,255,0.1);color:#e8e4da;border:1.5px solid rgba(255,255,255,0.2);border-radius:50%;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Povećaj">A+</button>
 </div>
 
+<!-- GROUP MODAL -->
+<div class="grp-modal-overlay" id="grp-modal-overlay" onclick="closeGroupModal()">
+  <div class="grp-modal" onclick="event.stopPropagation()">
+    <div class="grp-modal-head">
+      <div class="grp-modal-title">Grupe ključnih riječi</div>
+      <button class="grp-modal-close" onclick="closeGroupModal()">✕</button>
+    </div>
+    <div id="grp-modal-list"></div>
+    <div class="grp-new-row">
+      <input class="grp-new-input" id="grp-new-input" placeholder="Naziv nove grupe..." maxlength="50"
+             onkeydown="if(event.key==='Enter') createGroup()">
+      <button class="grp-new-btn" onclick="createGroup()">Dodaj</button>
+    </div>
+  </div>
+</div>
+
+<!-- GROUP PICKER (floating dropdown) -->
+<div class="grp-picker" id="grp-picker"></div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -573,6 +633,151 @@
   let _kwGroupOrder = [];
   let _activeKw = null;
   const KW_PER_PAGE = 10;
+  let allGroups = [];
+  let activeGroupFilter = '';
+  let _pickerKwId = null;
+
+  // ── GROUP COLORS ────────────────────────────────────────────────────────
+  const GRP_COLORS = ['#b84d1b','#2e7d52','#1a5276','#7d3c98','#c0392b','#17a589'];
+  function grpColor(idx) { return GRP_COLORS[idx % GRP_COLORS.length]; }
+
+  // ── GROUPS ──────────────────────────────────────────────────────────────
+  async function loadGroups() {
+    try {
+      const res = await fetch(`${API}/keywords/groups`, { headers: authHeaders() });
+      if (!res.ok) return;
+      allGroups = await res.json();
+      renderGroupBar();
+    } catch(e) {}
+  }
+
+  function renderGroupBar() {
+    const bar = document.getElementById('group-bar');
+    const chips = document.getElementById('group-chips');
+    if (!chips) return;
+    bar.style.display = allKeywords.length > 0 ? 'flex' : 'none';
+    chips.innerHTML = allGroups.map((g, i) =>
+      `<button class="grp-chip${activeGroupFilter === String(g.id) ? ' active' : ''}"
+         data-gid="${g.id}" onclick="filterByGroup(this,'${g.id}')">
+         <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${grpColor(i)};margin-right:4px;vertical-align:middle;"></span>
+         ${esc(g.name)}<span style="opacity:0.6;font-size:10px;margin-left:3px;">${g.keyword_count}</span>
+       </button>`
+    ).join('');
+  }
+
+  function filterByGroup(btn, gid) {
+    activeGroupFilter = String(gid);
+    document.querySelectorAll('.grp-chip').forEach(c => c.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderTags(allKeywords);
+  }
+
+  function openGroupModal() {
+    renderGroupModal();
+    document.getElementById('grp-modal-overlay').classList.add('open');
+    setTimeout(() => document.getElementById('grp-new-input').focus(), 50);
+  }
+
+  function closeGroupModal() {
+    document.getElementById('grp-modal-overlay').classList.remove('open');
+  }
+
+  function renderGroupModal() {
+    const list = document.getElementById('grp-modal-list');
+    if (!allGroups.length) {
+      list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0 4px;">Još nema grupa. Dodajte prvu grupu dolje.</div>';
+      return;
+    }
+    list.innerHTML = allGroups.map((g, i) => `
+      <div class="grp-row">
+        <div class="grp-row-name">
+          <span style="width:10px;height:10px;border-radius:50%;background:${grpColor(i)};display:inline-block;flex-shrink:0;"></span>
+          ${esc(g.name)}
+        </div>
+        <span class="grp-row-count">${g.keyword_count} kw</span>
+        <button class="grp-row-del" onclick="deleteGroup(${g.id})" title="Obriši grupu">✕</button>
+      </div>`).join('');
+  }
+
+  async function createGroup() {
+    const inp = document.getElementById('grp-new-input');
+    const name = (inp.value || '').trim();
+    if (!name) return;
+    try {
+      const res = await fetch(`${API}/keywords/groups`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) { showToast('Greška pri kreiranju grupe'); return; }
+      const g = await res.json();
+      allGroups.push(g);
+      inp.value = '';
+      renderGroupModal();
+      renderGroupBar();
+    } catch(e) { showToast('Greška pri kreiranju grupe'); }
+  }
+
+  async function deleteGroup(id) {
+    if (!confirm('Obriši grupu? Ključne riječi ostaju, samo se odvoje od grupe.')) return;
+    try {
+      const res = await fetch(`${API}/keywords/groups/${id}`, {
+        method: 'DELETE', headers: authHeaders(),
+      });
+      if (!res.ok && res.status !== 204) { showToast('Greška pri brisanju grupe'); return; }
+      allGroups = allGroups.filter(g => g.id !== id);
+      allKeywords = allKeywords.map(k => k.group_id === id ? { ...k, group_id: null } : k);
+      if (activeGroupFilter === String(id)) filterByGroup(null, '');
+      renderGroupModal();
+      renderGroupBar();
+      renderTags(allKeywords);
+    } catch(e) { showToast('Greška pri brisanju grupe'); }
+  }
+
+  function openGroupPicker(event, kwId) {
+    event.stopPropagation();
+    _pickerKwId = kwId;
+    const kw = allKeywords.find(k => k.id === kwId);
+    const picker = document.getElementById('grp-picker');
+    picker.innerHTML =
+      `<div class="grp-picker-item${!kw?.group_id ? ' selected' : ''}" onclick="assignGroup(${kwId},null)">— Bez grupe</div>` +
+      allGroups.map((g, i) =>
+        `<div class="grp-picker-item${kw?.group_id === g.id ? ' selected' : ''}"
+           onclick="assignGroup(${kwId},${g.id})">
+           <span style="width:8px;height:8px;border-radius:50%;background:${grpColor(i)};display:inline-block;"></span>
+           ${esc(g.name)}
+         </div>`
+      ).join('');
+    const rect = event.currentTarget.getBoundingClientRect();
+    picker.style.top = (rect.bottom + 4) + 'px';
+    picker.style.left = rect.left + 'px';
+    picker.classList.add('open');
+    setTimeout(() => document.addEventListener('click', closePicker, { once: true }), 0);
+  }
+
+  function closePicker() {
+    document.getElementById('grp-picker').classList.remove('open');
+  }
+
+  async function assignGroup(kwId, groupId) {
+    closePicker();
+    try {
+      const res = await fetch(`${API}/keywords/${kwId}/group`, {
+        method: 'PATCH',
+        headers: authHeaders(),
+        body: JSON.stringify({ group_id: groupId }),
+      });
+      if (!res.ok) { showToast('Greška pri dodjeli grupe'); return; }
+      allKeywords = allKeywords.map(k => k.id === kwId ? { ...k, group_id: groupId } : k);
+      // Update keyword_count on groups
+      allGroups = allGroups.map(g => ({
+        ...g,
+        keyword_count: allKeywords.filter(k => k.group_id === g.id).length,
+      }));
+      renderGroupBar();
+      renderTags(allKeywords);
+    } catch(e) { showToast('Greška pri dodjeli grupe'); }
+  }
 
   // ── TEMA ──────────────────────────────────────────────────────────────────
   function toggleTheme() {
@@ -694,23 +899,37 @@
   }
 
   // ── KEYWORDS ─────────────────────────────────────────────────────────────
+  function renderTags(keywords) {
+    const list = document.getElementById('tag-list');
+    if (!list) return;
+    list.innerHTML = '';
+    const filtered = activeGroupFilter
+      ? keywords.filter(kw => String(kw.group_id) === String(activeGroupFilter))
+      : keywords;
+    filtered.forEach(kw => {
+      const grpIdx = allGroups.findIndex(g => g.id === kw.group_id);
+      const dotHtml = grpIdx >= 0
+        ? `<span class="tag-grp-dot" style="background:${grpColor(grpIdx)}" onclick="openGroupPicker(event,${kw.id})" title="Promijeni grupu"></span>`
+        : `<span class="tag-grp-dot" style="background:var(--border-strong)" onclick="openGroupPicker(event,${kw.id})" title="Dodaj u grupu"></span>`;
+      const tag = document.createElement('div');
+      tag.className = 'tag active';
+      tag.dataset.kwname = kw.keyword;
+      tag.dataset.kwid = kw.id;
+      tag.innerHTML = dotHtml + esc(kw.keyword) + ' <span class="tag-remove">×</span><span class="kw-stat zero" id="kw-stat-' + encodeURIComponent(kw.keyword) + '"></span>';
+      tag.querySelector('.tag-remove').addEventListener('click', (e) => { e.stopPropagation(); deleteKeyword(kw.id, tag); });
+      tag.addEventListener('click', () => {});
+      list.appendChild(tag);
+    });
+    renderGroupBar();
+    updateKwCount();
+  }
+
   async function loadKeywords() {
     try {
       const res = await fetch(API + '/keywords/', { headers: authHeaders() });
-      const data = await res.json();
-      allKeywords = data;
-      const list = document.getElementById('tag-list');
-      if (!list) return;
-      list.innerHTML = '';
-      data.forEach(kw => {
-        const tag = document.createElement('div');
-        tag.className = 'tag active';
-        tag.dataset.kwname = kw.keyword;
-        tag.innerHTML = kw.keyword + ' <span class="tag-remove">×</span><span class="kw-stat zero" id="kw-stat-' + encodeURIComponent(kw.keyword) + '"></span>';
-        tag.onclick = function() { deleteKeyword(kw.id, tag); };
-        list.appendChild(tag);
-      });
-      updateKwCount();
+      allKeywords = await res.json();
+      await loadGroups();
+      renderTags(allKeywords);
     } catch(e) { showToast('Greška pri dohvatu ključnih riječi'); }
   }
 
@@ -718,6 +937,12 @@
     try {
       await fetch(API + '/keywords/' + id, { method: 'DELETE', headers: authHeaders() });
       el.remove();
+      allKeywords = allKeywords.filter(k => k.id !== id);
+      allGroups = allGroups.map(g => ({
+        ...g,
+        keyword_count: allKeywords.filter(k => k.group_id === g.id).length,
+      }));
+      renderGroupBar();
       updateKwCount();
       showToast('Ključna riječ obrisana');
     } catch(e) { showToast('Greška pri brisanju'); }
@@ -738,13 +963,9 @@
         return;
       }
       const kw = await res.json();
-      const tag = document.createElement('div');
-      tag.className = 'tag active';
-      tag.innerHTML = kw.keyword + ' <span class="tag-remove">×</span>';
-      tag.onclick = function() { deleteKeyword(kw.id, tag); };
-      document.getElementById('tag-list').appendChild(tag);
+      allKeywords.push(kw);
+      renderTags(allKeywords);
       input.value = '';
-      updateKwCount();
       showToast('Dodana ključna riječ: ' + val);
     } catch(e) { showToast('Greška pri dodavanju'); }
   }
@@ -1381,13 +1602,8 @@
       });
       if (!res.ok) { showToast('Greška pri dodavanju'); return; }
       const kw = await res.json();
-      const tag = document.createElement('div');
-      tag.className = 'tag active';
-      tag.dataset.kwname = kw.keyword;
-      tag.innerHTML = kw.keyword + ' <span class="tag-remove">×</span><span class="kw-stat zero" id="kw-stat-' + encodeURIComponent(kw.keyword) + '"></span>';
-      tag.onclick = function() { deleteKeyword(kw.id, tag); };
-      document.getElementById('tag-list').appendChild(tag);
-      updateKwCount();
+      allKeywords.push(kw);
+      renderTags(allKeywords);
       el.remove();
       showToast('Dodana ključna riječ: ' + keyword);
     } catch(e) { showToast('Greška pri dodavanju'); }

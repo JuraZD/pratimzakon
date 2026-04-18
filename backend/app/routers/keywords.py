@@ -7,7 +7,7 @@ from sqlalchemy import func, or_
 from typing import List, Optional
 
 from ..database import get_db
-from ..models import User, Keyword, Document, Log, UserSettings
+from ..models import User, Keyword, Document, Log, UserSettings, KeywordGroup
 from ..schemas import KeywordCreate, KeywordOut
 from ..auth import get_current_user
 from .search import DocumentResult, SearchResponse
@@ -38,6 +38,77 @@ class SugestijeOutput(BaseModel):
     kljucne_rijeci: List[str]
 
 router = APIRouter(prefix="/keywords", tags=["keywords"])
+
+
+@router.get("/groups")
+def list_groups(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    groups = db.query(KeywordGroup).filter(KeywordGroup.user_id == current_user.id).all()
+    return [{"id": g.id, "name": g.name, "keyword_count": len(g.keywords)} for g in groups]
+
+
+class GroupCreate(BaseModel):
+    name: str
+
+
+@router.post("/groups", status_code=status.HTTP_201_CREATED)
+def create_group(
+    data: GroupCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    name = data.name.strip()
+    if not name or len(name) > 50:
+        raise HTTPException(status_code=400, detail="Naziv grupe mora biti između 1 i 50 znakova")
+    grp = KeywordGroup(user_id=current_user.id, name=name)
+    db.add(grp)
+    db.commit()
+    db.refresh(grp)
+    return {"id": grp.id, "name": grp.name, "keyword_count": 0}
+
+
+@router.delete("/groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_group(
+    group_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    grp = db.query(KeywordGroup).filter(
+        KeywordGroup.id == group_id, KeywordGroup.user_id == current_user.id
+    ).first()
+    if not grp:
+        raise HTTPException(status_code=404, detail="Grupa nije pronađena")
+    db.delete(grp)
+    db.commit()
+
+
+class GroupAssign(BaseModel):
+    group_id: Optional[int] = None
+
+
+@router.patch("/{keyword_id}/group")
+def assign_group(
+    keyword_id: int,
+    data: GroupAssign,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    kw = db.query(Keyword).filter(
+        Keyword.id == keyword_id, Keyword.user_id == current_user.id
+    ).first()
+    if not kw:
+        raise HTTPException(status_code=404, detail="Ključna riječ nije pronađena")
+    if data.group_id is not None:
+        grp = db.query(KeywordGroup).filter(
+            KeywordGroup.id == data.group_id, KeywordGroup.user_id == current_user.id
+        ).first()
+        if not grp:
+            raise HTTPException(status_code=404, detail="Grupa nije pronađena")
+    kw.group_id = data.group_id
+    db.commit()
+    return {"id": kw.id, "group_id": kw.group_id}
 
 
 @router.get("/", response_model=List[KeywordOut])
