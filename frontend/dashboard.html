@@ -212,8 +212,6 @@
   .grp-chip.active { background:var(--navy); border-color:var(--navy); color:var(--cream); }
   .grp-chip-add { padding:3px 10px; background:transparent; border:1.5px dashed var(--border-strong); border-radius:12px; font-size:calc(11px * var(--font-scale)); font-weight:600; color:var(--muted); cursor:pointer; transition:all 0.15s; }
   .grp-chip-add:hover { border-color:var(--orange); color:var(--orange); }
-  .tag-grp-dot { display:inline-block; width:6px; height:6px; border-radius:50%; margin-right:2px; flex-shrink:0; }
-
   /* ── GROUP MODAL ── */
   .grp-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:500; align-items:center; justify-content:center; }
   .grp-modal-overlay.open { display:flex; }
@@ -233,12 +231,23 @@
   .grp-new-btn { padding:7px 14px; background:var(--navy); border:none; border-radius:var(--radius); color:var(--cream); font-family:var(--font-body); font-size:12px; font-weight:700; cursor:pointer; }
   .grp-new-btn:hover { background:var(--navy2); }
 
-  /* ── GROUP PICKER (floating) ── */
-  .grp-picker { position:fixed; background:var(--surface); border:1.5px solid var(--border-strong); border-radius:var(--radius); box-shadow:0 4px 16px rgba(0,0,0,0.15); z-index:600; min-width:160px; overflow:hidden; display:none; }
-  .grp-picker.open { display:block; }
-  .grp-picker-item { padding:7px 14px; font-size:12.5px; color:var(--text); cursor:pointer; display:flex; align-items:center; gap:7px; }
-  .grp-picker-item:hover { background:var(--surface2); }
-  .grp-picker-item.selected { color:var(--orange); font-weight:600; }
+  /* ── KEYWORD SETTINGS MODAL ── */
+  .kw-modal { width:420px; }
+  .kw-modal-section { margin-bottom:16px; }
+  .kw-modal-label { font-size:calc(10px * var(--font-scale)); font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.7px; margin-bottom:7px; }
+  .kw-modal-hint { font-weight:400; text-transform:none; letter-spacing:0; font-size:10px; }
+  .kw-modal-select { width:100%; padding:7px 10px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-family:var(--font-body); font-size:calc(13px * var(--font-scale)); outline:none; }
+  .kw-modal-select:focus { border-color:var(--navy); }
+  .kw-modal-checks { display:flex; flex-wrap:wrap; gap:8px; }
+  .kw-chk { display:flex; align-items:center; gap:5px; font-size:calc(12px * var(--font-scale)); color:var(--text); cursor:pointer; padding:4px 8px; border-radius:var(--radius); border:1.5px solid var(--border-strong); background:var(--surface2); transition:all 0.12s; }
+  .kw-chk:has(input:checked) { border-color:var(--navy); background:var(--navy); color:var(--cream); }
+  .kw-chk input { display:none; }
+  .kw-modal-radios { display:flex; flex-direction:column; gap:7px; }
+  .kw-radio { display:flex; align-items:center; gap:7px; font-size:calc(12.5px * var(--font-scale)); color:var(--text); cursor:pointer; }
+  .kw-modal-actions { display:flex; gap:10px; margin-top:20px; padding-top:16px; border-top:1px solid var(--border); }
+  .kw-modal-save { flex:1; padding:9px; }
+  .kw-modal-delete { flex-shrink:0; padding:9px 14px; background:transparent; border:1.5px solid #c0392b; border-radius:var(--radius); color:#c0392b; font-family:var(--font-body); font-size:calc(12px * var(--font-scale)); font-weight:700; cursor:pointer; transition:all 0.15s; }
+  .kw-modal-delete:hover { background:#c0392b; color:#fff; }
 
   .btn-add { padding:7px 14px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--navy); font-family:var(--font-body); font-size:calc(12.5px * var(--font-scale)); cursor:pointer; transition:all 0.15s; font-weight:600; white-space:nowrap; }
   .btn-add:hover { background:var(--navy); color:var(--cream); border-color:var(--navy); }
@@ -639,8 +648,48 @@
   </div>
 </div>
 
-<!-- GROUP PICKER (floating dropdown) -->
-<div class="grp-picker" id="grp-picker"></div>
+<!-- KEYWORD SETTINGS MODAL -->
+<div class="grp-modal-overlay" id="kw-modal-overlay" onclick="closeKwModal()">
+  <div class="grp-modal kw-modal" onclick="event.stopPropagation()">
+    <div class="grp-modal-head">
+      <div class="grp-modal-title" id="kw-modal-title">Postavke ključne riječi</div>
+      <button class="grp-modal-close" onclick="closeKwModal()">✕</button>
+    </div>
+    <div class="kw-modal-section">
+      <div class="kw-modal-label">Grupa</div>
+      <select class="kw-modal-select" id="kw-modal-group">
+        <option value="">— Bez grupe</option>
+      </select>
+    </div>
+    <div class="kw-modal-section">
+      <div class="kw-modal-label">Tip dokumenta <span class="kw-modal-hint">(prazno = svi tipovi)</span></div>
+      <div class="kw-modal-checks">
+        <label class="kw-chk"><input type="checkbox" value="ZAKON"> Zakon</label>
+        <label class="kw-chk"><input type="checkbox" value="UREDBA"> Uredba</label>
+        <label class="kw-chk"><input type="checkbox" value="PRAVILNIK"> Pravilnik</label>
+        <label class="kw-chk"><input type="checkbox" value="ODLUKA"> Odluka</label>
+        <label class="kw-chk"><input type="checkbox" value="RJEŠENJE"> Rješenje</label>
+      </div>
+    </div>
+    <div class="kw-modal-section">
+      <div class="kw-modal-label">Institucija <span class="kw-modal-hint">(prazno = sve institucije)</span></div>
+      <input class="grp-new-input" id="kw-modal-institution" type="text"
+             placeholder="npr. Ministarstvo financija" maxlength="120">
+    </div>
+    <div class="kw-modal-section">
+      <div class="kw-modal-label">Dio Narodnih novina</div>
+      <div class="kw-modal-radios">
+        <label class="kw-radio"><input type="radio" name="kw-part" value=""> Oba</label>
+        <label class="kw-radio"><input type="radio" name="kw-part" value="SL"> Službeni list (SL)</label>
+        <label class="kw-radio"><input type="radio" name="kw-part" value="MU"> Međunarodni ugovori (MU)</label>
+      </div>
+    </div>
+    <div class="kw-modal-actions">
+      <button class="btn-save kw-modal-save" onclick="saveKwSettings()">Spremi</button>
+      <button class="kw-modal-delete" onclick="deleteKwFromModal()">Obriši ključnu riječ</button>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -655,7 +704,7 @@
   const KW_PER_PAGE = 10;
   let allGroups = [];
   let activeGroupFilter = '';
-  let _pickerKwId = null;
+  let _kwModalId = null;
 
   // ── SERVICE WORKER + WEB PUSH ────────────────────────────────────────────
   const PUSH_API = 'https://pratimzakon.onrender.com';
@@ -780,6 +829,68 @@
     document.getElementById('grp-modal-overlay').classList.remove('open');
   }
 
+  function openKwModal(kwId) {
+    const kw = allKeywords.find(k => k.id === kwId);
+    if (!kw) return;
+    _kwModalId = kwId;
+    document.getElementById('kw-modal-title').textContent = kw.keyword;
+    const sel = document.getElementById('kw-modal-group');
+    sel.innerHTML = '<option value="">— Bez grupe</option>' +
+      allGroups.map(g => `<option value="${g.id}"${kw.group_id === g.id ? ' selected' : ''}>${esc(g.name)}</option>`).join('');
+    const activeTypes = kw.doc_type_filter ? kw.doc_type_filter.split(',').map(t => t.trim().toUpperCase()) : [];
+    document.querySelectorAll('#kw-modal-overlay .kw-chk input').forEach(cb => { cb.checked = activeTypes.includes(cb.value); });
+    document.getElementById('kw-modal-institution').value = kw.institution_filter || '';
+    const partVal = kw.part_filter || '';
+    document.querySelectorAll('input[name="kw-part"]').forEach(r => { r.checked = r.value === partVal; });
+    document.getElementById('kw-modal-overlay').classList.add('open');
+  }
+
+  function closeKwModal() {
+    document.getElementById('kw-modal-overlay').classList.remove('open');
+    _kwModalId = null;
+  }
+
+  async function saveKwSettings() {
+    if (_kwModalId === null) return;
+    const checkedTypes = [...document.querySelectorAll('#kw-modal-overlay .kw-chk input:checked')].map(cb => cb.value);
+    const doc_type_filter = checkedTypes.length ? checkedTypes.join(',') : null;
+    const institution_filter = document.getElementById('kw-modal-institution').value.trim() || null;
+    const partRadio = document.querySelector('input[name="kw-part"]:checked');
+    const part_filter = (partRadio && partRadio.value) ? partRadio.value : null;
+    const selVal = document.getElementById('kw-modal-group').value;
+    const group_id = selVal ? parseInt(selVal, 10) : null;
+    try {
+      const res = await fetch(`${API}/keywords/${_kwModalId}`, {
+        method: 'PATCH', headers: authHeaders(),
+        body: JSON.stringify({ doc_type_filter, institution_filter, part_filter, group_id }),
+      });
+      if (!res.ok) { showToast((await res.json().catch(() => ({}))).detail || 'Greška pri spremanju'); return; }
+      const updated = await res.json();
+      allKeywords = allKeywords.map(k => k.id === _kwModalId ? { ...k, ...updated } : k);
+      allGroups = allGroups.map(g => ({ ...g, keyword_count: allKeywords.filter(k => k.group_id === g.id).length }));
+      closeKwModal();
+      renderGroupBar();
+      renderTags(allKeywords);
+      showToast('Postavke spremljene');
+    } catch(e) { showToast('Greška pri spremanju'); }
+  }
+
+  async function deleteKwFromModal() {
+    if (_kwModalId === null) return;
+    const kw = allKeywords.find(k => k.id === _kwModalId);
+    if (!kw || !confirm(`Obriši ključnu riječ "${kw.keyword}"?`)) return;
+    const tagEl = document.querySelector(`.tag[data-kwid="${_kwModalId}"]`);
+    closeKwModal();
+    if (tagEl) { await deleteKeyword(_kwModalId, tagEl); }
+    else {
+      await fetch(`${API}/keywords/${_kwModalId}`, { method: 'DELETE', headers: authHeaders() });
+      allKeywords = allKeywords.filter(k => k.id !== _kwModalId);
+      allGroups = allGroups.map(g => ({ ...g, keyword_count: allKeywords.filter(k => k.group_id === g.id).length }));
+      renderGroupBar(); updateKwCount(); showToast('Ključna riječ obrisana');
+    }
+  }
+
+
   function renderGroupModal() {
     const list = document.getElementById('grp-modal-list');
     if (!allGroups.length) {
@@ -830,51 +941,6 @@
       renderGroupBar();
       renderTags(allKeywords);
     } catch(e) { showToast('Greška pri brisanju grupe'); }
-  }
-
-  function openGroupPicker(event, kwId) {
-    event.stopPropagation();
-    _pickerKwId = kwId;
-    const kw = allKeywords.find(k => k.id === kwId);
-    const picker = document.getElementById('grp-picker');
-    picker.innerHTML =
-      `<div class="grp-picker-item${!kw?.group_id ? ' selected' : ''}" onclick="assignGroup(${kwId},null)">— Bez grupe</div>` +
-      allGroups.map((g, i) =>
-        `<div class="grp-picker-item${kw?.group_id === g.id ? ' selected' : ''}"
-           onclick="assignGroup(${kwId},${g.id})">
-           <span style="width:8px;height:8px;border-radius:50%;background:${grpColor(i)};display:inline-block;"></span>
-           ${esc(g.name)}
-         </div>`
-      ).join('');
-    const rect = event.currentTarget.getBoundingClientRect();
-    picker.style.top = (rect.bottom + 4) + 'px';
-    picker.style.left = rect.left + 'px';
-    picker.classList.add('open');
-    setTimeout(() => document.addEventListener('click', closePicker, { once: true }), 0);
-  }
-
-  function closePicker() {
-    document.getElementById('grp-picker').classList.remove('open');
-  }
-
-  async function assignGroup(kwId, groupId) {
-    closePicker();
-    try {
-      const res = await fetch(`${API}/keywords/${kwId}/group`, {
-        method: 'PATCH',
-        headers: authHeaders(),
-        body: JSON.stringify({ group_id: groupId }),
-      });
-      if (!res.ok) { showToast('Greška pri dodjeli grupe'); return; }
-      allKeywords = allKeywords.map(k => k.id === kwId ? { ...k, group_id: groupId } : k);
-      // Update keyword_count on groups
-      allGroups = allGroups.map(g => ({
-        ...g,
-        keyword_count: allKeywords.filter(k => k.group_id === g.id).length,
-      }));
-      renderGroupBar();
-      renderTags(allKeywords);
-    } catch(e) { showToast('Greška pri dodjeli grupe'); }
   }
 
   // ── TEMA ──────────────────────────────────────────────────────────────────
@@ -1011,16 +1077,14 @@
       : keywords;
     filtered.forEach(kw => {
       const grpIdx = allGroups.findIndex(g => g.id === kw.group_id);
-      const dotHtml = grpIdx >= 0
-        ? `<span class="tag-grp-dot" style="background:${grpColor(grpIdx)}" onclick="openGroupPicker(event,${kw.id})" title="Promijeni grupu"></span>`
-        : `<span class="tag-grp-dot" style="background:var(--border-strong)" onclick="openGroupPicker(event,${kw.id})" title="Dodaj u grupu"></span>`;
       const tag = document.createElement('div');
       tag.className = 'tag active';
       tag.dataset.kwname = kw.keyword;
       tag.dataset.kwid = kw.id;
-      tag.innerHTML = dotHtml + esc(kw.keyword) + ' <span class="tag-remove">×</span><span class="kw-stat zero" id="kw-stat-' + encodeURIComponent(kw.keyword) + '"></span>';
+      if (grpIdx >= 0) { tag.style.borderLeftColor = grpColor(grpIdx); tag.style.borderLeftWidth = '3px'; }
+      tag.innerHTML = esc(kw.keyword) + ' <span class="tag-remove">×</span><span class="kw-stat zero" id="kw-stat-' + encodeURIComponent(kw.keyword) + '"></span>';
       tag.querySelector('.tag-remove').addEventListener('click', (e) => { e.stopPropagation(); deleteKeyword(kw.id, tag); });
-      tag.addEventListener('click', () => {});
+      tag.addEventListener('click', () => openKwModal(kw.id));
       list.appendChild(tag);
     });
     renderGroupBar();

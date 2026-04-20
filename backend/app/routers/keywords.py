@@ -111,6 +111,44 @@ def assign_group(
     return {"id": kw.id, "group_id": kw.group_id}
 
 
+class KeywordUpdate(BaseModel):
+    doc_type_filter: Optional[str] = None
+    institution_filter: Optional[str] = None
+    part_filter: Optional[str] = None
+    group_id: Optional[int] = None
+
+
+@router.patch("/{keyword_id}", response_model=KeywordOut)
+def update_keyword(
+    keyword_id: int,
+    data: KeywordUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    kw = db.query(Keyword).filter(
+        Keyword.id == keyword_id, Keyword.user_id == current_user.id
+    ).first()
+    if not kw:
+        raise HTTPException(status_code=404, detail="Ključna riječ nije pronađena")
+    if data.group_id is not None:
+        grp = db.query(KeywordGroup).filter(
+            KeywordGroup.id == data.group_id, KeywordGroup.user_id == current_user.id
+        ).first()
+        if not grp:
+            raise HTTPException(status_code=404, detail="Grupa nije pronađena")
+    if data.doc_type_filter:
+        cleaned = ",".join(t.strip().upper() for t in data.doc_type_filter.split(",") if t.strip())
+        kw.doc_type_filter = cleaned or None
+    else:
+        kw.doc_type_filter = None
+    kw.institution_filter = data.institution_filter.strip() if data.institution_filter else None
+    kw.part_filter = data.part_filter.upper() if data.part_filter else None
+    kw.group_id = data.group_id
+    db.commit()
+    db.refresh(kw)
+    return kw
+
+
 @router.get("/", response_model=List[KeywordOut])
 def list_keywords(current_user: User = Depends(get_current_user)):
     return current_user.keywords
