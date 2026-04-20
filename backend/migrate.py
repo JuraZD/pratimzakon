@@ -148,6 +148,10 @@ CREATE TABLE IF NOT EXISTS keyword_groups (
         "ALTER TABLE keywords ADD COLUMN IF NOT EXISTS group_id INTEGER REFERENCES keyword_groups(id) ON DELETE SET NULL",
     ),
     (
+        "sync: plan_type -> plan (zadnji put prije uklanjanja plan_type)",
+        "UPDATE users SET plan = plan_type WHERE plan_type IS NOT NULL AND plan_type <> '' AND plan_type <> plan",
+    ),
+    (
         "push_subscriptions: create table",
         """
 CREATE TABLE IF NOT EXISTS push_subscriptions (

@@ -34,7 +34,6 @@ class User(Base):
     keyword_limit = Column(Integer, default=7)
     plan = Column(String, default="free")  # free | pro | expert
     include_mu = Column(Boolean, default=False)  # uključi međunarodne ugovore (MU)
-    plan_type = Column(String, default="free")  # free | pro | expert
     situation = Column(
         Text, nullable=True
     )  # dodatna informacija o korisniku (npr. "student", "pravnik", "poduzetnik"...) - opcionalno

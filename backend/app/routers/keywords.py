@@ -124,21 +124,21 @@ def add_keyword(
 ):
     keyword = data.keyword.strip()
     if not keyword:
-        raise HTTPException(status_code=400, detail="KljuÄna rijeÄ ne smije biti prazna")
+        raise HTTPException(status_code=400, detail="Ključna riječ ne smije biti prazna")
     if len(keyword) < 2:
-        raise HTTPException(status_code=400, detail="KljuÄna rijeÄ mora imati najmanje 2 znaka")
+        raise HTTPException(status_code=400, detail="Ključna riječ mora imati najmanje 2 znaka")
 
     existing = db.query(Keyword).filter(
         Keyword.user_id == current_user.id,
         Keyword.keyword == keyword,
     ).first()
     if existing:
-        raise HTTPException(status_code=400, detail="KljuÄna rijeÄ veÄ postoji")
+        raise HTTPException(status_code=400, detail="Ključna riječ već postoji")
 
     if len(current_user.keywords) >= current_user.keyword_limit:
         raise HTTPException(
             status_code=403,
-            detail=f"Dostigli ste limit od {current_user.keyword_limit} kljuÄnih rijeÄi. Nadogradite paket.",
+            detail=f"Dostigli ste limit od {current_user.keyword_limit} ključnih riječi. Nadogradite paket.",
         )
 
     kw = Keyword(
@@ -182,7 +182,7 @@ def keyword_activity(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Zadnje pronaÄeni dokumenti i pogoci po kljuÄnoj rijeÄi (zadnjih 30 dana)."""
+    """Zadnje pronađeni dokumenti i pogoci po ključnoj riječi (zadnjih 30 dana)."""
     keywords = current_user.keywords
     if not keywords:
         return {"recent_docs": [], "keyword_hits": []}
@@ -279,7 +279,7 @@ def delete_keyword(
     ).first()
 
     if not kw:
-        raise HTTPException(status_code=404, detail="KljuÄna rijeÄ nije pronaÄena")
+        raise HTTPException(status_code=404, detail="Ključna riječ nije pronađena")
     db.add(Log(event_type="keyword_change", user_id=current_user.id,
                detail=f"action:removed|keyword:{kw.keyword[:100]}"))
     db.delete(kw)
@@ -380,7 +380,7 @@ def suggest_keywords(
     current_user: User = Depends(get_current_user),
 ):
     """AI predlaže ključne riječi na temelju korisnikove situacije."""
-    from ..ai.matcher import client
+    from ..ai.matcher import client, CLAUDE_MODEL
 
     situation = (current_user.situation or "").strip()
     if not situation:
@@ -391,7 +391,7 @@ def suggest_keywords(
 
     try:
         msg = client.messages.create(
-            model="claude-haiku-4-5-20251001",
+            model=CLAUDE_MODEL,
             max_tokens=120,
             tools=[_TOOL_SUGESTIJE],
             tool_choice={"type": "tool", "name": "predlozi_kljucne_rijeci"},

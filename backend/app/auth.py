@@ -47,12 +47,11 @@ PAID_PLANS = {"basic", "plus", "pro", "expert"}
 def user_has_plan(user: User, *allowed_plans: str) -> bool:
     """Provjeri ima li korisnik aktivnu pretplatu i odgovarajući plan.
 
-    Jedina autorizacijska provjera plana — koristi plan_type i subscription_status
-    zajedno da spriječi desync između ta dva polja.
+    Jedina autorizacijska provjera plana — koristi plan i subscription_status.
     """
     return (
         user.subscription_status == "active"
-        and getattr(user, "plan_type", "free") in allowed_plans
+        and getattr(user, "plan", "free") in allowed_plans
     )
 
 

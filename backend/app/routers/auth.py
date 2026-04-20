@@ -55,7 +55,7 @@ Kontaktirajte korisnika za aktivaciju plana.
             s.login(smtp_user, smtp_pass)
             s.sendmail(from_email, [admin_email], msg.as_string())
     except Exception:
-        pass
+        logging.error("SMTP greška (Email slanje): %s", exc_info=True)
 
 
 def _smtp_cfg():
@@ -83,7 +83,7 @@ def _send_multipart(to_email: str, subject: str, html: str, plain: str):
             s.login(cfg["user"], cfg["password"])
             s.sendmail(cfg["from_email"], [to_email], msg.as_string())
     except Exception:
-        pass
+        logging.error("SMTP greška (Email slanje): %s", exc_info=True)
 
 
 def _send_verification_email(email: str, token: str):
@@ -471,7 +471,6 @@ def cancel_subscription(current_user: User = Depends(get_current_user), db: Sess
 
     # Odmah spusti na besplatni plan u bazi
     current_user.plan = "free"
-    current_user.plan_type = "free"
     current_user.keyword_limit = 7
     current_user.email_notifications_enabled = False
     current_user.subscription_status = "free"
@@ -507,7 +506,6 @@ def downgrade_to_free(current_user: User = Depends(get_current_user), db: Sessio
 
     # Spusti plan na besplatni — email obavijesti ostaju aktivne
     current_user.plan = "free"
-    current_user.plan_type = "free"
     current_user.keyword_limit = 7
     current_user.subscription_status = "free"
     current_user.stripe_subscription_id = None
