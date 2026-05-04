@@ -6,12 +6,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 import logging
 import threading
-from ..scraper.nn_scraper import run_check
-
 from ..database import get_db
 from ..models import User, Log, PLAN_LIMITS
 from ..schemas import AdminStats
 from ..auth import get_current_user
+from ..utils.stemmer import stem_keyword as _stem
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 
@@ -43,7 +42,10 @@ def get_stats(db: Session = Depends(get_db), _: User = Depends(require_admin)):
         .scalar()
     )
     return AdminStats(
-        total_users=total, free_users=free, active_users=active, expired_users=expired
+        total_users=total,
+        free_users=free,
+        active_users=active,
+        expired_users=expired,
     )
 
 
@@ -73,6 +75,7 @@ def set_plan(
     user = db.query(User).filter(User.email == data.email).first()
     if not user:
         raise HTTPException(status_code=404, detail="Korisnik nije pronađen")
+
     cfg = PLAN_CONFIG[data.plan]
     user.subscription_status = cfg["subscription_status"]
     user.keyword_limit = cfg["keyword_limit"]
@@ -80,6 +83,7 @@ def set_plan(
         user.subscription_end = date.today() + timedelta(days=30 * data.months)
     else:
         user.subscription_end = None
+
     db.add(
         Log(
             event_type="plan_set",
@@ -109,7 +113,9 @@ def list_users(db: Session = Depends(get_db), _: User = Depends(require_admin)):
 
 @router.get("/logs")
 def get_logs(
-    limit: int = 100, db: Session = Depends(get_db), _: User = Depends(require_admin)
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
 ):
     logs = db.query(Log).order_by(Log.timestamp.desc()).limit(limit).all()
     return [
@@ -139,25 +145,6 @@ def trigger_user_scan(
 
     user_id = current_user.id
 
-    # Hrvatski stemmer — kopija iz notifier.py, bez AI importa
-    _SUFFIXES = sorted(
-        ["icama", "stvima", "stvo", "stva", "stvu", "stvom",
-         "nika", "nice", "nici", "niku",
-         "ama", "ima", "ski", "ska", "sko",
-         "ni", "na", "no", "ne", "om", "og",
-         "a", "e", "i", "o", "u"],
-        key=len, reverse=True,
-    )
-
-    def _stem(kw: str) -> str:
-        s = kw.strip().lower()
-        if len(s) <= 6:
-            return s
-        for suf in _SUFFIXES:
-            if s.endswith(suf) and (len(s) - len(suf)) >= 4:
-                return s[:-len(suf)]
-        return s
-
     def run_in_background():
         try:
             bg_db = SessionLocal()
@@ -170,8 +157,8 @@ def trigger_user_scan(
                 existing = {
                     (p.get("keyword", "").lower(), p.get("doc_id", ""))
                     for row in bg_db.query(ScanLog.detail)
-                        .filter(ScanLog.user_id == user_id, ScanLog.event_type == "keyword_match")
-                        .all()
+                    .filter(ScanLog.user_id == user_id, ScanLog.event_type == "keyword_match")
+                    .all()
                     for p in [dict(x.split(":", 1) for x in (row[0] or "").split("|") if ":" in x)]
                 }
 
@@ -183,7 +170,6 @@ def trigger_user_scan(
                         query = query.filter(Document.part == kw.part_filter.upper())
                     if kw.institution_filter:
                         query = query.filter(Document.institution.ilike(f"%{kw.institution_filter}%"))
-
                     docs = query.all()
                     logging.info(f"Korisnik {user_id} keyword='{kw.keyword}' (stem='{term}'): {len(docs)} dokumenata")
 
@@ -199,7 +185,6 @@ def trigger_user_scan(
                 if new_count > 0:
                     bg_db.commit()
                 logging.info(f"Korisnik {user_id}: {new_count} novih podudaranja spremljeno")
-
             finally:
                 bg_db.close()
         except Exception as e:
@@ -207,5 +192,4 @@ def trigger_user_scan(
 
     thread = threading.Thread(target=run_in_background, daemon=True)
     thread.start()
-
     return {"status": "ok", "message": "Skeniranje u tijeku."}

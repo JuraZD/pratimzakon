@@ -34,7 +34,7 @@ def _send_plan_interest_email(user_email: str, plan: str):
     from_name = os.getenv("FROM_NAME", "PratimZakon")
     admin_email = os.getenv("ADMIN_EMAIL", from_email)
 
-    plan_labels = {"pro": "Pro (€4,99/mj)", "expert": "Expert (€7,99/mj)", "basic": "Basic (€4,99/mj)", "plus": "Plus (€7,99/mj)"}
+    plan_labels = {"basic": "Basic (€4,99/mj)", "plus": "Plus (€7,99/mj)"}
     label = plan_labels.get(plan, plan)
 
     body = f"""Novi korisnik odabrao plaćeni plan pri registraciji.
@@ -225,14 +225,14 @@ def register(data: UserRegister, db: Session = Depends(get_db)):
     db.refresh(user)
 
     log_detail = user.email
-    if data.selected_plan and data.selected_plan in ("pro", "expert"):
+    if data.selected_plan and data.selected_plan in ("basic", "plus"):
         log_detail = f"{user.email} [plan_interest={data.selected_plan}]"
     db.add(Log(event_type="signup", user_id=user.id, detail=log_detail))
     db.commit()
 
     _send_verification_email(data.email, user.unsubscribe_token)
 
-    if data.selected_plan and data.selected_plan in ("pro", "expert"):
+    if data.selected_plan and data.selected_plan in ("basic", "plus"):
         _send_plan_interest_email(data.email, data.selected_plan)
 
     return user
@@ -278,14 +278,14 @@ def update_settings(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Ažurira korisničke postavke (npr. include_mu). MU dostupan samo Pro/Expert."""
+    """Ažurira korisničke postavke (npr. include_mu). MU dostupan samo uz Plus plan."""
     if data.include_mu is not None:
-      if data.include_mu and not user_has_plan(current_user, "plus", "expert"):
-        raise HTTPException(status_code=403, detail="MU dostupan uz Pro ili Expert paket")
-      current_user.include_mu = data.include_mu
-    
-    if getattr(data, "email_notifications_enabled", None) is not None:
-      current_user.email_notifications_enabled = data.email_notifications_enabled
+        if data.include_mu and not user_has_plan(current_user, "plus"):
+            raise HTTPException(status_code=403, detail="MU dostupan uz Plus paket")
+        current_user.include_mu = data.include_mu
+
+    if data.email_notifications_enabled is not None:
+        current_user.email_notifications_enabled = data.email_notifications_enabled
 
     db.commit()
     db.refresh(current_user)

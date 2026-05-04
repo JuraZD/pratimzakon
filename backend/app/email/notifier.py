@@ -11,6 +11,7 @@ from email.mime.text import MIMEText
 from typing import List, Dict
 from sqlalchemy.orm import Session
 from app.ai.matcher import check_document_for_user, generate_summary
+from app.utils.stemmer import stem_keyword as _stem_keyword
 
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
