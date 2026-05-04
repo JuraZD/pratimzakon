@@ -6,9 +6,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 import logging
 import threading
-
 from ..database import get_db
-from ..models import User, Log
+from ..models import User, Log, PLAN_LIMITS
 from ..schemas import AdminStats
 from ..auth import get_current_user
 from ..utils.stemmer import stem_keyword as _stem
@@ -43,7 +42,10 @@ def get_stats(db: Session = Depends(get_db), _: User = Depends(require_admin)):
         .scalar()
     )
     return AdminStats(
-        total_users=total, free_users=free, active_users=active, expired_users=expired
+        total_users=total,
+        free_users=free,
+        active_users=active,
+        expired_users=expired,
     )
 
 
@@ -54,9 +56,9 @@ class SetPlanRequest(BaseModel):
 
 
 PLAN_CONFIG = {
-    "free": {"subscription_status": "free", "plan_type": "free", "keyword_limit": 3},
-    "basic": {"subscription_status": "active", "plan_type": "basic", "keyword_limit": 5},
-    "plus": {"subscription_status": "active", "plan_type": "plus", "keyword_limit": 20},
+    "free": {"subscription_status": "free", "keyword_limit": PLAN_LIMITS["free"]},
+    "basic": {"subscription_status": "active", "keyword_limit": PLAN_LIMITS["basic"]},
+    "plus": {"subscription_status": "active", "keyword_limit": PLAN_LIMITS["plus"]},
 }
 
 
@@ -73,14 +75,15 @@ def set_plan(
     user = db.query(User).filter(User.email == data.email).first()
     if not user:
         raise HTTPException(status_code=404, detail="Korisnik nije pronađen")
+
     cfg = PLAN_CONFIG[data.plan]
     user.subscription_status = cfg["subscription_status"]
-    user.plan_type = cfg["plan_type"]
     user.keyword_limit = cfg["keyword_limit"]
     if data.plan != "free":
         user.subscription_end = date.today() + timedelta(days=30 * data.months)
     else:
         user.subscription_end = None
+
     db.add(
         Log(
             event_type="plan_set",
@@ -100,7 +103,6 @@ def list_users(db: Session = Depends(get_db), _: User = Depends(require_admin)):
             "id": u.id,
             "email": u.email,
             "subscription_status": u.subscription_status,
-            "plan_type": u.plan_type,
             "keyword_limit": u.keyword_limit,
             "subscription_end": u.subscription_end,
             "created_at": u.created_at,
@@ -111,7 +113,9 @@ def list_users(db: Session = Depends(get_db), _: User = Depends(require_admin)):
 
 @router.get("/logs")
 def get_logs(
-    limit: int = 100, db: Session = Depends(get_db), _: User = Depends(require_admin)
+    limit: int = 100,
+    db: Session = Depends(get_db),
+    _: User = Depends(require_admin),
 ):
     logs = db.query(Log).order_by(Log.timestamp.desc()).limit(limit).all()
     return [
@@ -153,8 +157,8 @@ def trigger_user_scan(
                 existing = {
                     (p.get("keyword", "").lower(), p.get("doc_id", ""))
                     for row in bg_db.query(ScanLog.detail)
-                        .filter(ScanLog.user_id == user_id, ScanLog.event_type == "keyword_match")
-                        .all()
+                    .filter(ScanLog.user_id == user_id, ScanLog.event_type == "keyword_match")
+                    .all()
                     for p in [dict(x.split(":", 1) for x in (row[0] or "").split("|") if ":" in x)]
                 }
 
@@ -166,7 +170,6 @@ def trigger_user_scan(
                         query = query.filter(Document.part == kw.part_filter.upper())
                     if kw.institution_filter:
                         query = query.filter(Document.institution.ilike(f"%{kw.institution_filter}%"))
-
                     docs = query.all()
                     logging.info(f"Korisnik {user_id} keyword='{kw.keyword}' (stem='{term}'): {len(docs)} dokumenata")
 
@@ -182,7 +185,6 @@ def trigger_user_scan(
                 if new_count > 0:
                     bg_db.commit()
                 logging.info(f"Korisnik {user_id}: {new_count} novih podudaranja spremljeno")
-
             finally:
                 bg_db.close()
         except Exception as e:
@@ -190,5 +192,4 @@ def trigger_user_scan(
 
     thread = threading.Thread(target=run_in_background, daemon=True)
     thread.start()
-
     return {"status": "ok", "message": "Skeniranje u tijeku."}
