@@ -49,7 +49,7 @@ def _build_digest(user, matches_by_kw: dict) -> tuple[str, str]:
         unsubscribe_url = f"https://pratimzakon.onrender.com/auth/unsubscribe?token={user.unsubscribe_token}"
 
     total = sum(len(v) for v in matches_by_kw.values())
-    week_label = f"{(datetime.utcnow() - timedelta(days=7)).strftime('%d.%m.')}–{datetime.utcnow().strftime('%d.%m.%Y.')}"
+    week_label = f"{(datetime.now(datetime.UTC) - timedelta(days=7)).strftime('%d.%m.')}–{datetime.now(datetime.UTC).strftime('%d.%m.%Y.')}"
 
     # Plain text
     lines = [
@@ -161,7 +161,7 @@ def run():
     from app.models import User, Log, UserSettings
 
     db = SessionLocal()
-    cutoff = datetime.utcnow() - timedelta(days=7)
+    cutoff = datetime.now(datetime.UTC) - timedelta(days=7)
     sent_count = 0
 
     try:
