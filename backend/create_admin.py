@@ -39,7 +39,6 @@ from app.models import User  # noqa: E402
 class AdminDefaults:
     subscription_status: str = "active"
     plan: str = "plus"
-    plan_type: str = "plus"
     keyword_limit: int = 9999
     include_mu: bool = True
     email_verified: bool = True
@@ -79,7 +78,6 @@ def _upsert_admin(email: str, password: str, reset_password: bool) -> None:
                 subscription_end=None,
                 keyword_limit=defaults.keyword_limit,
                 plan=defaults.plan,
-                plan_type=defaults.plan_type,
                 include_mu=defaults.include_mu,
             )
             db.add(user)

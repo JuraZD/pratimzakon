@@ -1,4 +1,4 @@
-name: NN Scraper + Notifikacije
+name: NN Scraper + Agent Notifikacije
 
 on:
   schedule:
@@ -20,9 +20,17 @@ jobs:
       - name: Install dependencies
         run: pip install -r backend/requirements.txt
 
-      - name: Run scraper
+      - name: Scrape NN (bez notifikacija)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          cd backend
+          python -m app.scraper.api_scraper daily --no-notify
+
+      - name: Agent — analiza i notifikacije
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SMTP_SERVER: ${{ secrets.SMTP_SERVER }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_USERNAME: ${{ secrets.SMTP_USERNAME }}
@@ -32,4 +40,4 @@ jobs:
           BASE_URL: ${{ secrets.BASE_URL }}
         run: |
           cd backend
-          python -m app.scraper.api_scraper daily
+          python -m app.agent

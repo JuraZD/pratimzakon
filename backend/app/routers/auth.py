@@ -55,7 +55,7 @@ Kontaktirajte korisnika za aktivaciju plana.
             s.login(smtp_user, smtp_pass)
             s.sendmail(from_email, [admin_email], msg.as_string())
     except Exception:
-        pass
+        logging.error("SMTP greška (Email slanje): %s", exc_info=True)
 
 
 def _smtp_cfg():
@@ -83,7 +83,7 @@ def _send_multipart(to_email: str, subject: str, html: str, plain: str):
             s.login(cfg["user"], cfg["password"])
             s.sendmail(cfg["from_email"], [to_email], msg.as_string())
     except Exception:
-        pass
+        logging.error("SMTP greška (Email slanje): %s", exc_info=True)
 
 
 def _send_verification_email(email: str, token: str):
@@ -471,8 +471,7 @@ def cancel_subscription(current_user: User = Depends(get_current_user), db: Sess
 
     # Odmah spusti na besplatni plan u bazi
     current_user.plan = "free"
-    current_user.plan_type = "free"
-    current_user.keyword_limit = 5
+    current_user.keyword_limit = 7
     current_user.email_notifications_enabled = False
     current_user.subscription_status = "free"
     current_user.stripe_subscription_id = None
@@ -498,17 +497,16 @@ def downgrade_to_free(current_user: User = Depends(get_current_user), db: Sessio
         except Exception as e:
             logging.warning(f"Stripe cancel failed for {current_user.email}: {e}")
 
-    # Ukloni ključne riječi iznad limita od 3 (zadrži prvih 3 po ID-u)
+    # Ukloni ključne riječi iznad limita od 7 (zadrži prvih 7 po ID-u)
     user_keywords = db.query(Keyword).filter(
         Keyword.user_id == current_user.id
     ).order_by(Keyword.id).all()
-    for kw in user_keywords[3:]:
+    for kw in user_keywords[7:]:
         db.delete(kw)
 
     # Spusti plan na besplatni — email obavijesti ostaju aktivne
     current_user.plan = "free"
-    current_user.plan_type = "free"
-    current_user.keyword_limit = 5
+    current_user.keyword_limit = 7
     current_user.subscription_status = "free"
     current_user.stripe_subscription_id = None
     db.add(Log(event_type="subscription_cancelled", user_id=current_user.id, detail=f"{current_user.email} [downgrade-to-free]"))

@@ -110,6 +110,11 @@
   .kw-badge.active { background:var(--green-dim); color:var(--green); }
   .kw-badge.stale { background:var(--orange-dim); color:var(--orange); }
   .kw-badge.inactive { background:var(--border); color:var(--muted); }
+  .kw-card.archived { border-left-color:var(--border-strong); opacity:0.55; }
+  .kw-badge.archived { background:var(--border); color:var(--muted); }
+  .kw-historical-label { font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px; font-weight:600; margin-bottom:4px; margin-top:-4px; }
+  .kw-history-note { grid-column:1/-1; font-size:12px; color:var(--muted); background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:8px 12px; margin-bottom:4px; }
+  .section-match-total { font-size:11px; color:var(--muted); font-weight:600; background:var(--surface2); border:1px solid var(--border); border-radius:2px; padding:2px 8px; margin-left:auto; white-space:nowrap; }
 
   /* ── TIMELINE ── */
   .timeline { display:flex; flex-direction:column; }
@@ -180,7 +185,7 @@
     <nav class="nav">
       <div class="nav-section-label">Glavni izbornik</div>
       <div class="nav-item" onclick="window.location='dashboard.html'"><span class="nav-icon">◈</span> Dashboard</div>
-      <div class="nav-item" onclick="window.location='dashboard.html'"><span class="nav-icon">◇</span> Matchevi</div>
+      <div class="nav-item" onclick="window.location='statistika.html'"><span class="nav-icon">◉</span> Statistika</div>
       <div class="nav-item" onclick="window.location='arhiva.html'"><span class="nav-icon">◫</span> Moja arhiva</div>
       <div class="nav-item active"><span class="nav-icon">◎</span> Aktivnost</div>
       <div class="nav-divider"></div>
@@ -218,6 +223,7 @@
         <div class="section-head">
           <div class="section-title">Status ključnih riječi</div>
           <div class="section-title-line"></div>
+          <div class="section-match-total" id="section-match-total" style="display:none"></div>
         </div>
         <div id="kw-grid" class="kw-grid">
           <div class="loading-row">⟳ Učitavam...</div>
@@ -258,7 +264,7 @@
     <nav class="nav">
       <div class="nav-section-label">Glavni izbornik</div>
       <div class="nav-item" onclick="closeMobNav();window.location.href='dashboard.html'"><span class="nav-icon">◈</span> Dashboard</div>
-      <div class="nav-item" onclick="closeMobNav();window.location.href='dashboard.html'"><span class="nav-icon">◇</span> Matchevi</div>
+      <div class="nav-item" onclick="closeMobNav();window.location.href='statistika.html'"><span class="nav-icon">◉</span> Statistika</div>
       <div class="nav-item" onclick="closeMobNav();window.location.href='arhiva.html'"><span class="nav-icon">◫</span> Moja arhiva</div>
       <div class="nav-item active"><span class="nav-icon">◎</span> Aktivnost</div>
       <div class="nav-divider"></div>
@@ -378,49 +384,95 @@
   };
 
   // ── KW STATUS ─────────────────────────────────────────────────────────────
-  function renderKwStatus(keywords, matches) {
+  function renderKwStatus(keywords, recentMatches) {
     const grid = document.getElementById('kw-grid');
-    if (!keywords.length) {
+
+    // keywords = [{id, keyword, hits_7d, hits_30d, ...}] from /keywords/dashboard
+    // recentMatches = [{keyword, matched_at, ...}] from /keywords/dashboard
+
+    const currentKwNames = new Set(keywords.map(kw => kw.keyword));
+
+    // Historical keywords appear in match logs but not in current keyword list
+    const historicalKwNames = new Set(
+      recentMatches.map(m => m.keyword).filter(k => k && k !== '—' && !currentKwNames.has(k))
+    );
+
+    if (!currentKwNames.size && !historicalKwNames.size) {
       grid.innerHTML = '<div class="empty-hint">Nema aktivnih ključnih riječi.</div>';
       return;
     }
 
-    // count matches per keyword
+    // Build stats for current keywords from dashboard data
     const stats = {};
-    keywords.forEach(kw => { stats[kw.keyword] = { count: 0, lastDate: null }; });
-    matches.forEach(m => {
-      const s = stats[m.keyword];
-      if (!s) return;
-      s.count++;
-      const d = parseMatchDate(m.matched_at);
-      if (!s.lastDate || (d && d > s.lastDate)) s.lastDate = d;
+    keywords.forEach(kw => {
+      const lastMatch = recentMatches.find(m => m.keyword === kw.keyword);
+      stats[kw.keyword] = {
+        count: kw.hits_30d,
+        hits_7d: kw.hits_7d,
+        lastDate: lastMatch ? parseMatchDate(lastMatch.matched_at) : null,
+        isCurrent: true,
+      };
+    });
+
+    // Build stats for historical keywords from match logs
+    historicalKwNames.forEach(name => {
+      const kwMatches = recentMatches.filter(m => m.keyword === name);
+      const lastMatch = kwMatches[0] || null;
+      stats[name] = {
+        count: kwMatches.length,
+        hits_7d: 0,
+        lastDate: lastMatch ? parseMatchDate(lastMatch.matched_at) : null,
+        isCurrent: false,
+      };
     });
 
     const now = new Date();
-    grid.innerHTML = keywords.map(kw => {
-      const s = stats[kw.keyword] || { count: 0, lastDate: null };
+
+    function kwCardHtml(kwName, s) {
       const daysSince = s.lastDate ? Math.floor((now - s.lastDate) / 86400000) : null;
       let cls = 'inactive', badge = 'inactive', badgeText = 'Bez matcheva';
       if (s.count > 0 && daysSince !== null) {
         if (daysSince <= 7) { cls='active'; badge='active'; badgeText='Aktivan'; }
         else { cls='stale'; badge='stale'; badgeText=`Zadnji match ${daysSince}d ago`; }
       }
+      if (!s.isCurrent) { cls = 'archived'; badge = 'archived'; }
       const dateStr = s.lastDate
         ? s.lastDate.toLocaleDateString('hr', { day:'2-digit', month:'2-digit', year:'numeric' })
         : '—';
       return `
         <div class="kw-card ${cls}">
-          <div class="kw-card-name" title="${esc(kw.keyword)}">${esc(kw.keyword)}</div>
+          <div class="kw-card-name" title="${esc(kwName)}">${esc(kwName)}</div>
+          ${!s.isCurrent ? '<div class="kw-historical-label">prethodna</div>' : ''}
           <div class="kw-card-stats">
             <div>
               <div class="kw-stat-num${s.count === 0 ? ' zero' : ''}">${s.count}</div>
-              <div class="kw-stat-label">matcheva</div>
+              <div class="kw-stat-label">30 dana</div>
             </div>
+            ${s.hits_7d > 0 ? `<div><div class="kw-stat-num" style="font-size:16px;color:var(--green)">${s.hits_7d}</div><div class="kw-stat-label">ovaj tjedan</div></div>` : ''}
           </div>
           <div class="kw-last-date">Zadnji: ${dateStr}</div>
-          <span class="kw-badge ${badge}">${badgeText}</span>
+          <span class="kw-badge ${badge}">${s.isCurrent ? badgeText : 'Prethodna'}</span>
         </div>`;
-    }).join('');
+    }
+
+    let html = '';
+
+    // Poruka ako postoje historijski matchevi
+    if (historicalKwNames.size > 0) {
+      html += `<div class="kw-history-note">Prikazani su i matchevi za prethodno praćene ključne riječi</div>`;
+    }
+
+    // Trenutne ključne riječi
+    keywords.forEach(kw => {
+      html += kwCardHtml(kw.keyword, stats[kw.keyword] || { count: 0, lastDate: null, isCurrent: true });
+    });
+
+    // Historijske ključne riječi (dimmed)
+    historicalKwNames.forEach(name => {
+      html += kwCardHtml(name, stats[name]);
+    });
+
+    grid.innerHTML = html;
   }
 
   // ── TIMELINE ──────────────────────────────────────────────────────────────
@@ -530,6 +582,15 @@
   }
 
   // ── INIT ──────────────────────────────────────────────────────────────────
+  async function fetchWithRetry(url, opts, retries = 3, delayMs = 1500) {
+    for (let i = 0; i < retries; i++) {
+      const res = await fetch(url, opts);
+      if (res.status === 401) return res;
+      if (res.ok || i === retries - 1) return res;
+      await new Promise(r => setTimeout(r, delayMs * Math.pow(2, i)));
+    }
+  }
+
   async function init() {
     if (!localStorage.getItem('token')) {
       window.location.href = 'index.html';
@@ -538,24 +599,31 @@
 
     loadUser();
 
+    document.getElementById('kw-grid').innerHTML = '<div class="empty-hint">Učitavanje…</div>';
+
     try {
-      const [kwRes, matchRes, actRes] = await Promise.all([
-        fetch(`${API}/keywords/`, { headers: authHeaders() }),
-        fetch(`${API}/search/matches/recent?limit=300`, { headers: authHeaders() }),
-        fetch(`${API}/search/activity/recent?limit=300`, { headers: authHeaders() }),
+      const [dashRes, actRes] = await Promise.all([
+        fetchWithRetry(`${API}/keywords/dashboard`, { headers: authHeaders() }),
+        fetchWithRetry(`${API}/search/activity/recent?limit=300`, { headers: authHeaders() }),
       ]);
 
-      if (kwRes.status === 401 || matchRes.status === 401 || actRes.status === 401) {
+      if (dashRes.status === 401 || actRes.status === 401) {
         logout(); return;
       }
 
-      const keywords   = kwRes.ok   ? await kwRes.json()   : [];
-      const matches    = matchRes.ok ? await matchRes.json() : [];
+      const dash       = dashRes.ok ? await dashRes.json() : { keywords: [], recent_matches: [], total_hits_7d: 0, total_hits_30d: 0 };
       const activities = actRes.ok  ? await actRes.json()  : [];
 
-      renderKwStatus(keywords, matches);
+      renderKwStatus(dash.keywords, dash.recent_matches);
       renderTimeline(activities);
       renderEmailLog(activities);
+
+      // Show summary stats
+      const totalEl = document.getElementById('section-match-total');
+      if (totalEl && (dash.total_hits_30d > 0)) {
+        totalEl.textContent = `${dash.total_hits_7d} ovaj tjedan · ${dash.total_hits_30d} ovaj mjesec`;
+        totalEl.style.display = 'block';
+      }
 
     } catch(e) {
       document.getElementById('kw-grid').innerHTML     = '<div class="empty-hint" style="color:var(--orange)">Greška pri dohvatu podataka.</div>';

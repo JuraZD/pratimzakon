@@ -32,7 +32,6 @@ class UserOut(BaseModel):
     keyword_limit: int
     plan: str
     include_mu: bool
-    plan_type: str
     situation: Optional[str] = None
     created_at: datetime
 
@@ -40,6 +39,18 @@ class UserOut(BaseModel):
 
 
 # --- Keywords ---
+
+
+class KeywordGroupCreate(BaseModel):
+    name: str
+
+
+class KeywordGroupOut(BaseModel):
+    id: int
+    name: str
+    keyword_count: int = 0
+
+    model_config = {"from_attributes": True}
 
 
 class KeywordCreate(BaseModel):
@@ -55,6 +66,7 @@ class KeywordOut(BaseModel):
     doc_type_filter: Optional[str] = None
     institution_filter: Optional[str] = None
     part_filter: Optional[str] = None
+    group_id: Optional[int] = None
 
     model_config = {"from_attributes": True}
 

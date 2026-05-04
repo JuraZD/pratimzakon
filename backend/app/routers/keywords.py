@@ -7,12 +7,146 @@ from sqlalchemy import func, or_
 from typing import List, Optional
 
 from ..database import get_db
-from ..models import User, Keyword, Document, Log
+from ..models import User, Keyword, Document, Log, UserSettings, KeywordGroup
 from ..schemas import KeywordCreate, KeywordOut
 from ..auth import get_current_user
 from .search import DocumentResult, SearchResponse
 
+_TOOL_SUGESTIJE = {
+    "name": "predlozi_kljucne_rijeci",
+    "description": "Predloži relevantne ključne riječi za praćenje Narodnih novina.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "kljucne_rijeci": {
+                "type": "array",
+                "items": {"type": "string"},
+                "description": (
+                    "Lista od 1 do 5 kratkih ključnih riječi (1-3 riječi svaka) "
+                    "relevantnih za hrvatsko zakonodavstvo. "
+                    "Ne smiju se ponavljati već postojeće ključne riječi."
+                ),
+                "maxItems": 5,
+            }
+        },
+        "required": ["kljucne_rijeci"],
+    },
+}
+
+
+class SugestijeOutput(BaseModel):
+    kljucne_rijeci: List[str]
+
 router = APIRouter(prefix="/keywords", tags=["keywords"])
+
+
+@router.get("/groups")
+def list_groups(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    groups = db.query(KeywordGroup).filter(KeywordGroup.user_id == current_user.id).all()
+    return [{"id": g.id, "name": g.name, "keyword_count": len(g.keywords)} for g in groups]
+
+
+class GroupCreate(BaseModel):
+    name: str
+
+
+@router.post("/groups", status_code=status.HTTP_201_CREATED)
+def create_group(
+    data: GroupCreate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    name = data.name.strip()
+    if not name or len(name) > 50:
+        raise HTTPException(status_code=400, detail="Naziv grupe mora biti između 1 i 50 znakova")
+    grp = KeywordGroup(user_id=current_user.id, name=name)
+    db.add(grp)
+    db.commit()
+    db.refresh(grp)
+    return {"id": grp.id, "name": grp.name, "keyword_count": 0}
+
+
+@router.delete("/groups/{group_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_group(
+    group_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    grp = db.query(KeywordGroup).filter(
+        KeywordGroup.id == group_id, KeywordGroup.user_id == current_user.id
+    ).first()
+    if not grp:
+        raise HTTPException(status_code=404, detail="Grupa nije pronađena")
+    db.delete(grp)
+    db.commit()
+
+
+class GroupAssign(BaseModel):
+    group_id: Optional[int] = None
+
+
+@router.patch("/{keyword_id}/group")
+def assign_group(
+    keyword_id: int,
+    data: GroupAssign,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    kw = db.query(Keyword).filter(
+        Keyword.id == keyword_id, Keyword.user_id == current_user.id
+    ).first()
+    if not kw:
+        raise HTTPException(status_code=404, detail="Ključna riječ nije pronađena")
+    if data.group_id is not None:
+        grp = db.query(KeywordGroup).filter(
+            KeywordGroup.id == data.group_id, KeywordGroup.user_id == current_user.id
+        ).first()
+        if not grp:
+            raise HTTPException(status_code=404, detail="Grupa nije pronađena")
+    kw.group_id = data.group_id
+    db.commit()
+    return {"id": kw.id, "group_id": kw.group_id}
+
+
+class KeywordUpdate(BaseModel):
+    doc_type_filter: Optional[str] = None
+    institution_filter: Optional[str] = None
+    part_filter: Optional[str] = None
+    group_id: Optional[int] = None
+
+
+@router.patch("/{keyword_id}", response_model=KeywordOut)
+def update_keyword(
+    keyword_id: int,
+    data: KeywordUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    kw = db.query(Keyword).filter(
+        Keyword.id == keyword_id, Keyword.user_id == current_user.id
+    ).first()
+    if not kw:
+        raise HTTPException(status_code=404, detail="Ključna riječ nije pronađena")
+    if data.group_id is not None:
+        grp = db.query(KeywordGroup).filter(
+            KeywordGroup.id == data.group_id, KeywordGroup.user_id == current_user.id
+        ).first()
+        if not grp:
+            raise HTTPException(status_code=404, detail="Grupa nije pronađena")
+    if data.doc_type_filter:
+        cleaned = ",".join(t.strip().upper() for t in data.doc_type_filter.split(",") if t.strip())
+        kw.doc_type_filter = cleaned or None
+    else:
+        kw.doc_type_filter = None
+    kw.institution_filter = data.institution_filter.strip() if data.institution_filter else None
+    kw.part_filter = data.part_filter.upper() if data.part_filter else None
+    kw.group_id = data.group_id
+    db.commit()
+    db.refresh(kw)
+    return kw
 
 
 @router.get("/", response_model=List[KeywordOut])
@@ -28,21 +162,21 @@ def add_keyword(
 ):
     keyword = data.keyword.strip()
     if not keyword:
-        raise HTTPException(status_code=400, detail="KljuÄna rijeÄ ne smije biti prazna")
+        raise HTTPException(status_code=400, detail="Ključna riječ ne smije biti prazna")
     if len(keyword) < 2:
-        raise HTTPException(status_code=400, detail="KljuÄna rijeÄ mora imati najmanje 2 znaka")
+        raise HTTPException(status_code=400, detail="Ključna riječ mora imati najmanje 2 znaka")
 
     existing = db.query(Keyword).filter(
         Keyword.user_id == current_user.id,
         Keyword.keyword == keyword,
     ).first()
     if existing:
-        raise HTTPException(status_code=400, detail="KljuÄna rijeÄ veÄ postoji")
+        raise HTTPException(status_code=400, detail="Ključna riječ već postoji")
 
     if len(current_user.keywords) >= current_user.keyword_limit:
         raise HTTPException(
             status_code=403,
-            detail=f"Dostigli ste limit od {current_user.keyword_limit} kljuÄnih rijeÄi. Nadogradite paket.",
+            detail=f"Dostigli ste limit od {current_user.keyword_limit} ključnih riječi. Nadogradite paket.",
         )
 
     kw = Keyword(
@@ -86,7 +220,7 @@ def keyword_activity(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Zadnje pronaÄeni dokumenti i pogoci po kljuÄnoj rijeÄi (zadnjih 30 dana)."""
+    """Zadnje pronađeni dokumenti i pogoci po ključnoj riječi (zadnjih 30 dana)."""
     keywords = current_user.keywords
     if not keywords:
         return {"recent_docs": [], "keyword_hits": []}
@@ -183,7 +317,7 @@ def delete_keyword(
     ).first()
 
     if not kw:
-        raise HTTPException(status_code=404, detail="KljuÄna rijeÄ nije pronaÄena")
+        raise HTTPException(status_code=404, detail="Ključna riječ nije pronađena")
     db.add(Log(event_type="keyword_change", user_id=current_user.id,
                detail=f"action:removed|keyword:{kw.keyword[:100]}"))
     db.delete(kw)
@@ -198,14 +332,8 @@ def get_digest_status(
     current_user: User = Depends(get_current_user),
 ):
     """Vraća je li tjedni digest uključen za korisnika."""
-    latest = (
-        db.query(Log)
-        .filter(Log.user_id == current_user.id, Log.event_type == "pref_digest")
-        .order_by(Log.timestamp.desc())
-        .first()
-    )
-    enabled = latest is not None and (latest.detail or "") == "enabled:1"
-    return {"enabled": enabled}
+    us = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+    return {"enabled": us.weekly_digest_enabled if us else False}
 
 
 @router.post("/digest-toggle")
@@ -214,24 +342,75 @@ def toggle_digest(
     current_user: User = Depends(get_current_user),
 ):
     """Uključi/isključi tjedni digest email."""
-    latest = (
-        db.query(Log)
-        .filter(Log.user_id == current_user.id, Log.event_type == "pref_digest")
-        .order_by(Log.timestamp.desc())
-        .first()
-    )
-    currently_enabled = latest is not None and (latest.detail or "") == "enabled:1"
-    new_state = not currently_enabled
-    db.add(Log(
-        user_id=current_user.id,
-        event_type="pref_digest",
-        detail="enabled:1" if new_state else "enabled:0",
-    ))
+    us = db.query(UserSettings).filter(UserSettings.user_id == current_user.id).first()
+    if us is None:
+        us = UserSettings(user_id=current_user.id, weekly_digest_enabled=True)
+        db.add(us)
+    else:
+        us.weekly_digest_enabled = not us.weekly_digest_enabled
     db.commit()
-    return {"enabled": new_state}
+    return {"enabled": us.weekly_digest_enabled}
 
 
 # ── AI PRIJEDLOG KLJUČNIH RIJEČI ───────────────────────────────────────────────
+
+@router.get("/dashboard")
+def get_dashboard(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Konsolidovani podaci za activity dashboard: keyword stats + recent matches."""
+    cutoff_7d = date.today() - timedelta(days=7)
+    cutoff_30d = date.today() - timedelta(days=30)
+
+    keywords = current_user.keywords
+    kw_stats = []
+    for kw in keywords:
+        hits_7d = (
+            db.query(func.count(Document.id))
+            .filter(Document.title.ilike(f"%{kw.keyword}%"), Document.published_date >= cutoff_7d)
+            .scalar()
+        ) or 0
+        hits_30d = (
+            db.query(func.count(Document.id))
+            .filter(Document.title.ilike(f"%{kw.keyword}%"), Document.published_date >= cutoff_30d)
+            .scalar()
+        ) or 0
+        kw_stats.append({
+            "id": kw.id,
+            "keyword": kw.keyword,
+            "doc_type_filter": kw.doc_type_filter,
+            "institution_filter": kw.institution_filter,
+            "part_filter": kw.part_filter,
+            "hits_7d": hits_7d,
+            "hits_30d": hits_30d,
+        })
+
+    match_logs = (
+        db.query(Log)
+        .filter(Log.user_id == current_user.id, Log.event_type == "keyword_match")
+        .order_by(Log.timestamp.desc())
+        .limit(200)
+        .all()
+    )
+    recent_matches = []
+    for log in match_logs:
+        detail = log.detail or ""
+        parts = dict(p.split(":", 1) for p in detail.split("|") if ":" in p)
+        recent_matches.append({
+            "keyword": parts.get("keyword", "—"),
+            "doc_id": parts.get("doc_id", ""),
+            "title": parts.get("title", "Nepoznat dokument"),
+            "matched_at": log.timestamp.strftime("%d.%m.%Y.") if log.timestamp else "—",
+        })
+
+    return {
+        "keywords": kw_stats,
+        "recent_matches": recent_matches,
+        "total_hits_7d": sum(k["hits_7d"] for k in kw_stats),
+        "total_hits_30d": sum(k["hits_30d"] for k in kw_stats),
+    }
+
 
 @router.get("/suggest")
 def suggest_keywords(
@@ -239,7 +418,7 @@ def suggest_keywords(
     current_user: User = Depends(get_current_user),
 ):
     """AI predlaže ključne riječi na temelju korisnikove situacije."""
-    from ..ai.matcher import client
+    from ..ai.matcher import client, CLAUDE_MODEL
 
     situation = (current_user.situation or "").strip()
     if not situation:
@@ -250,28 +429,25 @@ def suggest_keywords(
 
     try:
         msg = client.messages.create(
-            model="claude-haiku-4-5-20251001",
+            model=CLAUDE_MODEL,
             max_tokens=120,
+            tools=[_TOOL_SUGESTIJE],
+            tool_choice={"type": "tool", "name": "predlozi_kljucne_rijeci"},
             messages=[{
                 "role": "user",
                 "content": (
-                    "Na temelju korisnikove situacije, predloži 5 relevantnih ključnih "
+                    "Na temelju korisnikove situacije, predloži do 5 relevantnih ključnih "
                     "riječi za praćenje Narodnih novina RH.\n\n"
                     f"Korisnikova situacija: {situation}\n"
                     f"Već prate: {existing_str}\n\n"
-                    "Pravila:\n"
-                    "- Predloži SAMO nove ključne riječi (ne one koje već prate)\n"
-                    "- Kratki pojmovi, 1\xe2\x80\x933 riječi\n"
-                    "- Relevantni za hrvatsko zakonodavstvo\n"
-                    "- Jedan pojam po retku, bez numeriranja, bez objašnjenja\n\n"
-                    "Format:\nzakon o radu\nporez na dobit\nfiskalizacija"
+                    "Predloži SAMO nove ključne riječi (ne one koje već prate). "
+                    "Kratki pojmovi, 1-3 riječi, relevantni za hrvatsko zakonodavstvo."
                 ),
             }],
         )
-        raw = msg.content[0].text.strip()
-        suggestions = [line.strip() for line in raw.split("\n") if line.strip()][:6]
+        output = SugestijeOutput(**msg.content[0].input)
         existing_lower = {k.lower() for k in existing_kws}
-        suggestions = [s for s in suggestions if s.lower() not in existing_lower][:5]
+        suggestions = [s for s in output.kljucne_rijeci if s.lower() not in existing_lower][:5]
         return {"suggestions": suggestions}
 
     except Exception as e:

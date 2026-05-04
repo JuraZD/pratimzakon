@@ -21,6 +21,47 @@ SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 FROM_EMAIL = os.getenv("FROM_EMAIL", SMTP_USERNAME)
 FROM_NAME = os.getenv("FROM_NAME", "PratimZakon")
 
+# ── JEDNOSTAVNO STEMMANJE ZA HRVATSKI ─────────────────────────────────────────
+_HR_SUFFIXES = sorted(
+    [
+        "icama", "stvima",
+        "stvo", "stva", "stvu", "stvom",
+        "nika", "nice", "nici", "niku",
+        "ama", "ima", "ski", "ska", "sko",
+        "ni", "na", "no", "ne",
+        "om", "og", "em", "ih", "im",
+        "a", "e", "i", "o", "u",
+    ],
+    key=len,
+    reverse=True,
+)
+_MIN_STEM_LEN = 4
+_MIN_KW_LEN   = 6
+
+
+def _stem_keyword(keyword: str) -> str:
+    """
+    Jednostavni stemmer za hrvatski jezik.
+    Uklanja tipični nastavak samo za riječi dulje od _MIN_KW_LEN znakova
+    (striktno manje, pa se i 6-slovne inačice stemmaju: 'poreza' → 'porez').
+    Primjeri:
+      'poljoprivreda'  → 'poljoprivred'
+      'zdravstvo'      → 'zdravstv'
+      'zemljište'      → 'zemljišt'   (pronalazi 'zemljišta', 'zemljištu'...)
+      'zemljištem'     → 'zemljišt'   (sufiks 'em')
+      'pravnih'        → 'pravn'      (sufiks 'ih')
+      'poreza'         → 'porez'      (6 slova — sada se stemmaju)
+      'porez'          → 'porez'      (5 slova, bez promjene)
+      'PDV'            → 'pdv'        (≤5 znakova, bez promjene)
+    """
+    kw = keyword.strip().lower()
+    if len(kw) < _MIN_KW_LEN:
+        return kw
+    for suffix in _HR_SUFFIXES:
+        if kw.endswith(suffix) and (len(kw) - len(suffix)) >= _MIN_STEM_LEN:
+            return kw[: -len(suffix)]
+    return kw
+
 
 def _send_smtp(to_email: str, subject: str, html_body: str, text_body: str) -> bool:
     """Šalje email putem SMTP-a. Vraća True ako je uspješno."""
@@ -388,6 +429,21 @@ def send_keyword_notifications(
             sent += 1
         else:
             failed += 1
+
+        # Web push uz email
+        try:
+            from app.routers.push import send_push_to_user
+            first_kw = matches[0]["keyword"] if matches else ""
+            push_body = f"{len(matches)} novih pronalazaka — {first_kw}" if len(matches) > 1 else matches[0]["document_title"][:80]
+            send_push_to_user(
+                user.id,
+                title="PratimZakon — novi match",
+                body=push_body,
+                url="https://jurazd.github.io/pratimzakon/frontend/dashboard.html",
+                db=db,
+            )
+        except Exception as push_err:
+            logging.debug("Push send skip za %s: %s", user.email, push_err)
 
     db.commit()
     logging.info(f"Email notifikacije: {sent} poslano, {failed} neuspješno")

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PratimZakon — Statistika</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+  :root {
+    --navy:#1a2744; --navy2:#243258; --orange:#b84d1b; --orange2:#d4581f;
+    --cream:#e8e4da; --cream2:#f2efe8; --white:#ffffff;
+    --text:#1a2744; --muted:#6b7a99;
+    --border:rgba(26,39,68,0.12); --border-strong:rgba(26,39,68,0.22);
+    --green:#2e7d52; --green-dim:rgba(46,125,82,0.12);
+    --font-display:'Barlow Condensed',sans-serif; --font-body:'Barlow',sans-serif;
+    --radius:4px;
+    --bg:var(--cream); --surface:var(--white); --surface2:var(--cream2); --card-head:var(--navy);
+  }
+  html.dark {
+    --navy:#c8d4f0; --navy2:#a8b8e0; --orange:#e06830; --orange2:#e87840;
+    --cream:#111827; --cream2:#1e2837; --white:#1a2436;
+    --text:#d0daf0; --muted:#6b7a99;
+    --border:rgba(200,212,240,0.10); --border-strong:rgba(200,212,240,0.18);
+    --green:#4aaf78; --green-dim:rgba(74,175,120,0.12);
+    --bg:#111827; --surface:#1a2436; --surface2:#1e2837; --card-head:#0e1520;
+  }
+  html, body { min-height:100%; background:var(--bg); color:var(--text); font-family:var(--font-body); font-size:14px; line-height:1.5; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+  .app { display:grid; grid-template-columns:210px 1fr; min-height:100vh; }
+
+  /* SIDEBAR */
+  .sidebar { background:#1a2744; display:flex; flex-direction:column; position:sticky; top:0; height:100vh; }
+  .logo { padding:21px; font-family:var(--font-display); font-weight:800; font-size:22px; letter-spacing:1px; text-transform:uppercase; color:#e8e4da; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; }
+  .logo-accent { color:var(--orange2); }
+  .logo-dot { width:7px; height:7px; background:var(--orange2); border-radius:50%; margin-left:7px; animation:blink 2.5s ease-in-out infinite; }
+  .nav { flex:1; padding:13px 0; }
+  .nav-section-label { padding:8px 21px 5px; font-size:10px; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; color:rgba(232,228,218,0.3); }
+  .nav-item { display:flex; align-items:center; gap:8px; padding:8px 21px; cursor:pointer; transition:background 0.15s; color:rgba(232,228,218,0.55); font-size:13.5px; font-weight:500; position:relative; }
+  .nav-item:hover { background:rgba(255,255,255,0.06); color:rgba(232,228,218,0.9); }
+  .nav-item.active { background:rgba(212,88,31,0.15); color:rgba(232,228,218,0.95); }
+  .nav-item.active::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--orange2); }
+  .nav-icon { font-size:13px; width:16px; text-align:center; }
+  .nav-divider { height:1px; background:rgba(255,255,255,0.07); margin:8px 21px; }
+  .user-card { padding:13px 21px; border-top:1px solid rgba(255,255,255,0.08); background:rgba(0,0,0,0.15); }
+  .user-name { font-family:var(--font-display); font-weight:700; font-size:14px; color:rgba(232,228,218,0.9); letter-spacing:0.5px; margin-bottom:2px; }
+  .user-email { color:rgba(232,228,218,0.4); font-size:11.5px; margin-bottom:8px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .user-badge { display:inline-block; padding:2px 8px; background:rgba(46,125,82,0.2); border:1px solid rgba(46,125,82,0.35); color:#5aaf80; border-radius:2px; font-size:10.5px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; }
+
+  /* MAIN */
+  .main { display:flex; flex-direction:column; min-height:100vh; }
+  .topbar { display:flex; align-items:center; justify-content:space-between; padding:14px 28px 12px; background:var(--surface); border-bottom:2px solid var(--navy); position:sticky; top:0; z-index:10; flex-shrink:0; }
+  .topbar-left { display:flex; align-items:center; gap:14px; }
+  .topbar-crumb { font-family:var(--font-display); font-size:14px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:var(--muted); }
+  .topbar-crumb span { color:var(--navy); }
+  .topbar-right { display:flex; align-items:center; gap:10px; }
+  .btn-theme { width:34px; height:34px; padding:0; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-size:15px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all 0.15s; }
+  .btn-theme:hover { background:var(--navy); color:var(--surface); border-color:var(--navy); }
+  .mob-hamburger { display:none; align-items:center; justify-content:center; width:36px; height:36px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-size:20px; cursor:pointer; flex-shrink:0; }
+
+  /* CONTENT */
+  .content { padding:28px 36px 56px; max-width:960px; width:100%; }
+  .page-header { margin-bottom:28px; }
+  .page-title { font-family:var(--font-display); font-size:32px; font-weight:800; color:var(--navy); letter-spacing:-0.3px; margin-bottom:6px; }
+  .page-subtitle { font-size:13.5px; color:var(--muted); }
+
+  /* SECTION */
+  .section { margin-bottom:32px; }
+  .section-head { display:flex; align-items:center; margin-bottom:14px; }
+  .section-title { font-family:var(--font-display); font-size:13px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); }
+  .section-title-line { flex:1; height:1px; background:var(--border); margin-left:14px; }
+
+  /* SUMMARY CARDS */
+  .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:32px; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-top:3px solid var(--navy); border-radius:var(--radius); padding:14px 16px; }
+  .stat-card.orange { border-top-color:var(--orange2); }
+  .stat-card.green  { border-top-color:var(--green); }
+  .stat-card.muted  { border-top-color:var(--muted); }
+  .stat-label { font-size:11px; font-weight:600; letter-spacing:0.5px; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+  .stat-value { font-family:var(--font-display); font-size:28px; font-weight:800; color:var(--navy); line-height:1; }
+  .stat-card.orange .stat-value { color:var(--orange2); }
+  .stat-card.green  .stat-value { color:var(--green); }
+  .stat-sub { font-size:11.5px; color:var(--muted); margin-top:4px; }
+
+  /* BAR CHART */
+  .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; }
+  .mc-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+  .mc-row:last-child { margin-bottom:0; }
+  .mc-label { font-size:12px; color:var(--muted); font-weight:600; width:80px; flex-shrink:0; text-align:right; }
+  .mc-bar-wrap { flex:1; height:10px; background:var(--surface2); border-radius:5px; overflow:hidden; }
+  .mc-bar { height:100%; border-radius:5px; transition:width 0.5s ease; }
+  .mc-count { font-size:12px; font-weight:700; color:var(--text); width:60px; text-align:left; flex-shrink:0; }
+  .mc-pct { color:var(--muted); font-weight:400; }
+
+  /* KEYWORD TABLE */
+  .kw-table { width:100%; border-collapse:collapse; background:var(--surface); border-radius:var(--radius); overflow:hidden; border:1px solid var(--border); }
+  .kw-table th { padding:10px 14px; text-align:left; font-size:11px; font-weight:700; letter-spacing:0.8px; text-transform:uppercase; color:var(--muted); background:var(--surface2); border-bottom:1px solid var(--border); }
+  .kw-table td { padding:10px 14px; font-size:13px; border-bottom:1px solid var(--border); }
+  .kw-table tr:last-child td { border-bottom:none; }
+  .kw-table tr:hover td { background:var(--surface2); }
+  .kw-hits { font-family:var(--font-display); font-size:18px; font-weight:800; color:var(--orange2); }
+  .kw-last { color:var(--muted); font-size:12px; }
+  .kw-bar-inline { display:inline-block; height:6px; border-radius:3px; background:var(--orange2); opacity:0.6; vertical-align:middle; margin-left:8px; }
+
+  /* WEEKLY TREND */
+  .trend-grid { display:flex; align-items:flex-end; gap:6px; height:80px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px 10px; }
+  .trend-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end; }
+  .trend-bar-wrap { width:100%; display:flex; align-items:flex-end; flex:1; }
+  .trend-bar { width:100%; border-radius:3px 3px 0 0; background:var(--navy); opacity:0.7; min-height:2px; transition:height 0.4s ease; }
+  .trend-bar.has-data { opacity:1; }
+  .trend-label { font-size:9px; color:var(--muted); font-weight:600; white-space:nowrap; }
+  .trend-count { font-size:10px; font-weight:700; color:var(--text); }
+
+  /* EMPTY */
+  .empty-msg { color:var(--muted); font-size:13px; padding:20px 0; text-align:center; }
+
+  /* MOBILE */
+  .mob-drawer-overlay { display:none; position:fixed; inset:0; z-index:300; }
+  .mob-drawer-overlay.open { display:block; }
+  .mob-drawer-bg { position:absolute; inset:0; background:rgba(0,0,0,0.55); }
+  .mob-drawer { position:absolute; left:0; top:0; bottom:0; width:260px; background:#1a2744; display:flex; flex-direction:column; overflow:hidden; transform:translateX(-100%); transition:transform 0.25s cubic-bezier(0.4,0,0.2,1); }
+  .mob-drawer-overlay.open .mob-drawer { transform:translateX(0); }
+
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(16px); background:var(--navy); color:var(--cream); padding:10px 22px; border-radius:var(--radius); font-size:13px; font-weight:500; opacity:0; pointer-events:none; transition:all 0.25s; z-index:999; white-space:nowrap; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  @media (max-width:768px) {
+    .app { grid-template-columns:1fr; }
+    .sidebar { display:none; }
+    .mob-hamburger { display:flex; }
+    .content { padding:20px 16px 40px; }
+    .stats-row { grid-template-columns:repeat(2,1fr); }
+  }
+  @media (max-width:420px) {
+    .stats-row { grid-template-columns:1fr 1fr; gap:8px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="logo">PRATIM<span class="logo-accent">ZAKON</span><div class="logo-dot"></div></div>
+    <nav class="nav">
+      <div class="nav-section-label">Glavni izbornik</div>
+      <div class="nav-item" onclick="window.location='dashboard.html'"><span class="nav-icon">◈</span> Dashboard</div>
+      <div class="nav-item active"><span class="nav-icon">◉</span> Statistika</div>
+      <div class="nav-item" onclick="window.location='arhiva.html'"><span class="nav-icon">◫</span> Moja arhiva</div>
+      <div class="nav-item" onclick="window.location='aktivnost.html'"><span class="nav-icon">◎</span> Aktivnost</div>
+      <div class="nav-divider"></div>
+      <div class="nav-section-label">Račun</div>
+      <div class="nav-item" onclick="showToast('Postavke — uskoro dostupno')"><span class="nav-icon">○</span> Postavke</div>
+      <div class="nav-item" onclick="logout()"><span class="nav-icon">→</span> Odjava</div>
+    </nav>
+    <div class="user-card">
+      <div class="user-name" id="sidebar-name">—</div>
+      <div class="user-email" id="sidebar-email">—</div>
+      <div class="user-badge" id="sidebar-badge">BETA</div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="mob-hamburger" onclick="openMobNav()">☰</button>
+        <div class="topbar-crumb">Statistika <span>/ Pregled</span></div>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-theme" id="theme-toggle" onclick="toggleTheme()">☀</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <div class="page-header">
+        <div class="page-title">Statistika</div>
+        <div class="page-subtitle">Pregled vaših matcheva, ključnih riječi i aktivnosti</div>
+      </div>
+
+      <!-- SUMMARY CARDS -->
+      <div class="stats-row">
+        <div class="stat-card orange">
+          <div class="stat-label">Ukupno matcheva</div>
+          <div class="stat-value" id="stat-total">—</div>
+          <div class="stat-sub">od početka korištenja</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Ovaj tjedan</div>
+          <div class="stat-value" id="stat-week">—</div>
+          <div class="stat-sub">pronađenih dokumenata</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Ovaj mjesec</div>
+          <div class="stat-value" id="stat-month">—</div>
+          <div class="stat-sub">pronađenih dokumenata</div>
+        </div>
+        <div class="stat-card green">
+          <div class="stat-label">U arhivi</div>
+          <div class="stat-value" id="stat-archive">—</div>
+          <div class="stat-sub">spremljenih dokumenata</div>
+        </div>
+      </div>
+
+      <!-- BAR CHART BY TYPE -->
+      <div class="section">
+        <div class="section-head">
+          <div class="section-title">Matchevi po vrsti dokumenta</div>
+          <div class="section-title-line"></div>
+        </div>
+        <div class="chart-card" id="type-chart">
+          <div class="empty-msg">Učitavanje...</div>
+        </div>
+      </div>
+
+      <!-- KEYWORD PERFORMANCE -->
+      <div class="section">
+        <div class="section-head">
+          <div class="section-title">Ključne riječi — uspješnost</div>
+          <div class="section-title-line"></div>
+        </div>
+        <div id="kw-table-wrap">
+          <div class="empty-msg">Učitavanje...</div>
+        </div>
+      </div>
+
+      <!-- WEEKLY TREND -->
+      <div class="section">
+        <div class="section-head">
+          <div class="section-title">Trend matcheva — zadnjih 8 tjedana</div>
+          <div class="section-title-line"></div>
+        </div>
+        <div id="trend-wrap">
+          <div class="empty-msg">Učitavanje...</div>
+        </div>
+      </div>
+
+    </div><!-- /.content -->
+  </div><!-- /.main -->
+</div><!-- /.app -->
+
+<!-- MOBILE NAV -->
+<div class="mob-drawer-overlay" id="mob-drawer-overlay">
+  <div class="mob-drawer-bg" onclick="closeMobNav()"></div>
+  <div class="mob-drawer">
+    <div class="logo">PRATIM<span class="logo-accent">ZAKON</span><div class="logo-dot"></div></div>
+    <nav class="nav">
+      <div class="nav-section-label">Glavni izbornik</div>
+      <div class="nav-item" onclick="closeMobNav();window.location.href='dashboard.html'"><span class="nav-icon">◈</span> Dashboard</div>
+      <div class="nav-item active"><span class="nav-icon">◉</span> Statistika</div>
+      <div class="nav-item" onclick="closeMobNav();window.location.href='arhiva.html'"><span class="nav-icon">◫</span> Moja arhiva</div>
+      <div class="nav-item" onclick="closeMobNav();window.location.href='aktivnost.html'"><span class="nav-icon">◎</span> Aktivnost</div>
+      <div class="nav-divider"></div>
+      <div class="nav-section-label">Račun</div>
+      <div class="nav-item" onclick="closeMobNav();showToast('Postavke — uskoro dostupno')"><span class="nav-icon">○</span> Postavke</div>
+      <div class="nav-item" onclick="logout()"><span class="nav-icon">→</span> Odjava</div>
+    </nav>
+    <div class="user-card">
+      <div class="user-name" id="mob-user-name">—</div>
+      <div class="user-email" id="mob-user-email">—</div>
+      <div class="user-badge" id="mob-user-badge">BETA</div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const API = 'https://pratimzakon.onrender.com';
+
+  function toggleTheme() {
+    const isDark = document.documentElement.classList.toggle('dark');
+    document.getElementById('theme-toggle').textContent = isDark ? '☾' : '☀';
+    localStorage.setItem('pz-theme', isDark ? 'dark' : 'light');
+  }
+  if (localStorage.getItem('pz-theme') === 'dark') {
+    document.documentElement.classList.add('dark');
+    document.getElementById('theme-toggle').textContent = '☾';
+  }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function authHeaders() {
+    const token = localStorage.getItem('token');
+    return token ? { 'Authorization': 'Bearer ' + token } : {};
+  }
+
+  function logout() {
+    localStorage.removeItem('token');
+    window.location.href = 'index.html';
+  }
+
+  function openMobNav()  { document.getElementById('mob-drawer-overlay').classList.add('open'); }
+  function closeMobNav() { document.getElementById('mob-drawer-overlay').classList.remove('open'); }
+
+  // ── LOAD USER ────────────────────────────────────────────────────────────
+  async function loadUser() {
+    try {
+      const res = await fetch(`${API}/auth/me`, { headers: authHeaders() });
+      if (res.status === 401) { logout(); return; }
+      const u = await res.json();
+      const name = u.email ? u.email.split('@')[0] : '—';
+      ['sidebar-name','mob-user-name'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = name; });
+      ['sidebar-email','mob-user-email'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = u.email||'—'; });
+      const plan = (u.plan||'free').toUpperCase();
+      ['sidebar-badge','mob-user-badge'].forEach(id => { const el = document.getElementById(id); if(el) el.textContent = plan; });
+    } catch(e) {}
+  }
+
+  // ── HELPERS ───────────────────────────────────────────────────────────────
+  function classifyMatch(title) {
+    const t = (title||'').toLowerCase();
+    if (t.includes('zakon') && !t.includes('izmjen') && !t.includes('dopun')) return 'zakon';
+    if (t.includes('izmjen') || t.includes('dopun')) return 'izmjena';
+    if (t.includes('pravilnik') || t.includes('uredba') || t.includes('odluk') || t.includes('naredba')) return 'pravilnik';
+    return 'other';
+  }
+
+  // Parse "15.04.2026." → Date
+  function parseMatchDate(str) {
+    if (!str || str === '—') return null;
+    const parts = str.replace(/\s.*/, '').split('.');
+    if (parts.length < 3) return null;
+    const d = parseInt(parts[0]), m = parseInt(parts[1]) - 1, y = parseInt(parts[2]);
+    if (!d || !m && m !== 0 || !y) return null;
+    return new Date(y, m, d);
+  }
+
+  // Monday of the week for a given date
+  function weekStart(d) {
+    const dt = new Date(d);
+    const day = dt.getDay() || 7;
+    dt.setDate(dt.getDate() - day + 1);
+    dt.setHours(0,0,0,0);
+    return dt;
+  }
+
+  // ── RENDER SUMMARY CARDS ─────────────────────────────────────────────────
+  function renderSummary(matches, archiveCount) {
+    const now = new Date();
+    const startOfWeek  = weekStart(now);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    let week = 0, month = 0;
+    matches.forEach(m => {
+      const d = parseMatchDate(m.matched_at);
+      if (!d) return;
+      if (d >= startOfWeek)  week++;
+      if (d >= startOfMonth) month++;
+    });
+
+    document.getElementById('stat-total').textContent   = matches.length;
+    document.getElementById('stat-week').textContent    = week;
+    document.getElementById('stat-month').textContent   = month;
+    document.getElementById('stat-archive').textContent = archiveCount;
+  }
+
+  // ── RENDER BAR CHART ─────────────────────────────────────────────────────
+  function renderTypeChart(matches) {
+    const el = document.getElementById('type-chart');
+    if (!matches.length) { el.innerHTML = '<div class="empty-msg">Još nema matcheva.</div>'; return; }
+
+    const counts = { zakon:0, izmjena:0, pravilnik:0, other:0 };
+    matches.forEach(m => counts[classifyMatch(m.document_title)]++);
+    const max = Math.max(...Object.values(counts), 1);
+
+    const rows = [
+      { key:'zakon',     label:'Zakoni',     color:'var(--green)' },
+      { key:'izmjena',   label:'Izmjene',    color:'var(--orange2)' },
+      { key:'pravilnik', label:'Pravilnici', color:'var(--navy)' },
+      { key:'other',     label:'Ostalo',     color:'var(--muted)' },
+    ].filter(r => counts[r.key] > 0);
+
+    el.innerHTML = rows.map(r => {
+      const pct   = Math.round(counts[r.key] / matches.length * 100);
+      const width = Math.round(counts[r.key] / max * 100);
+      return `<div class="mc-row">
+        <div class="mc-label">${r.label}</div>
+        <div class="mc-bar-wrap"><div class="mc-bar" style="width:${width}%;background:${r.color}"></div></div>
+        <div class="mc-count">${counts[r.key]} <span class="mc-pct">${pct}%</span></div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── RENDER KEYWORD TABLE ─────────────────────────────────────────────────
+  function renderKeywordTable(matches) {
+    const wrap = document.getElementById('kw-table-wrap');
+    if (!matches.length) { wrap.innerHTML = '<div class="empty-msg">Još nema matcheva.</div>'; return; }
+
+    const kwData = {};
+    matches.forEach(m => {
+      const kw = m.keyword || '—';
+      if (!kwData[kw]) kwData[kw] = { hits: 0, last: null };
+      kwData[kw].hits++;
+      const d = parseMatchDate(m.matched_at);
+      if (d && (!kwData[kw].last || d > kwData[kw].last)) {
+        kwData[kw].last = d;
+        kwData[kw].lastStr = m.matched_at;
+      }
+    });
+
+    const sorted = Object.entries(kwData).sort((a,b) => b[1].hits - a[1].hits);
+    const maxHits = sorted[0][1].hits;
+
+    wrap.innerHTML = `<table class="kw-table">
+      <thead><tr>
+        <th>Ključna riječ</th>
+        <th>Matchevi</th>
+        <th>Zadnji match</th>
+      </tr></thead>
+      <tbody>
+        ${sorted.map(([kw, d]) => {
+          const barW = Math.round(d.hits / maxHits * 80);
+          return `<tr>
+            <td><strong>${esc(kw)}</strong><span class="kw-bar-inline" style="width:${barW}px"></span></td>
+            <td><span class="kw-hits">${d.hits}</span></td>
+            <td class="kw-last">${esc(d.lastStr || '—')}</td>
+          </tr>`;
+        }).join('')}
+      </tbody>
+    </table>`;
+  }
+
+  // ── RENDER WEEKLY TREND ──────────────────────────────────────────────────
+  function renderWeeklyTrend(matches) {
+    const wrap = document.getElementById('trend-wrap');
+    if (!matches.length) { wrap.innerHTML = '<div class="empty-msg">Još nema matcheva.</div>'; return; }
+
+    // Build last 8 weeks
+    const now = new Date();
+    const weeks = [];
+    for (let i = 7; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i * 7);
+      const ws = weekStart(d);
+      const we = new Date(ws); we.setDate(we.getDate() + 6);
+      const label = ws.getDate() + '.' + (ws.getMonth()+1) + '.';
+      weeks.push({ start: ws, end: we, label, count: 0 });
+    }
+
+    matches.forEach(m => {
+      const d = parseMatchDate(m.matched_at);
+      if (!d) return;
+      for (const w of weeks) {
+        if (d >= w.start && d <= w.end) { w.count++; break; }
+      }
+    });
+
+    const maxCount = Math.max(...weeks.map(w => w.count), 1);
+
+    wrap.innerHTML = `<div class="trend-grid">
+      ${weeks.map(w => {
+        const heightPct = Math.round(w.count / maxCount * 100);
+        return `<div class="trend-col">
+          <div class="trend-count">${w.count || ''}</div>
+          <div class="trend-bar-wrap">
+            <div class="trend-bar ${w.count ? 'has-data' : ''}" style="height:${heightPct}%"></div>
+          </div>
+          <div class="trend-label">${w.label}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  // ── INIT ─────────────────────────────────────────────────────────────────
+  async function init() {
+    if (!localStorage.getItem('token')) { window.location.href = 'index.html'; return; }
+    loadUser();
+
+    try {
+      const [matchesRes, archiveRes] = await Promise.all([
+        fetch(`${API}/search/matches/recent?limit=500`, { headers: authHeaders() }),
+        fetch(`${API}/search/archive`, { headers: authHeaders() }),
+      ]);
+
+      if (matchesRes.status === 401) { logout(); return; }
+
+      const matches = matchesRes.ok ? await matchesRes.json() : [];
+      const archive = archiveRes.ok  ? await archiveRes.json()  : [];
+
+      renderSummary(matches, archive.length);
+      renderTypeChart(matches);
+      renderKeywordTable(matches);
+      renderWeeklyTrend(matches);
+
+    } catch(e) {
+      console.error('Greška pri učitavanju statistike:', e);
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>

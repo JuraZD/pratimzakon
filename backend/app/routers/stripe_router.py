@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 
 from ..database import get_db
-from ..models import User, Log
+from ..models import User, Log, PLAN_LIMITS
 from ..auth import get_current_user
 
 router = APIRouter(prefix="/stripe", tags=["stripe"])
@@ -17,8 +17,8 @@ PRICE_PLUS = os.getenv("STRIPE_PRICE_PLUS", "")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost")
 
 PLAN_CONFIG = {
-    "basic": {"price_id": PRICE_BASIC, "keyword_limit": 5},
-    "plus":  {"price_id": PRICE_PLUS,  "keyword_limit": 20},
+    "basic": {"price_id": PRICE_BASIC, "keyword_limit": PLAN_LIMITS["basic"]},
+    "plus":  {"price_id": PRICE_PLUS,  "keyword_limit": PLAN_LIMITS["plus"]},
 }
 
 
@@ -55,8 +55,8 @@ def switch_plan(
     if current_user.subscription_status != "active":
         raise HTTPException(status_code=400, detail="Nemate aktivnu pretplatu")
 
-    current_plan_type = current_user.plan_type
-    if current_plan_type == plan:
+    current_plan = current_user.plan
+    if current_plan == plan or (current_plan in ("pro",) and plan == "basic") or (current_plan in ("expert",) and plan == "plus"):
         raise HTTPException(status_code=400, detail="Već ste na tom planu")
 
     sub_id = getattr(current_user, "stripe_subscription_id", None)
@@ -74,7 +74,6 @@ def switch_plan(
 
     # Ažuriraj plan u bazi
     current_user.plan = plan
-    current_user.plan_type = plan
     current_user.keyword_limit = PLAN_CONFIG[plan]["keyword_limit"]
     db.add(Log(event_type="plan_set", user_id=current_user.id, detail=f"{current_user.email} [switch->{plan}]"))
     db.commit()
@@ -103,7 +102,6 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
             user.subscription_end = date.today() + timedelta(days=30)
             user.keyword_limit = PLAN_CONFIG[plan]["keyword_limit"]
             user.plan = plan
-            user.plan_type = plan
             user.stripe_subscription_id = session.get("subscription")
             db.add(Log(event_type="subscription_activated", user_id=user.id, detail=plan))
             db.commit()
@@ -114,9 +112,8 @@ async def stripe_webhook(request: Request, db: Session = Depends(get_db)):
             user = db.query(User).filter(User.email == customer_email).first()
             if user:
                 user.subscription_status = "expired"
-                user.keyword_limit = 3
+                user.keyword_limit = PLAN_LIMITS["free"]
                 user.plan = "free"
-                user.plan_type = "free"
                 db.add(Log(event_type="subscription_cancelled", user_id=user.id))
                 db.commit()
 

@@ -37,9 +37,8 @@ def run():
             if days_left < 0:
                 # Downgrade na free – NE brišemo korisnika
                 user.subscription_status = "expired"
-                user.keyword_limit = 3
+                user.keyword_limit = 7
                 user.plan = "free"
-                user.plan_type = "free"
                 db.add(Log(event_type="subscription_expired", user_id=user.id))
                 expired_count += 1
                 logging.info(f"Pretplata istekla: {user.email}")

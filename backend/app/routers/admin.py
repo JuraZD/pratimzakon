@@ -56,9 +56,9 @@ class SetPlanRequest(BaseModel):
 
 
 PLAN_CONFIG = {
-    "free": {"subscription_status": "free", "keyword_limit": PLAN_LIMITS["free"]},
+    "free":  {"subscription_status": "free",   "keyword_limit": PLAN_LIMITS["free"]},
     "basic": {"subscription_status": "active", "keyword_limit": PLAN_LIMITS["basic"]},
-    "plus": {"subscription_status": "active", "keyword_limit": PLAN_LIMITS["plus"]},
+    "plus":  {"subscription_status": "active", "keyword_limit": PLAN_LIMITS["plus"]},
 }
 
 

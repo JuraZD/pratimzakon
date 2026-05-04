@@ -218,7 +218,7 @@ async function init() {
   const meRes = await authFetch("/auth/me");
   if (!meRes) return;
   const user = await meRes.json();
-  if (user.plan_type !== "plus") {
+  if (user.plan !== "plus") {
     document.getElementById("loadingState").style.display = "none";
     document.getElementById("expertGate").style.display = "block";
     return;

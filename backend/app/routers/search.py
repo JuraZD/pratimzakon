@@ -13,6 +13,7 @@ from sqlalchemy import or_, func
 from ..database import get_db
 from ..models import Document, User, Log
 from ..auth import get_current_user
+from ..email.notifier import _stem_keyword
 
 router = APIRouter(prefix="/search", tags=["search"])
 
@@ -72,7 +73,7 @@ def search_documents(
     if q:
         terms = q.strip().split()
         for term in terms:
-            query = query.filter(Document.title.ilike(f"%{term}%"))
+            query = query.filter(Document.title.ilike(f"%{_stem_keyword(term)}%"))
 
     if doc_type:
         types = [t.strip().upper() for t in doc_type.split(",")]
@@ -231,7 +232,7 @@ class MatchItem(BaseModel):
 
 @router.get("/matches/recent", response_model=List[MatchItem])
 def get_recent_matches(
-    limit: int = Query(20, ge=1, le=200),
+    limit: int = Query(20, ge=1, le=500),
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):

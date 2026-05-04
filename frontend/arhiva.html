@@ -105,7 +105,12 @@
   .mob-drawer-overlay.open .mob-drawer { transform:translateX(0); }
 
   /* ─── CONTENT ─── */
-  .content { padding: 28px 36px 48px; max-width: 900px; width: 100%; }
+  .content { padding: 28px 36px 48px; width: 100%; }
+
+  /* ─── TWO-COLUMN LAYOUT ─── */
+  .archive-layout { display: grid; grid-template-columns: 3fr 2fr; gap: 36px; align-items: start; }
+  .archive-left { min-width: 0; }
+  .archive-right { position: sticky; top: 72px; }
 
   /* ─── PAGE HEADER ─── */
   .page-header { margin-bottom: 24px; }
@@ -164,7 +169,7 @@
   .archive-search-clear.visible { display: block; }
 
   /* ─── NN PRETRAGA ─── */
-  .nn-search-section { margin-top: 36px; border-top: 2px solid var(--border-strong); padding-top: 28px; }
+  .nn-search-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; }
   .nn-search-title { font-family: var(--font-display); font-size: 22px; font-weight: 800; color: var(--navy); letter-spacing: -0.3px; margin-bottom: 6px; }
   .nn-search-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
   .nn-search-input-wrap { display: flex; gap: 8px; margin-bottom: 12px; }
@@ -203,7 +208,18 @@
   .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(20px); background: var(--navy); color: var(--cream); padding: 10px 22px; border-radius: var(--radius); font-size: 13.5px; font-weight: 500; opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none; z-index: 999; white-space: nowrap; }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* ─── ARCHIVE PAGINATION ─── */
+  .archive-pagination { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-top: 16px; }
+  .arch-pag-btn { padding: 5px 12px; border: 1.5px solid var(--border-strong); background: var(--surface2); color: var(--muted); font-family: var(--font-body); font-size: 12px; cursor: pointer; border-radius: var(--radius); transition: all 0.15s; font-weight: 600; }
+  .arch-pag-btn:hover { border-color: var(--navy); color: var(--navy); }
+  .arch-pag-btn.active { background: var(--navy); color: var(--cream); border-color: var(--navy); }
+  .arch-pag-btn:disabled { opacity: 0.4; cursor: default; }
+
   /* ─── MOBILE ─── */
+  @media (max-width: 900px) {
+    .archive-layout { grid-template-columns: 1fr; }
+    .archive-right { position: static; }
+  }
   @media (max-width: 768px) {
     .app { grid-template-columns: 1fr; }
     .sidebar { display: none; }
@@ -224,7 +240,7 @@
     <nav class="nav">
       <div class="nav-section-label">Glavni izbornik</div>
       <div class="nav-item" onclick="window.location='dashboard.html'"><span class="nav-icon">◈</span> Dashboard</div>
-      <div class="nav-item" onclick="window.location='dashboard.html'"><span class="nav-icon">◇</span> Matchevi</div>
+      <div class="nav-item" onclick="window.location='statistika.html'"><span class="nav-icon">◉</span> Statistika</div>
       <div class="nav-item active"><span class="nav-icon">◫</span> Moja arhiva</div>
       <div class="nav-item" onclick="window.location='aktivnost.html'"><span class="nav-icon">◎</span> Aktivnost</div>
       <div class="nav-divider"></div>
@@ -261,38 +277,52 @@
         <div class="page-subtitle">Dokumenti koje ste označili kao važne</div>
       </div>
 
-      <div class="archive-stats" id="archive-stats" style="display:none">
-        <div style="flex:1">
-          <div class="archive-stat-count" id="stat-count">0</div>
-          <div class="archive-stat-label">Spremljenih dokumenata</div>
+      <div class="archive-layout">
+
+        <!-- LIJEVO: dokumenti -->
+        <div class="archive-left">
+
+          <div class="archive-stats" id="archive-stats" style="display:none">
+            <div style="flex:1">
+              <div class="archive-stat-count" id="stat-count">0</div>
+              <div class="archive-stat-label">Spremljenih dokumenata</div>
+            </div>
+            <button class="btn-export" onclick="exportCSV()">↓ Preuzmi CSV</button>
+          </div>
+
+          <div class="archive-search-wrap" id="archive-search-wrap" style="display:none">
+            <input class="archive-search-input" id="archive-search" type="text"
+              placeholder="Pretraži arhivu po naslovu..."
+              oninput="filterArchive(this.value)">
+            <button class="archive-search-clear" id="archive-search-clear" onclick="clearArchiveSearch()">×</button>
+          </div>
+
+          <div id="archive-list" class="archive-list">
+            <div class="loading-row">⟳ Učitavam arhivu...</div>
+          </div>
+
+          <div id="archive-pagination" class="archive-pagination" style="display:none"></div>
+
         </div>
-        <button class="btn-export" onclick="exportCSV()">↓ Preuzmi CSV</button>
-      </div>
 
-      <div class="archive-search-wrap" id="archive-search-wrap" style="display:none">
-        <input class="archive-search-input" id="archive-search" type="text"
-          placeholder="Pretraži arhivu po naslovu..."
-          oninput="filterArchive(this.value)">
-        <button class="archive-search-clear" id="archive-search-clear" onclick="clearArchiveSearch()">×</button>
-      </div>
-
-      <div id="archive-list" class="archive-list">
-        <div class="loading-row">⟳ Učitavam arhivu...</div>
-      </div>
-
-      <!-- NN PRETRAGA -->
-      <div class="nn-search-section">
-        <div class="nn-search-title">Pretraži NN arhivu</div>
-        <div class="nn-search-sub">Pretražite cijeli Narodne novine arhiv — ne samo vaše matcheve</div>
-        <div class="nn-search-input-wrap">
-          <input class="nn-search-input" id="nn-search-q" type="text"
-            placeholder="Upiši pojam (npr. porez, zakon o radu)..."
-            onkeydown="if(event.key==='Enter') nnSearch(1)">
-          <button class="btn-nn-search" onclick="nnSearch(1)">Pretraži</button>
+        <!-- DESNO: NN pretraga -->
+        <div class="archive-right">
+          <div class="nn-search-section">
+            <div class="nn-search-title">Pretraži NN arhivu</div>
+            <div class="nn-search-sub">Pretražite cijeli Narodne novine arhiv — ne samo vaše matcheve</div>
+            <div class="nn-search-sub" style="margin-top:4px;font-size:12px;opacity:0.75;">Baza podataka pokriva objave od 1. siječnja 2026. godine.</div>
+            <div class="nn-search-input-wrap">
+              <input class="nn-search-input" id="nn-search-q" type="text"
+                placeholder="Upiši pojam (npr. porez, zakon o radu)..."
+                onkeydown="if(event.key==='Enter') nnSearch(1)">
+              <button class="btn-nn-search" onclick="nnSearch(1)">Pretraži</button>
+            </div>
+            <div id="nn-search-results"></div>
+            <div id="nn-search-pag"></div>
+          </div>
         </div>
-        <div id="nn-search-results"></div>
-        <div id="nn-search-pag"></div>
-      </div>
+
+      </div><!-- /.archive-layout -->
 
     </div>
 
@@ -307,7 +337,7 @@
     <nav class="nav">
       <div class="nav-section-label">Glavni izbornik</div>
       <div class="nav-item" onclick="closeMobNav();window.location.href='dashboard.html'"><span class="nav-icon">◈</span> Dashboard</div>
-      <div class="nav-item" onclick="closeMobNav();window.location.href='dashboard.html'"><span class="nav-icon">◇</span> Matchevi</div>
+      <div class="nav-item" onclick="closeMobNav();window.location.href='statistika.html'"><span class="nav-icon">◉</span> Statistika</div>
       <div class="nav-item active"><span class="nav-icon">◫</span> Moja arhiva</div>
       <div class="nav-item" onclick="closeMobNav();window.location.href='aktivnost.html'"><span class="nav-icon">◎</span> Aktivnost</div>
       <div class="nav-divider"></div>
@@ -377,13 +407,26 @@
   // ── LOAD ARCHIVE + NOTES ─────────────────────────────────────────────────
   let _archive = [];
   let _notes = {};
+  let _archiveFiltered = null;  // null = prikaži sve
+  let archivePage = 1;
+  const ARCHIVE_PER_PAGE = 10;
+
+  async function fetchWithRetry(url, opts, retries = 3, delayMs = 1500) {
+    for (let i = 0; i < retries; i++) {
+      const res = await fetch(url, opts);
+      if (res.status === 401) return res;
+      if (res.ok || i === retries - 1) return res;
+      await new Promise(r => setTimeout(r, delayMs * Math.pow(2, i)));
+    }
+  }
 
   async function loadArchive() {
     const list = document.getElementById('archive-list');
+    list.innerHTML = '<div class="loading-row">Učitavanje arhive…</div>';
     try {
       const [archiveRes, notesRes] = await Promise.all([
-        fetch(`${API}/search/archive`, { headers: authHeaders() }),
-        fetch(`${API}/search/notes`,   { headers: authHeaders() }),
+        fetchWithRetry(`${API}/search/archive`, { headers: authHeaders() }),
+        fetchWithRetry(`${API}/search/notes`,   { headers: authHeaders() }),
       ]);
       if (archiveRes.status === 401) { logout(); return; }
       if (!archiveRes.ok) throw new Error();
@@ -399,7 +442,7 @@
     const list = document.getElementById('archive-list');
     const statsBox = document.getElementById('archive-stats');
     const statCount = document.getElementById('stat-count');
-    if (!data) data = _archive;
+    if (data === undefined) data = _archiveFiltered !== null ? _archiveFiltered : _archive;
 
     statCount.textContent = _archive.length;
     statsBox.style.display = _archive.length ? 'flex' : 'none';
@@ -414,10 +457,19 @@
             <div class="empty-text">Kada čitate sažetak zakona, kliknite "Spremi u arhivu" kako biste označili dokument kao važan.</div>
             <a class="empty-cta" href="dashboard.html">Pregledaj matcheve →</a>
           </div>`;
+      document.getElementById('archive-pagination').style.display = 'none';
       return;
     }
 
-    list.innerHTML = data.map((item, idx) => {
+    // Paginacija
+    const totalPages = Math.ceil(data.length / ARCHIVE_PER_PAGE);
+    if (archivePage > totalPages) archivePage = totalPages;
+    const usePagination = data.length > ARCHIVE_PER_PAGE;
+    const slice = usePagination
+      ? data.slice((archivePage - 1) * ARCHIVE_PER_PAGE, archivePage * ARCHIVE_PER_PAGE)
+      : data;
+
+    list.innerHTML = slice.map((item, idx) => {
       const note = _notes[item.document_id] || '';
       return `
       <div class="archive-item" id="archive-row-${idx}">
@@ -446,6 +498,29 @@
         </div>
       </div>`;
     }).join('');
+
+    // Render paginacija
+    const pagEl = document.getElementById('archive-pagination');
+    if (usePagination) {
+      let pagHtml = `<button class="arch-pag-btn" onclick="setArchivePage(${archivePage - 1})" ${archivePage === 1 ? 'disabled' : ''}>← Preth.</button>`;
+      for (let p = 1; p <= totalPages; p++) {
+        pagHtml += `<button class="arch-pag-btn${p === archivePage ? ' active' : ''}" onclick="setArchivePage(${p})">${p}</button>`;
+      }
+      pagHtml += `<button class="arch-pag-btn" onclick="setArchivePage(${archivePage + 1})" ${archivePage === totalPages ? 'disabled' : ''}>Sljed. →</button>`;
+      pagEl.innerHTML = pagHtml;
+      pagEl.style.display = 'flex';
+    } else {
+      pagEl.style.display = 'none';
+    }
+  }
+
+  function setArchivePage(page) {
+    const data = _archiveFiltered !== null ? _archiveFiltered : _archive;
+    const totalPages = Math.ceil(data.length / ARCHIVE_PER_PAGE);
+    if (page < 1 || page > totalPages) return;
+    archivePage = page;
+    renderArchive(data);
+    document.getElementById('archive-list').scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
   function openDoc(docId) {
@@ -457,14 +532,17 @@
     q = q.trim().toLowerCase();
     const clearBtn = document.getElementById('archive-search-clear');
     if (clearBtn) clearBtn.classList.toggle('visible', q.length > 0);
-    const filtered = q ? _archive.filter(a => a.document_title.toLowerCase().includes(q)) : _archive;
-    renderArchive(filtered);
+    _archiveFiltered = q ? _archive.filter(a => a.document_title.toLowerCase().includes(q)) : null;
+    archivePage = 1;
+    renderArchive();
   }
 
   function clearArchiveSearch() {
     const input = document.getElementById('archive-search');
     if (input) { input.value = ''; input.focus(); }
     document.getElementById('archive-search-clear').classList.remove('visible');
+    _archiveFiltered = null;
+    archivePage = 1;
     renderArchive();
   }
 

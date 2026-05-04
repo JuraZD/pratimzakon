@@ -164,18 +164,45 @@ def _parse_jsonld(data: list, year: int, number: int, act_num: str) -> Optional[
     # Datum i tip dokumenta
     published_date = None
     doc_type = ""
+    institution = None
     if legal_resource:
-        date_list = legal_resource.get(f"{ELI}date_document", [])
-        if date_list:
-            try:
-                published_date = date.fromisoformat(date_list[0].get("@value", ""))
-            except (ValueError, AttributeError):
-                pass
+        SKOS = "http://www.w3.org/2004/02/skos/core#"
+
+        # Datum objave: date_publication (primarno) ili date_document (fallback)
+        for date_field in (f"{ELI}date_publication", f"{ELI}date_document"):
+            date_list = legal_resource.get(date_field, [])
+            if date_list:
+                try:
+                    published_date = date.fromisoformat(date_list[0].get("@value", ""))
+                    break
+                except (ValueError, AttributeError):
+                    pass
 
         type_doc = legal_resource.get(f"{ELI}type_document", [{}])[0].get("@id", "")
         # URL oblika: .../document-type/UREDBA → izvuci "UREDBA"
         if "/" in type_doc:
             doc_type = type_doc.rsplit("/", 1)[-1]
+
+        # Institucija koja je donijela propis (eli:passed_by)
+        passed_by = legal_resource.get(f"{ELI}passed_by", [])
+        if passed_by:
+            pb = passed_by[0] if isinstance(passed_by, list) else passed_by
+            if isinstance(pb, dict):
+                for key in (f"{SKOS}prefLabel", "skos:prefLabel", "rdfs:label", f"{ELI}name", "name", "@value"):
+                    labels = pb.get(key)
+                    if labels:
+                        if isinstance(labels, list):
+                            for lbl in labels:
+                                if isinstance(lbl, dict) and lbl.get("@language") in ("hr", "hrv"):
+                                    institution = lbl.get("@value")
+                                    break
+                            if not institution:
+                                first = labels[0]
+                                institution = first.get("@value", str(first)) if isinstance(first, dict) else str(first)
+                        elif isinstance(labels, str):
+                            institution = labels
+                        if institution:
+                            break
 
     if not title or not html_url:
         return None
@@ -185,6 +212,7 @@ def _parse_jsonld(data: list, year: int, number: int, act_num: str) -> Optional[
         "url": html_url,
         "pdf_url": pdf_url,
         "type": doc_type,
+        "institution": institution,
         "published_date": published_date,
         "issue_number": number,
         "act_num": act_num,

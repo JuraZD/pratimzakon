@@ -190,11 +190,8 @@
   .card-body { padding:13px 16px; display:flex; flex-direction:column; }
 
   /* ── KEYWORD LIMIT BAR ── */
-  .limit-track { height:3px; background:var(--border-strong); border-radius:2px; margin-bottom:4px; }
-  .limit-fill { height:100%; background:var(--green); border-radius:2px; transition:width 0.4s ease; }
-  .limit-fill.warn { background:var(--orange); }
-  .limit-fill.full { background:#c0392b; }
-  .limit-label { font-size:calc(10px * var(--font-scale)); color:var(--muted); margin-bottom:8px; }
+  .kw-count-label { font-size:calc(10px * var(--font-scale)); color:var(--muted); margin-bottom:6px; font-weight:600; text-transform:uppercase; letter-spacing:0.4px; }
+  .kw-tip { font-size:calc(11.5px * var(--font-scale)); color:var(--muted); background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:8px 12px; margin-bottom:14px; line-height:1.5; }
 
   /* ── KEYWORDS ── */
   .tag-list { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:13px; }
@@ -207,13 +204,67 @@
   .tag-input { flex:1; padding:7px 11px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-family:var(--font-body); font-size:calc(13px * var(--font-scale)); outline:none; transition:border-color 0.15s; }
   .tag-input:focus { border-color:var(--navy); }
   .tag-input::placeholder { color:var(--muted); }
+
+  /* ── KEYWORD GROUPS ── */
+  .group-bar { display:flex; flex-wrap:wrap; align-items:center; gap:5px; margin-bottom:10px; }
+  .grp-chip { padding:3px 10px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:12px; font-size:calc(11px * var(--font-scale)); font-weight:600; color:var(--muted); cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+  .grp-chip:hover { border-color:var(--navy); color:var(--navy); }
+  .grp-chip.active { background:var(--navy); border-color:var(--navy); color:var(--cream); }
+  .grp-chip-add { padding:3px 10px; background:transparent; border:1.5px dashed var(--border-strong); border-radius:12px; font-size:calc(11px * var(--font-scale)); font-weight:600; color:var(--muted); cursor:pointer; transition:all 0.15s; }
+  .grp-chip-add:hover { border-color:var(--orange); color:var(--orange); }
+  /* ── GROUP MODAL ── */
+  .grp-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.45); z-index:500; align-items:center; justify-content:center; }
+  .grp-modal-overlay.open { display:flex; }
+  .grp-modal { background:var(--surface); border-radius:var(--radius); padding:24px; width:380px; max-width:calc(100vw - 32px); box-shadow:0 8px 32px rgba(0,0,0,0.2); }
+  .grp-modal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+  .grp-modal-title { font-family:var(--font-display); font-size:16px; font-weight:800; color:var(--navy); letter-spacing:0.5px; text-transform:uppercase; }
+  .grp-modal-close { background:none; border:none; font-size:18px; color:var(--muted); cursor:pointer; line-height:1; }
+  .grp-modal-close:hover { color:var(--navy); }
+  .grp-row { display:flex; align-items:center; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--border); }
+  .grp-row-name { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:600; color:var(--text); }
+  .grp-row-count { font-size:11px; color:var(--muted); margin-left:auto; margin-right:10px; }
+  .grp-row-del { background:none; border:none; color:var(--muted); cursor:pointer; font-size:14px; padding:2px 4px; }
+  .grp-row-del:hover { color:#c0392b; }
+  .grp-new-row { display:flex; gap:8px; margin-top:14px; }
+  .grp-new-input { flex:1; padding:7px 10px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-family:var(--font-body); font-size:13px; outline:none; }
+  .grp-new-input:focus { border-color:var(--navy); }
+  .grp-new-btn { padding:7px 14px; background:var(--navy); border:none; border-radius:var(--radius); color:var(--cream); font-family:var(--font-body); font-size:12px; font-weight:700; cursor:pointer; }
+  .grp-new-btn:hover { background:var(--navy2); }
+
+  /* ── KEYWORD SETTINGS MODAL ── */
+  .kw-modal { width:420px; }
+  .kw-modal-section { margin-bottom:16px; }
+  .kw-modal-label { font-size:calc(10px * var(--font-scale)); font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.7px; margin-bottom:7px; }
+  .kw-modal-hint { font-weight:400; text-transform:none; letter-spacing:0; font-size:10px; }
+  .kw-modal-select { width:100%; padding:7px 10px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-family:var(--font-body); font-size:calc(13px * var(--font-scale)); outline:none; }
+  .kw-modal-select:focus { border-color:var(--navy); }
+  .kw-modal-checks { display:flex; flex-wrap:wrap; gap:8px; }
+  .kw-chk { display:flex; align-items:center; gap:5px; font-size:calc(12px * var(--font-scale)); color:var(--text); cursor:pointer; padding:4px 8px; border-radius:var(--radius); border:1.5px solid var(--border-strong); background:var(--surface2); transition:all 0.12s; }
+  .kw-chk:has(input:checked) { border-color:var(--navy); background:var(--navy); color:var(--cream); }
+  .kw-chk input { display:none; }
+  .kw-modal-radios { display:flex; flex-direction:column; gap:7px; }
+  .kw-radio { display:flex; align-items:center; gap:7px; font-size:calc(12.5px * var(--font-scale)); color:var(--text); cursor:pointer; }
+  .kw-modal-actions { display:flex; gap:10px; margin-top:20px; padding-top:16px; border-top:1px solid var(--border); }
+  .kw-modal-save { flex:1; padding:9px; }
+  .kw-modal-delete { flex-shrink:0; padding:9px 14px; background:transparent; border:1.5px solid #c0392b; border-radius:var(--radius); color:#c0392b; font-family:var(--font-body); font-size:calc(12px * var(--font-scale)); font-weight:700; cursor:pointer; transition:all 0.15s; }
+  .kw-modal-delete:hover { background:#c0392b; color:#fff; }
+
   .btn-add { padding:7px 14px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--navy); font-family:var(--font-body); font-size:calc(12.5px * var(--font-scale)); cursor:pointer; transition:all 0.15s; font-weight:600; white-space:nowrap; }
   .btn-add:hover { background:var(--navy); color:var(--cream); border-color:var(--navy); }
-  .situation-label { font-size:calc(10px * var(--font-scale)); color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; margin-bottom:5px; }
-  .situation-textarea { width:100%; padding:8px 11px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-family:var(--font-body); font-size:calc(12.5px * var(--font-scale)); outline:none; resize:none; transition:border-color 0.15s; height:66px; margin-bottom:11px; line-height:1.55; }
+  .situation-label { font-size:calc(10px * var(--font-scale)); color:var(--muted); text-transform:uppercase; letter-spacing:0.8px; font-weight:600; margin-bottom:8px; margin-top:4px; }
+  .situation-textarea { width:100%; padding:8px 11px; background:var(--surface2); border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--text); font-family:var(--font-body); font-size:calc(12.5px * var(--font-scale)); outline:none; resize:none; transition:border-color 0.15s; height:66px; margin-bottom:8px; line-height:1.55; }
   .situation-textarea:focus { border-color:var(--navy); }
   .situation-textarea::placeholder { color:var(--muted); }
-  .btn-save { width:100%; padding:10px; background:var(--orange); border:none; border-radius:var(--radius); color:var(--white); font-family:var(--font-display); font-size:calc(14px * var(--font-scale)); font-weight:800; cursor:pointer; transition:all 0.15s; letter-spacing:1.5px; text-transform:uppercase; }
+  /* Situacija — box prikaz */
+  .situation-box { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:11px 13px; margin-bottom:10px; display:flex; align-items:flex-start; gap:10px; }
+  .situation-text { flex:1; font-size:calc(12.5px * var(--font-scale)); color:var(--text); line-height:1.6; min-height:18px; }
+  .situation-text.empty { color:var(--muted); font-style:italic; }
+  .btn-sit-edit { flex-shrink:0; padding:5px 12px; background:transparent; border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--muted); font-family:var(--font-body); font-size:calc(11.5px * var(--font-scale)); font-weight:600; cursor:pointer; transition:all 0.15s; white-space:nowrap; margin-top:1px; }
+  .btn-sit-edit:hover { background:var(--navy); color:var(--cream); border-color:var(--navy); }
+  .situation-edit-btns { display:flex; gap:8px; }
+  .btn-cancel-sit { flex:1; padding:9px; background:transparent; border:1.5px solid var(--border-strong); border-radius:var(--radius); color:var(--muted); font-family:var(--font-display); font-size:calc(13px * var(--font-scale)); font-weight:700; cursor:pointer; transition:all 0.15s; letter-spacing:0.5px; text-transform:uppercase; }
+  .btn-cancel-sit:hover { background:var(--surface2); }
+  .btn-save { flex:1; padding:9px; background:var(--orange); border:none; border-radius:var(--radius); color:var(--white); font-family:var(--font-display); font-size:calc(13px * var(--font-scale)); font-weight:800; cursor:pointer; transition:all 0.15s; letter-spacing:1px; text-transform:uppercase; }
   .btn-save:hover { background:var(--orange2); transform:translateY(-1px); }
 
   /* ── KW STATS ── */
@@ -261,6 +312,19 @@
   ::-webkit-scrollbar-thumb { background:var(--border-strong); border-radius:2px; }
 
   .empty-msg { color:var(--muted); font-size:calc(13px * var(--font-scale)); padding:12px 0; }
+
+  /* ── NN ARCHIVE SEARCH ── */
+  .search-input { flex:1; padding:7px 11px; border:1px solid var(--border); border-radius:var(--radius); background:var(--surface2); color:var(--text); font-family:var(--font-body); font-size:calc(13px * var(--font-scale)); outline:none; transition:border-color 0.15s; min-width:0; }
+  .search-input:focus { border-color:var(--navy); }
+  .btn-search-go { padding:7px 14px; background:var(--navy); color:var(--cream); border:none; border-radius:var(--radius); font-family:var(--font-body); font-size:calc(12px * var(--font-scale)); font-weight:700; cursor:pointer; letter-spacing:0.5px; white-space:nowrap; transition:opacity 0.15s; flex-shrink:0; }
+  .btn-search-go:hover { opacity:0.8; }
+  .search-result { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; padding:10px 0; border-bottom:1px solid var(--border); }
+  .search-result:last-child { border-bottom:none; padding-bottom:0; }
+  .search-result-title { font-size:calc(13px * var(--font-scale)); color:var(--text); font-weight:600; line-height:1.45; margin-bottom:4px; }
+  .search-result-meta { font-size:calc(11px * var(--font-scale)); color:var(--muted); }
+  .search-result-badge { display:inline-block; padding:2px 7px; background:var(--navy); color:var(--cream); border-radius:2px; font-size:calc(9.5px * var(--font-scale)); font-weight:700; letter-spacing:0.5px; text-transform:uppercase; margin-bottom:4px; }
+  .btn-search-view { padding:5px 12px; background:var(--orange); color:var(--white); border:none; border-radius:var(--radius); font-family:var(--font-body); font-size:calc(11px * var(--font-scale)); font-weight:700; cursor:pointer; transition:opacity 0.15s; white-space:nowrap; }
+  .btn-search-view:hover { opacity:0.8; }
 
   /* ── PAGINATION ── */
   .pagination { display:flex; gap:4px; align-items:center; flex-wrap:wrap; margin-top:10px; }
@@ -351,7 +415,7 @@
     <nav class="nav">
       <div class="nav-section-label">Glavni izbornik</div>
       <div class="nav-item active" onclick="scrollToSection('top')"><span class="nav-icon">◈</span> Dashboard</div>
-      <div class="nav-item" onclick="scrollToSection('matches')"><span class="nav-icon">◇</span> Matchevi</div>
+      <div class="nav-item" onclick="window.location='statistika.html'"><span class="nav-icon">◉</span> Statistika</div>
       <div class="nav-item" onclick="window.location='arhiva.html'"><span class="nav-icon">◫</span> Moja arhiva</div>
       <div class="nav-item" onclick="window.location='aktivnost.html'"><span class="nav-icon">◎</span> Aktivnost</div>
       <div class="nav-divider"></div>
@@ -443,16 +507,35 @@
           <div class="card-head-action" onclick="clearTags()">Obriši sve</div>
         </div>
         <div class="card-body">
+          <div class="group-bar" id="group-bar" style="display:none">
+            <button class="grp-chip active" data-gid="" onclick="filterByGroup(this,'')">Sve</button>
+            <div id="group-chips"></div>
+            <button class="grp-chip-add" onclick="openGroupModal()">+ Grupe</button>
+          </div>
           <div class="tag-list" id="tag-list"></div>
-          <div class="limit-track"><div class="limit-fill" id="limit-fill" style="width:0%"></div></div>
-          <div class="limit-label" id="limit-label">0 / — ključnih riječi</div>
+          <div class="kw-count-label" id="limit-label">0 ključnih riječi aktivno</div>
           <div class="tag-input-wrap">
             <input class="tag-input" id="new-kw" type="text" placeholder="Dodaj ključnu riječ..." onkeydown="if(event.key==='Enter') addTag()">
             <button class="btn-add" onclick="addTag()">+ Dodaj</button>
           </div>
+          <div class="kw-tip">Za optimalne rezultate odaberite 5–7 ključnih riječi. Možete koristiti višerječne pojmove: "ruralni razvoj", "investicijske potpore".</div>
+
           <div class="situation-label">Moja situacija — za personalizirani sažetak</div>
-          <textarea class="situation-textarea" id="situation" placeholder="Npr: Vodim restoran s 5 zaposlenika u Zagrebu..."></textarea>
-          <button class="btn-save" onclick="savePracenje()">Spremi praćenje</button>
+
+          <!-- Uvijek vidljiv box s tekstom i gumbom Promijeni -->
+          <div class="situation-box" id="situation-box">
+            <div class="situation-text empty" id="situation-text-display">Dodajte opis vaše situacije za personalizirane sažetke...</div>
+            <button class="btn-sit-edit" onclick="editSituation()">Promijeni</button>
+          </div>
+
+          <!-- Edit forma (skrivena dok korisnik ne klikne Promijeni) -->
+          <div class="situation-edit" id="situation-edit" style="display:none">
+            <textarea class="situation-textarea" id="situation" placeholder="Npr: Vodim restoran s 5 zaposlenika u Zagrebu..."></textarea>
+            <div class="situation-edit-btns">
+              <button class="btn-save" onclick="savePracenje()">Spremi</button>
+              <button class="btn-cancel-sit" onclick="cancelSituation()">Odustani</button>
+            </div>
+          </div>
           <button class="btn-suggest" id="btn-suggest" onclick="suggestKeywords()">◈ Predloži ključne riječi na temelju situacije</button>
           <div class="suggest-chips" id="suggest-chips" style="display:none"></div>
           <div class="digest-row">
@@ -464,6 +547,26 @@
               <input type="checkbox" id="digest-toggle" onchange="toggleDigest()">
               <span class="toggle-track"></span>
             </label>
+          </div>
+          <div class="digest-row" style="margin-top:6px;">
+            <div>
+              <div class="digest-label">Push notifikacije</div>
+              <div class="digest-sub">Instant obavijest u browseru pri novom matchu</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="push-toggle" onchange="togglePush()">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+          <div class="digest-row" style="margin-top:6px;">
+            <div>
+              <div class="digest-label">RSS / Atom feed</div>
+              <div class="digest-sub">Pratite matcheve u svom čitaču vijesti</div>
+            </div>
+            <a id="feed-link" href="#" target="_blank" rel="noopener"
+               style="font-size:11px;font-weight:700;color:var(--orange);text-decoration:none;white-space:nowrap;padding:4px 10px;border:1.5px solid var(--orange);border-radius:2px;">
+              ⊞ Feed
+            </a>
           </div>
           <div id="situation-history"></div>
         </div>
@@ -487,6 +590,7 @@
       </div>
 
 
+
     </div>
   </div>
 </div>
@@ -499,7 +603,7 @@
     <nav class="nav">
       <div class="nav-section-label">Glavni izbornik</div>
       <div class="nav-item active" onclick="closeMobNav()"><span class="nav-icon">◈</span> Dashboard</div>
-      <div class="nav-item" onclick="closeMobNav();setTimeout(()=>scrollToSection('matches'),200)"><span class="nav-icon">◇</span> Matchevi</div>
+      <div class="nav-item" onclick="closeMobNav();window.location.href='statistika.html'"><span class="nav-icon">◉</span> Statistika</div>
       <div class="nav-item" onclick="closeMobNav();window.location.href='arhiva.html'"><span class="nav-icon">◫</span> Moja arhiva</div>
       <div class="nav-item" onclick="closeMobNav();window.location.href='aktivnost.html'"><span class="nav-icon">◎</span> Aktivnost</div>
       <div class="nav-divider"></div>
@@ -528,6 +632,65 @@
   <button onclick="changeFontSize(1)"  style="width:36px;height:36px;background:rgba(255,255,255,0.1);color:#e8e4da;border:1.5px solid rgba(255,255,255,0.2);border-radius:50%;font-size:14px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;" title="Povećaj">A+</button>
 </div>
 
+<!-- GROUP MODAL -->
+<div class="grp-modal-overlay" id="grp-modal-overlay" onclick="closeGroupModal()">
+  <div class="grp-modal" onclick="event.stopPropagation()">
+    <div class="grp-modal-head">
+      <div class="grp-modal-title">Grupe ključnih riječi</div>
+      <button class="grp-modal-close" onclick="closeGroupModal()">✕</button>
+    </div>
+    <div id="grp-modal-list"></div>
+    <div class="grp-new-row">
+      <input class="grp-new-input" id="grp-new-input" placeholder="Naziv nove grupe..." maxlength="50"
+             onkeydown="if(event.key==='Enter') createGroup()">
+      <button class="grp-new-btn" onclick="createGroup()">Dodaj</button>
+    </div>
+  </div>
+</div>
+
+<!-- KEYWORD SETTINGS MODAL -->
+<div class="grp-modal-overlay" id="kw-modal-overlay" onclick="closeKwModal()">
+  <div class="grp-modal kw-modal" onclick="event.stopPropagation()">
+    <div class="grp-modal-head">
+      <div class="grp-modal-title" id="kw-modal-title">Postavke ključne riječi</div>
+      <button class="grp-modal-close" onclick="closeKwModal()">✕</button>
+    </div>
+    <div class="kw-modal-section">
+      <div class="kw-modal-label">Grupa</div>
+      <select class="kw-modal-select" id="kw-modal-group">
+        <option value="">— Bez grupe</option>
+      </select>
+    </div>
+    <div class="kw-modal-section">
+      <div class="kw-modal-label">Tip dokumenta <span class="kw-modal-hint">(prazno = svi tipovi)</span></div>
+      <div class="kw-modal-checks">
+        <label class="kw-chk"><input type="checkbox" value="ZAKON"> Zakon</label>
+        <label class="kw-chk"><input type="checkbox" value="UREDBA"> Uredba</label>
+        <label class="kw-chk"><input type="checkbox" value="PRAVILNIK"> Pravilnik</label>
+        <label class="kw-chk"><input type="checkbox" value="ODLUKA"> Odluka</label>
+        <label class="kw-chk"><input type="checkbox" value="RJEŠENJE"> Rješenje</label>
+      </div>
+    </div>
+    <div class="kw-modal-section">
+      <div class="kw-modal-label">Institucija <span class="kw-modal-hint">(prazno = sve institucije)</span></div>
+      <input class="grp-new-input" id="kw-modal-institution" type="text"
+             placeholder="npr. Ministarstvo financija" maxlength="120">
+    </div>
+    <div class="kw-modal-section">
+      <div class="kw-modal-label">Dio Narodnih novina</div>
+      <div class="kw-modal-radios">
+        <label class="kw-radio"><input type="radio" name="kw-part" value=""> Oba</label>
+        <label class="kw-radio"><input type="radio" name="kw-part" value="SL"> Službeni list (SL)</label>
+        <label class="kw-radio"><input type="radio" name="kw-part" value="MU"> Međunarodni ugovori (MU)</label>
+      </div>
+    </div>
+    <div class="kw-modal-actions">
+      <button class="btn-save kw-modal-save" onclick="saveKwSettings()">Spremi</button>
+      <button class="kw-modal-delete" onclick="deleteKwFromModal()">Obriši ključnu riječ</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -539,6 +702,246 @@
   let _kwGroupOrder = [];
   let _activeKw = null;
   const KW_PER_PAGE = 10;
+  let allGroups = [];
+  let activeGroupFilter = '';
+  let _kwModalId = null;
+
+  // ── SERVICE WORKER + WEB PUSH ────────────────────────────────────────────
+  const PUSH_API = 'https://pratimzakon.onrender.com';
+  let _swReg = null;
+  let _pushEndpoint = null;
+
+  async function initServiceWorker() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+    try {
+      _swReg = await navigator.serviceWorker.register('./sw.js');
+      const sub = await _swReg.pushManager.getSubscription();
+      if (sub) _pushEndpoint = sub.endpoint;
+      renderPushToggle();
+    } catch(e) {}
+  }
+
+  function renderPushToggle() {
+    const toggle = document.getElementById('push-toggle');
+    if (toggle) toggle.checked = !!_pushEndpoint;
+  }
+
+  async function togglePush() {
+    const toggle = document.getElementById('push-toggle');
+    if (!_swReg) { if (toggle) toggle.checked = false; return; }
+    if (toggle && toggle.checked) {
+      await subscribePush();
+    } else {
+      await unsubscribePush();
+    }
+  }
+
+  async function subscribePush() {
+    try {
+      const keyRes = await fetch(`${PUSH_API}/push/vapid-public-key`, { headers: authHeaders() });
+      if (!keyRes.ok) { showToast('Push nije konfiguriran na serveru'); renderPushToggle(); return; }
+      const { public_key } = await keyRes.json();
+      const sub = await _swReg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlBase64ToUint8Array(public_key),
+      });
+      _pushEndpoint = sub.endpoint;
+      const p256dh = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('p256dh'))));
+      const auth = btoa(String.fromCharCode(...new Uint8Array(sub.getKey('auth'))));
+      await fetch(`${PUSH_API}/push/subscribe`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ endpoint: sub.endpoint, keys: { p256dh, auth } }),
+      });
+      showToast('Push notifikacije aktivirane');
+    } catch(e) {
+      showToast('Nije moguće aktivirati push notifikacije');
+      _pushEndpoint = null;
+      renderPushToggle();
+    }
+  }
+
+  async function unsubscribePush() {
+    try {
+      const sub = await _swReg.pushManager.getSubscription();
+      if (sub) {
+        await fetch(`${PUSH_API}/push/unsubscribe`, {
+          method: 'DELETE',
+          headers: authHeaders(),
+          body: JSON.stringify({ endpoint: sub.endpoint }),
+        });
+        await sub.unsubscribe();
+      }
+      _pushEndpoint = null;
+      showToast('Push notifikacije isključene');
+    } catch(e) { showToast('Greška pri isključivanju push-a'); }
+  }
+
+  function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const raw = atob(base64);
+    return Uint8Array.from([...raw].map(c => c.charCodeAt(0)));
+  }
+
+  // ── GROUP COLORS ────────────────────────────────────────────────────────
+  const GRP_COLORS = ['#b84d1b','#2e7d52','#1a5276','#7d3c98','#c0392b','#17a589'];
+  function grpColor(idx) { return GRP_COLORS[idx % GRP_COLORS.length]; }
+
+  // ── GROUPS ──────────────────────────────────────────────────────────────
+  async function loadGroups() {
+    try {
+      const res = await fetch(`${API}/keywords/groups`, { headers: authHeaders() });
+      if (!res.ok) return;
+      allGroups = await res.json();
+      renderGroupBar();
+    } catch(e) {}
+  }
+
+  function renderGroupBar() {
+    const bar = document.getElementById('group-bar');
+    const chips = document.getElementById('group-chips');
+    if (!chips) return;
+    bar.style.display = allKeywords.length > 0 ? 'flex' : 'none';
+    chips.innerHTML = allGroups.map((g, i) =>
+      `<button class="grp-chip${activeGroupFilter === String(g.id) ? ' active' : ''}"
+         data-gid="${g.id}" onclick="filterByGroup(this,'${g.id}')">
+         <span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${grpColor(i)};margin-right:4px;vertical-align:middle;"></span>
+         ${esc(g.name)}<span style="opacity:0.6;font-size:10px;margin-left:3px;">${g.keyword_count}</span>
+       </button>`
+    ).join('');
+  }
+
+  function filterByGroup(btn, gid) {
+    activeGroupFilter = String(gid);
+    document.querySelectorAll('.grp-chip').forEach(c => c.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    renderTags(allKeywords);
+  }
+
+  function openGroupModal() {
+    renderGroupModal();
+    document.getElementById('grp-modal-overlay').classList.add('open');
+    setTimeout(() => document.getElementById('grp-new-input').focus(), 50);
+  }
+
+  function closeGroupModal() {
+    document.getElementById('grp-modal-overlay').classList.remove('open');
+  }
+
+  function openKwModal(kwId) {
+    const kw = allKeywords.find(k => k.id === kwId);
+    if (!kw) return;
+    _kwModalId = kwId;
+    document.getElementById('kw-modal-title').textContent = kw.keyword;
+    const sel = document.getElementById('kw-modal-group');
+    sel.innerHTML = '<option value="">— Bez grupe</option>' +
+      allGroups.map(g => `<option value="${g.id}"${kw.group_id === g.id ? ' selected' : ''}>${esc(g.name)}</option>`).join('');
+    const activeTypes = kw.doc_type_filter ? kw.doc_type_filter.split(',').map(t => t.trim().toUpperCase()) : [];
+    document.querySelectorAll('#kw-modal-overlay .kw-chk input').forEach(cb => { cb.checked = activeTypes.includes(cb.value); });
+    document.getElementById('kw-modal-institution').value = kw.institution_filter || '';
+    const partVal = kw.part_filter || '';
+    document.querySelectorAll('input[name="kw-part"]').forEach(r => { r.checked = r.value === partVal; });
+    document.getElementById('kw-modal-overlay').classList.add('open');
+  }
+
+  function closeKwModal() {
+    document.getElementById('kw-modal-overlay').classList.remove('open');
+    _kwModalId = null;
+  }
+
+  async function saveKwSettings() {
+    if (_kwModalId === null) return;
+    const checkedTypes = [...document.querySelectorAll('#kw-modal-overlay .kw-chk input:checked')].map(cb => cb.value);
+    const doc_type_filter = checkedTypes.length ? checkedTypes.join(',') : null;
+    const institution_filter = document.getElementById('kw-modal-institution').value.trim() || null;
+    const partRadio = document.querySelector('input[name="kw-part"]:checked');
+    const part_filter = (partRadio && partRadio.value) ? partRadio.value : null;
+    const selVal = document.getElementById('kw-modal-group').value;
+    const group_id = selVal ? parseInt(selVal, 10) : null;
+    try {
+      const res = await fetch(`${API}/keywords/${_kwModalId}`, {
+        method: 'PATCH', headers: authHeaders(),
+        body: JSON.stringify({ doc_type_filter, institution_filter, part_filter, group_id }),
+      });
+      if (!res.ok) { showToast((await res.json().catch(() => ({}))).detail || 'Greška pri spremanju'); return; }
+      const updated = await res.json();
+      allKeywords = allKeywords.map(k => k.id === _kwModalId ? { ...k, ...updated } : k);
+      allGroups = allGroups.map(g => ({ ...g, keyword_count: allKeywords.filter(k => k.group_id === g.id).length }));
+      closeKwModal();
+      renderGroupBar();
+      renderTags(allKeywords);
+      showToast('Postavke spremljene');
+    } catch(e) { showToast('Greška pri spremanju'); }
+  }
+
+  async function deleteKwFromModal() {
+    if (_kwModalId === null) return;
+    const kw = allKeywords.find(k => k.id === _kwModalId);
+    if (!kw || !confirm(`Obriši ključnu riječ "${kw.keyword}"?`)) return;
+    const tagEl = document.querySelector(`.tag[data-kwid="${_kwModalId}"]`);
+    closeKwModal();
+    if (tagEl) { await deleteKeyword(_kwModalId, tagEl); }
+    else {
+      await fetch(`${API}/keywords/${_kwModalId}`, { method: 'DELETE', headers: authHeaders() });
+      allKeywords = allKeywords.filter(k => k.id !== _kwModalId);
+      allGroups = allGroups.map(g => ({ ...g, keyword_count: allKeywords.filter(k => k.group_id === g.id).length }));
+      renderGroupBar(); updateKwCount(); showToast('Ključna riječ obrisana');
+    }
+  }
+
+
+  function renderGroupModal() {
+    const list = document.getElementById('grp-modal-list');
+    if (!allGroups.length) {
+      list.innerHTML = '<div style="color:var(--muted);font-size:13px;padding:8px 0 4px;">Još nema grupa. Dodajte prvu grupu dolje.</div>';
+      return;
+    }
+    list.innerHTML = allGroups.map((g, i) => `
+      <div class="grp-row">
+        <div class="grp-row-name">
+          <span style="width:10px;height:10px;border-radius:50%;background:${grpColor(i)};display:inline-block;flex-shrink:0;"></span>
+          ${esc(g.name)}
+        </div>
+        <span class="grp-row-count">${g.keyword_count} kw</span>
+        <button class="grp-row-del" onclick="deleteGroup(${g.id})" title="Obriši grupu">✕</button>
+      </div>`).join('');
+  }
+
+  async function createGroup() {
+    const inp = document.getElementById('grp-new-input');
+    const name = (inp.value || '').trim();
+    if (!name) return;
+    try {
+      const res = await fetch(`${API}/keywords/groups`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ name }),
+      });
+      if (!res.ok) { showToast('Greška pri kreiranju grupe'); return; }
+      const g = await res.json();
+      allGroups.push(g);
+      inp.value = '';
+      renderGroupModal();
+      renderGroupBar();
+    } catch(e) { showToast('Greška pri kreiranju grupe'); }
+  }
+
+  async function deleteGroup(id) {
+    if (!confirm('Obriši grupu? Ključne riječi ostaju, samo se odvoje od grupe.')) return;
+    try {
+      const res = await fetch(`${API}/keywords/groups/${id}`, {
+        method: 'DELETE', headers: authHeaders(),
+      });
+      if (!res.ok && res.status !== 204) { showToast('Greška pri brisanju grupe'); return; }
+      allGroups = allGroups.filter(g => g.id !== id);
+      allKeywords = allKeywords.map(k => k.group_id === id ? { ...k, group_id: null } : k);
+      if (activeGroupFilter === String(id)) filterByGroup(null, '');
+      renderGroupModal();
+      renderGroupBar();
+      renderTags(allKeywords);
+    } catch(e) { showToast('Greška pri brisanju grupe'); }
+  }
 
   // ── TEMA ──────────────────────────────────────────────────────────────────
   function toggleTheme() {
@@ -649,9 +1052,14 @@
       document.getElementById('mob-user-email').textContent = user.email;
       document.getElementById('mob-user-badge').textContent = planLabel;
       userKwLimit = user.keyword_limit || 5;
-      // Predpuni situaciju iz baze
-      const sitEl = document.getElementById('situation');
-      if (sitEl && user.situation) sitEl.value = user.situation;
+      // RSS feed link
+      if (user.unsubscribe_token) {
+        const feedEl = document.getElementById('feed-link');
+        if (feedEl) feedEl.href = `${API}/feed/${user.unsubscribe_token}`;
+      }
+      // Postavi situacija prikaz
+      _currentSituation = user.situation || '';
+      _setSituationView(_currentSituation);
       const h = new Date().getHours();
       const g = h < 12 ? 'DOBRO JUTRO' : h < 18 ? 'DOBAR DAN' : 'DOBRA VEČER';
       document.getElementById('topbar-greeting').innerHTML = g + ', <span>' + namePart.toUpperCase() + '</span>';
@@ -660,23 +1068,35 @@
   }
 
   // ── KEYWORDS ─────────────────────────────────────────────────────────────
+  function renderTags(keywords) {
+    const list = document.getElementById('tag-list');
+    if (!list) return;
+    list.innerHTML = '';
+    const filtered = activeGroupFilter
+      ? keywords.filter(kw => String(kw.group_id) === String(activeGroupFilter))
+      : keywords;
+    filtered.forEach(kw => {
+      const grpIdx = allGroups.findIndex(g => g.id === kw.group_id);
+      const tag = document.createElement('div');
+      tag.className = 'tag active';
+      tag.dataset.kwname = kw.keyword;
+      tag.dataset.kwid = kw.id;
+      if (grpIdx >= 0) { tag.style.borderLeftColor = grpColor(grpIdx); tag.style.borderLeftWidth = '3px'; }
+      tag.innerHTML = esc(kw.keyword) + ' <span class="tag-remove">×</span><span class="kw-stat zero" id="kw-stat-' + encodeURIComponent(kw.keyword) + '"></span>';
+      tag.querySelector('.tag-remove').addEventListener('click', (e) => { e.stopPropagation(); deleteKeyword(kw.id, tag); });
+      tag.addEventListener('click', () => openKwModal(kw.id));
+      list.appendChild(tag);
+    });
+    renderGroupBar();
+    updateKwCount();
+  }
+
   async function loadKeywords() {
     try {
       const res = await fetch(API + '/keywords/', { headers: authHeaders() });
-      const data = await res.json();
-      allKeywords = data;
-      const list = document.getElementById('tag-list');
-      if (!list) return;
-      list.innerHTML = '';
-      data.forEach(kw => {
-        const tag = document.createElement('div');
-        tag.className = 'tag active';
-        tag.dataset.kwname = kw.keyword;
-        tag.innerHTML = kw.keyword + ' <span class="tag-remove">×</span><span class="kw-stat zero" id="kw-stat-' + encodeURIComponent(kw.keyword) + '"></span>';
-        tag.onclick = function() { deleteKeyword(kw.id, tag); };
-        list.appendChild(tag);
-      });
-      updateKwCount();
+      allKeywords = await res.json();
+      await loadGroups();
+      renderTags(allKeywords);
     } catch(e) { showToast('Greška pri dohvatu ključnih riječi'); }
   }
 
@@ -684,6 +1104,12 @@
     try {
       await fetch(API + '/keywords/' + id, { method: 'DELETE', headers: authHeaders() });
       el.remove();
+      allKeywords = allKeywords.filter(k => k.id !== id);
+      allGroups = allGroups.map(g => ({
+        ...g,
+        keyword_count: allKeywords.filter(k => k.group_id === g.id).length,
+      }));
+      renderGroupBar();
       updateKwCount();
       showToast('Ključna riječ obrisana');
     } catch(e) { showToast('Greška pri brisanju'); }
@@ -693,27 +1119,20 @@
     const input = document.getElementById('new-kw');
     const val = input.value.trim();
     if (!val) return;
-    const current = document.querySelectorAll('.tag').length;
     try {
-      const userRes = await fetch(API + '/auth/me', { headers: authHeaders() });
-      const user = await userRes.json();
-      if (current >= user.keyword_limit) {
-        showToast('Dostigli ste limit od ' + user.keyword_limit + ' ključnih riječi');
-        return;
-      }
       const res = await fetch(API + '/keywords/', {
         method: 'POST', headers: authHeaders(),
         body: JSON.stringify({ keyword: val, doc_type_filter: null, institution_filter: null, part_filter: null })
       });
-      if (!res.ok) { showToast('Greška pri dodavanju'); return; }
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        showToast(errData.detail || 'Greška pri dodavanju');
+        return;
+      }
       const kw = await res.json();
-      const tag = document.createElement('div');
-      tag.className = 'tag active';
-      tag.innerHTML = kw.keyword + ' <span class="tag-remove">×</span>';
-      tag.onclick = function() { deleteKeyword(kw.id, tag); };
-      document.getElementById('tag-list').appendChild(tag);
+      allKeywords.push(kw);
+      renderTags(allKeywords);
       input.value = '';
-      updateKwCount();
       showToast('Dodana ključna riječ: ' + val);
     } catch(e) { showToast('Greška pri dodavanju'); }
   }
@@ -723,23 +1142,55 @@
     const count = document.querySelectorAll('.tag').length;
     const el = document.getElementById('stat-kw');
     if (el) el.textContent = count;
-    const fill = document.getElementById('limit-fill');
-    if (fill && userKwLimit) {
-      const pct = Math.min((count / userKwLimit) * 100, 100);
-      fill.style.width = pct + '%';
-      fill.className = 'limit-fill' + (pct >= 100 ? ' full' : pct >= 75 ? ' warn' : '');
-      const lbl = document.getElementById('limit-label');
-      if (lbl) lbl.textContent = count + ' / ' + userKwLimit + ' ključnih riječi';
-    }
+    const lbl = document.getElementById('limit-label');
+    if (lbl) lbl.textContent = count + ' ključnih riječi aktivno';
   }
+  let _currentSituation = '';
+
+  function _setSituationView(situation) {
+    const textEl = document.getElementById('situation-text-display');
+    const boxEl  = document.getElementById('situation-box');
+    const editEl = document.getElementById('situation-edit');
+    if (!textEl) return;
+    if (situation) {
+      textEl.textContent = situation;
+      textEl.classList.remove('empty');
+    } else {
+      textEl.textContent = 'Dodajte opis vaše situacije za personalizirane sažetke...';
+      textEl.classList.add('empty');
+    }
+    if (boxEl)  boxEl.style.display  = 'flex';
+    if (editEl) editEl.style.display = 'none';
+  }
+
+  function editSituation() {
+    const sit   = document.getElementById('situation');
+    const boxEl = document.getElementById('situation-box');
+    const editEl = document.getElementById('situation-edit');
+    if (sit) sit.value = _currentSituation;
+    if (boxEl)  boxEl.style.display  = 'none';
+    if (editEl) editEl.style.display = 'block';
+    if (sit) sit.focus();
+  }
+
+  function cancelSituation() {
+    _setSituationView(_currentSituation);
+  }
+
   async function savePracenje() {
-    const sit = document.getElementById('situation').value.trim();
+    const sit = (document.getElementById('situation').value || '').trim();
     try {
       const res = await fetch(API + '/keywords/situation', {
         method: 'POST', headers: authHeaders(),
         body: JSON.stringify({ situation: sit })
       });
-      showToast(res.ok ? 'Situacija uspješno spremljena!' : 'Greška pri spremanju');
+      if (res.ok) {
+        _currentSituation = sit;
+        _setSituationView(sit);
+        showToast('Situacija uspješno spremljena!');
+      } else {
+        showToast('Greška pri spremanju');
+      }
     } catch(e) {
       showToast('Greška pri spremanju');
     }
@@ -789,28 +1240,6 @@
       groups[kw].push(m);
     });
 
-    // ── Bar chart by document type ──
-    const typeCounts = { zakon: 0, izmjena: 0, pravilnik: 0, other: 0 };
-    matches.forEach(m => typeCounts[classifyMatch(m.document_title)]++);
-    const maxCount = Math.max(...Object.values(typeCounts), 1);
-    const typeRows = [
-      { key:'zakon',    label:'Zakoni',    color:'var(--green)' },
-      { key:'izmjena',  label:'Izmjene',   color:'var(--orange)' },
-      { key:'pravilnik',label:'Pravilnici',color:'var(--navy)' },
-      { key:'other',    label:'Ostalo',    color:'var(--muted)' },
-    ].filter(r => typeCounts[r.key] > 0);
-    let chartHtml = '<div class="match-chart">';
-    typeRows.forEach(r => {
-      const pct   = Math.round(typeCounts[r.key] / matches.length * 100);
-      const width = Math.round(typeCounts[r.key] / maxCount * 100);
-      chartHtml += `<div class="mc-row">
-        <div class="mc-label">${r.label}</div>
-        <div class="mc-bar-wrap"><div class="mc-bar" style="width:${width}%;background:${r.color}"></div></div>
-        <div class="mc-count">${typeCounts[r.key]} <span class="mc-pct">${pct}%</span></div>
-      </div>`;
-    });
-    chartHtml += '</div>';
-
     // Active set (null = all)
     const activeMatches = (_activeKw !== null && groups[_kwGroupOrder[_activeKw]])
       ? groups[_kwGroupOrder[_activeKw]]
@@ -821,7 +1250,7 @@
     const slice = activeMatches.slice((page - 1) * KW_PER_PAGE, page * KW_PER_PAGE);
 
     // Filter tabs
-    let html = chartHtml + '<div class="match-tabs">';
+    let html = '<div class="match-tabs">';
     html += `<div class="match-tab${_activeKw === null ? ' active' : ''}" onclick="setKwFilter(-1)">Svi <span class="match-tab-count">×${matches.length}</span></div>`;
     _kwGroupOrder.forEach((kw, idx) => {
       html += `<div class="match-tab${_activeKw === idx ? ' active' : ''}" onclick="setKwFilter(${idx})">${esc(kw)} <span class="match-tab-count">×${groups[kw].length}</span></div>`;
@@ -1340,13 +1769,8 @@
       });
       if (!res.ok) { showToast('Greška pri dodavanju'); return; }
       const kw = await res.json();
-      const tag = document.createElement('div');
-      tag.className = 'tag active';
-      tag.dataset.kwname = kw.keyword;
-      tag.innerHTML = kw.keyword + ' <span class="tag-remove">×</span><span class="kw-stat zero" id="kw-stat-' + encodeURIComponent(kw.keyword) + '"></span>';
-      tag.onclick = function() { deleteKeyword(kw.id, tag); };
-      document.getElementById('tag-list').appendChild(tag);
-      updateKwCount();
+      allKeywords.push(kw);
+      renderTags(allKeywords);
       el.remove();
       showToast('Dodana ključna riječ: ' + keyword);
     } catch(e) { showToast('Greška pri dodavanju'); }
@@ -1380,6 +1804,7 @@
     await loadMatches();
     await loadActivity();
     loadDigestStatus();
+    initServiceWorker();
   }
 
   init();

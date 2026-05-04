@@ -2,7 +2,7 @@ name: Provjera pretplata
 
 on:
   schedule:
-    - cron: "0 0 * * *"  # 01:00 CET (00:00 UTC)
+    - cron: "0 0 * * *" # 01:00 CET (00:00 UTC)
   workflow_dispatch:
 
 jobs:
@@ -19,6 +19,12 @@ jobs:
 
       - name: Install dependencies
         run: pip install -r backend/requirements.txt
+
+      - name: Run unit tests
+        run: |
+          pip install pytest
+          cd backend
+          python -m pytest ../tests/test_subscription_check.py -v
 
       - name: Check expired subscriptions
         env:
