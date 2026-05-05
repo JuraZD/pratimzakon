@@ -18,7 +18,7 @@ Pokretanje:
 import json
 import logging
 import os
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 
 import anthropic
 from pydantic import BaseModel
@@ -45,11 +45,14 @@ class MatchResult(BaseModel):
 # ── Faza 1: Deterministički dohvat podataka ──────────────────────────────────
 
 def _get_new_documents(db, broj_dana: int = 1) -> list:
-    cutoff = date.today() - timedelta(days=broj_dana)
+   # koristi created_at umjesto published_date - scraper može insertirati
+   # dokumente s published_date starijim od danas (npr. kad su prethodni
+   # cron runovi padali pa smo zakasnili s inesrtiranjem).
+    cutoff = datetime.utcnow() - timedelta(hours = 26)
     return (
         db.query(Document)
-        .filter(Document.published_date >= cutoff)
-        .order_by(Document.published_date.desc())
+        .filter(Document.created_at >= cutoff)
+        .order_by(Document.created_at.desc())
         .limit(50)
         .all()
     )
