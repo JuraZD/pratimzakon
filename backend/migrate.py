@@ -178,6 +178,18 @@ ORDER BY user_id, timestamp DESC
 ON CONFLICT (user_id) DO NOTHING
         """,
     ),
+      (
+                "users: add unsubscribe_token column",
+                "ALTER TABLE users ADD COLUMN IF NOT EXISTS unsubscribe_token VARCHAR UNIQUE",
+      ),
+      (
+                "users: populate missing unsubscribe_tokens",
+                """
+                UPDATE users
+                SET unsubscribe_token = encode(gen_random_bytes(32), 'base64')
+                WHERE unsubscribe_token IS NULL
+                        """,
+      ),
 ]
 
 
