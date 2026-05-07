@@ -367,13 +367,23 @@ def get_dashboard(
     kw_stats = []
     for kw in keywords:
         hits_7d = (
-            db.query(func.count(Document.id))
-            .filter(Document.title.ilike(f"%{kw.keyword}%"), Document.published_date >= cutoff_7d)
+            db.query(func.count(Log.id))
+            .filter(
+                Log.user_id == current_user.id,
+                Log.event_type == "keyword_match",
+                Log.detail.ilike(f"%keyword:{kw.keyword}%"),
+                Log.timestamp >= cutoff_7d,
+            )
             .scalar()
         ) or 0
         hits_30d = (
-            db.query(func.count(Document.id))
-            .filter(Document.title.ilike(f"%{kw.keyword}%"), Document.published_date >= cutoff_30d)
+            db.query(func.count(Log.id))
+            .filter(
+                Log.user_id == current_user.id,
+                Log.event_type == "keyword_match",
+                Log.detail.ilike(f"%keyword:{kw.keyword}%"),
+                Log.timestamp >= cutoff_30d,
+            )
             .scalar()
         ) or 0
         kw_stats.append({
