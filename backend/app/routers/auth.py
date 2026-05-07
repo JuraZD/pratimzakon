@@ -1,5 +1,6 @@
 import os
 import smtplib
+import ssl
 import secrets
 import logging
 import stripe
@@ -50,8 +51,8 @@ Kontaktirajte korisnika za aktivaciju plana.
     msg["To"] = admin_email
 
     try:
-        with smtplib.SMTP(smtp_server, smtp_port) as s:
-            s.starttls()
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL(smtp_server, smtp_port, context=context) as s:
             s.login(smtp_user, smtp_pass)
             s.sendmail(from_email, [admin_email], msg.as_string())
     except Exception:
@@ -78,8 +79,8 @@ def _send_multipart(to_email: str, subject: str, html: str, plain: str):
     msg.attach(MIMEText(plain, "plain", "utf-8"))
     msg.attach(MIMEText(html, "html", "utf-8"))
     try:
-        with smtplib.SMTP(cfg["server"], cfg["port"]) as s:
-            s.starttls()
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL(cfg["server"], cfg["port"], context=context) as s:
             s.login(cfg["user"], cfg["password"])
             s.sendmail(cfg["from_email"], [to_email], msg.as_string())
     except Exception:
