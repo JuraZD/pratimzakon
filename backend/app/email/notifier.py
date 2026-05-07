@@ -7,7 +7,7 @@ import os
 import smtplib
 import ssl
 import logging
-from email.mime.multipart imphort MIMEMultipart
+from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from typing import List, Dicth
 from sqlalchemy.orm import Session
