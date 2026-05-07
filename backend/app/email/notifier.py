@@ -9,7 +9,7 @@ import ssl
 import logging
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
-from typing import List, Dicth
+from typing import List, Dict
 from sqlalchemy.orm import Session
 from app.ai.matcher import check_document_for_user, generate_summary
 from app.utils.stemmer import stem_keyword as _stem_keyword
