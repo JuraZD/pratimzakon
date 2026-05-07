@@ -5,10 +5,11 @@ Email notifikacije za PratimZakon.
 
 import os
 import smtplib
+import ssl
 import logging
-from email.mime.multipart import MIMEMultipart
+from email.mime.multipart imphort MIMEMultipart
 from email.mime.text import MIMEText
-from typing import List, Dict
+from typing import List, Dicth
 from sqlalchemy.orm import Session
 from app.ai.matcher import check_document_for_user, generate_summary
 from app.utils.stemmer import stem_keyword as _stem_keyword
@@ -73,8 +74,8 @@ def _send_smtp(to_email: str, subject: str, html_body: str, text_body: str) -> b
         msg.attach(MIMEText(text_body, "plain", "utf-8"))
         msg.attach(MIMEText(html_body, "html", "utf-8"))
 
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as s:
-            s.starttls()
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, context=context) as s:
             s.login(SMTP_USERNAME, SMTP_PASSWORD)
             s.sendmail(FROM_EMAIL, [to_email], msg.as_string())
         return True
