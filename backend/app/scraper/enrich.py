@@ -92,7 +92,6 @@ def _parse_date(datum_str):
 
 def _parse_act_jsonld(data: dict) -> dict:
     """Izvlači institution, pdf_url, legal_area, date_document, type iz JSON-LD akta."""
-    # Pronađi relevantni akt u @graph ili direktno u rootu
     act = data
     if "@graph" in data:
         for item in data["@graph"]:
@@ -100,6 +99,10 @@ def _parse_act_jsonld(data: dict) -> dict:
                 k in item for k in ("eli:title", "eli:passed_by", "eli:is_realized_by")
             ):
                 act = item
+                break
+    return act if isinstance(act, dict) else {}
+
+
 def _extract_jsonld_from_html(html_text: str) -> dict | None:
     """Izvlači JSON-LD iz <script type='application/ld+json'> u HTML-u."""
     import json, re
@@ -437,6 +440,7 @@ def _enrich_doc(html_url: str, session) -> dict | None:
     institution = None
     legal_area = None
     jsonld_index: dict = {}
+    act: dict = {}
 
     legal_resource_url = rdfa.get("_legal_resource", "")
     logging.debug(f"  rdfa keys={list(rdfa.keys())} legal_resource={legal_resource_url!r}")
