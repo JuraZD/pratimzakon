@@ -575,12 +575,12 @@
           <div class="digest-row" style="margin-top:6px;">
             <div>
               <div class="digest-label">RSS / Atom feed</div>
-              <div class="digest-sub">Pratite matcheve u svom čitaču vijesti</div>
+              <div class="digest-sub">Pratite matcheve u RSS/Atom čitaču</div>
             </div>
-            <a id="feed-link" href="#" target="_blank" rel="noopener"
-               style="font-size:11px;font-weight:700;color:var(--orange);text-decoration:none;white-space:nowrap;padding:4px 10px;border:1.5px solid var(--orange);border-radius:2px;">
+            <button onclick="openFeedModal()"
+               style="font-size:11px;font-weight:700;color:var(--orange);background:none;cursor:pointer;white-space:nowrap;padding:4px 10px;border:1.5px solid var(--orange);border-radius:2px;">
               ⊞ Feed
-            </a>
+            </button>
           </div>
           <div id="situation-history"></div>
         </div>
@@ -802,7 +802,15 @@
 
   async function togglePush() {
     const toggle = document.getElementById('push-toggle');
-    if (!_swReg) { if (toggle) toggle.checked = false; return; }
+    if (!_swReg) {
+      if (toggle) toggle.checked = false;
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        showToast('Push notifikacije nisu podržane u ovom pregledniku');
+      } else {
+        showToast('Service worker se nije učitao — pokušaj osvježiti stranicu');
+      }
+      return;
+    }
     if (toggle && toggle.checked) {
       await subscribePush();
     } else {
@@ -829,7 +837,13 @@
       });
       showToast('Push notifikacije aktivirane');
     } catch(e) {
-      showToast('Nije moguće aktivirati push notifikacije');
+      if (e && e.name === 'NotAllowedError') {
+        showToast('Dozvola za notifikacije odbijena — omogući ju u postavkama preglednika');
+      } else if (e && e.name === 'NotSupportedError') {
+        showToast('Push notifikacije nisu podržane na ovoj domeni (potreban HTTPS)');
+      } else {
+        showToast('Greška pri aktivaciji push notifikacija: ' + (e && e.message || e));
+      }
       _pushEndpoint = null;
       renderPushToggle();
     }
@@ -1127,10 +1141,9 @@
       document.getElementById('mob-user-badge').textContent = planLabel;
       userKwLimit = user.keyword_limit || 5;
       window._kwLimit = user.keyword_limit || 7;
-      // RSS feed link
+      // Pohrani token za feed modal
       if (user.unsubscribe_token) {
-        const feedEl = document.getElementById('feed-link');
-        if (feedEl) feedEl.href = `${API}/feed/${user.unsubscribe_token}`;
+        window._userUnsubToken = user.unsubscribe_token;
       }
       // Postavi situacija prikaz
       _currentSituation = user.situation || '';
@@ -1344,7 +1357,7 @@
 
     html += '<div class="match-cards">';
     slice.forEach(m => {
-      const date = (m.matched_at || '').split(' ')[0];
+      const date = m.document_date || (m.matched_at || '').split(' ')[0];
       const type  = classifyMatch(m.document_title);
       html += `<div class="match-card" onclick="window.location='sazetak.html?id=${m.document_id}&kw=${encodeURIComponent(m.keyword)}'">
         <div class="match-card-accent ${accentMap[type]}"></div>
@@ -1995,7 +2008,72 @@
     initServiceWorker();
   }
 
+  // ── FEED MODAL ────────────────────────────────────────────────────────────
+  let _feedUrl = '';
+
+  function openFeedModal() {
+    const modal = document.getElementById('feed-modal');
+    if (!modal) return;
+    // Uzmi URL iz korisničkih podataka
+    const token = window._userUnsubToken || '';
+    if (token) {
+      _feedUrl = `${API}/feed/${token}`;
+      document.getElementById('feed-url-input').value = _feedUrl;
+    }
+    modal.style.display = 'flex';
+  }
+
+  function closeFeedModal() {
+    document.getElementById('feed-modal').style.display = 'none';
+  }
+
+  function copyFeedUrl() {
+    const inp = document.getElementById('feed-url-input');
+    navigator.clipboard.writeText(inp.value).then(() => {
+      showToast('Feed URL kopiran');
+    }).catch(() => {
+      inp.select();
+      document.execCommand('copy');
+      showToast('Feed URL kopiran');
+    });
+  }
+
   init();
 </script>
+
+<!-- Feed modal -->
+<div id="feed-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeFeedModal()">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-head">
+      <span class="modal-title">RSS / Atom feed</span>
+      <button class="modal-close" onclick="closeFeedModal()">×</button>
+    </div>
+    <div class="modal-body" style="padding:18px 20px">
+      <p style="font-size:13px;color:var(--text);margin-bottom:14px;line-height:1.6">
+        <strong>RSS feed</strong> omogućuje praćenje vaših matcheva u aplikaciji za vijesti (npr. Feedly, Inoreader, NetNewsWire) bez otvaranja web stranice.
+      </p>
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--muted);margin-bottom:6px">Vaš feed URL</div>
+      <div style="display:flex;gap:6px;margin-bottom:16px">
+        <input id="feed-url-input" type="text" readonly
+          style="flex:1;padding:8px 10px;border:1.5px solid var(--border-strong);border-radius:var(--radius);background:var(--surface2);color:var(--text);font-size:12px;font-family:monospace"
+          onclick="this.select()">
+        <button onclick="copyFeedUrl()" class="btn-save" style="white-space:nowrap">Kopiraj</button>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:600">Preporučeni RSS čitači:</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <a href="https://feedly.com" target="_blank" rel="noopener"
+           style="padding:5px 12px;border:1.5px solid var(--border-strong);border-radius:var(--radius);font-size:12px;font-weight:600;color:var(--text);text-decoration:none;background:var(--surface2)">Feedly</a>
+        <a href="https://www.inoreader.com" target="_blank" rel="noopener"
+           style="padding:5px 12px;border:1.5px solid var(--border-strong);border-radius:var(--radius);font-size:12px;font-weight:600;color:var(--text);text-decoration:none;background:var(--surface2)">Inoreader</a>
+        <a href="https://netnewswire.com" target="_blank" rel="noopener"
+           style="padding:5px 12px;border:1.5px solid var(--border-strong);border-radius:var(--radius);font-size:12px;font-weight:600;color:var(--text);text-decoration:none;background:var(--surface2)">NetNewsWire</a>
+        <a href="https://reederapp.com" target="_blank" rel="noopener"
+           style="padding:5px 12px;border:1.5px solid var(--border-strong);border-radius:var(--radius);font-size:12px;font-weight:600;color:var(--text);text-decoration:none;background:var(--surface2)">Reeder</a>
+      </div>
+      <p style="font-size:11.5px;color:var(--muted);margin-top:14px">Otvor čitač vijesti, odaberi "Dodaj feed" i zalijepi gornji URL.</p>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

@@ -228,6 +228,7 @@ class MatchItem(BaseModel):
     document_title: str
     keyword: str
     matched_at: str
+    document_date: Optional[str] = None
 
 
 @router.get("/matches/recent", response_model=List[MatchItem])
@@ -245,18 +246,37 @@ def get_recent_matches(
         .limit(limit)
         .all()
     )
-    results = []
+    # Dohvati published_date za sve doc_id-jeve jednim upitom
+    doc_id_map: dict = {}
     for r in rows:
-        # detail format: "keyword:porez|doc_id:123|title:Pravilnik o PDV-u"
         detail = r.detail or ""
         parts = dict(p.split(":", 1) for p in detail.split("|") if ":" in p)
+        if "doc_id" in parts:
+            try:
+                doc_id_map[int(parts["doc_id"])] = None
+            except ValueError:
+                pass
+    if doc_id_map:
+        docs = db.query(Document.id, Document.published_date).filter(
+            Document.id.in_(doc_id_map.keys())
+        ).all()
+        for d in docs:
+            doc_id_map[d.id] = d.published_date
+
+    results = []
+    for r in rows:
+        detail = r.detail or ""
+        parts = dict(p.split(":", 1) for p in detail.split("|") if ":" in p)
+        doc_id = int(parts["doc_id"]) if "doc_id" in parts else None
+        pub = doc_id_map.get(doc_id) if doc_id else None
         results.append(
             MatchItem(
                 id=r.id,
-                document_id=int(parts["doc_id"]) if "doc_id" in parts else None,
+                document_id=doc_id,
                 document_title=parts.get("title", "Nepoznat dokument"),
                 keyword=parts.get("keyword", "—"),
                 matched_at=r.timestamp.strftime("%d.%m.%Y.") if r.timestamp else "—",
+                document_date=pub.strftime("%d.%m.%Y.") if pub else None,
             )
         )
     return results
