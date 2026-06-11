@@ -350,7 +350,7 @@
   .accent-zakon { background:var(--green); }
   .accent-pravilnik { background:var(--navy); }
   .accent-other { background:var(--muted); }
-  .match-card-inner { padding:10px 13px 11px; flex:1; display:flex; flex-direction:column; gap:6px; }
+  .match-card-inner { padding:10px 13px 11px; flex:1; display:flex; flex-direction:column; gap:8px; }
   .match-card-badge { display:inline-block; padding:2px 7px; border-radius:2px; font-size:calc(9.5px * var(--font-scale)); font-weight:700; letter-spacing:0.5px; text-transform:uppercase; align-self:flex-start; }
   .badge-izmjena-c { background:var(--orange-dim); color:var(--orange); }
   .badge-zakon-c { background:var(--green-dim); color:var(--green); }
@@ -358,6 +358,8 @@
   html.dark .badge-pravilnik-c { background:rgba(200,212,240,0.1); color:var(--navy2); }
   .badge-other-c { background:var(--surface2); color:var(--muted); }
   .match-card-title { font-size:calc(13px * var(--font-scale)); color:var(--text); font-weight:600; line-height:1.45; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; min-height:calc(13px * var(--font-scale) * 1.45 * 2); }
+  .match-card-pub-date { font-size:calc(10px * var(--font-scale)); color:var(--muted); letter-spacing:0.2px; }
+  .match-card-pub-date strong { color:var(--text); font-weight:600; }
   .match-card-meta { display:flex; align-items:center; gap:6px; margin-top:auto; padding-top:9px; border-top:1px solid var(--border); }
   .match-card-date { font-size:calc(10.5px * var(--font-scale)); color:var(--muted); flex-shrink:0; }
   .match-card-kw { padding:2px 8px; background:var(--navy); color:var(--cream); border-radius:10px; font-size:calc(10px * var(--font-scale)); font-weight:700; letter-spacing:0.3px; text-transform:uppercase; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; min-width:0; }
@@ -1232,7 +1234,7 @@
     if (el) el.textContent = count;
     const lbl = document.getElementById('limit-label');
     if (lbl) lbl.textContent = count + ' ključnih riječi aktivno';
-    const limit = window._kwLimit || 7;
+    const limit = window._kwLimit || 5;
     const counter = document.getElementById('limit-counter');
     if (counter) counter.textContent = count + ' / ' + limit;
     const upsell = document.getElementById('limit-upsell');
@@ -1364,8 +1366,8 @@
         <div class="match-card-inner">
           <span class="match-card-badge ${badgeMap[type]}">${labelMap[type]}</span>
           <div class="match-card-title" title="${esc(m.document_title)}">${esc(m.document_title)}</div>
+          ${date ? `<div class="match-card-pub-date">NN objava: <strong>${esc(date)}</strong></div>` : ''}
           <div class="match-card-meta">
-            <span class="match-card-date">${esc(date)}</span>
             <span class="match-card-kw">${esc(m.keyword)}</span>
             <span class="match-card-arrow">→</span>
           </div>
