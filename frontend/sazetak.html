@@ -581,10 +581,16 @@
 
       const docClass = classifyTitle(doc.title);
 
+      // published_date je primarni datum; date_document (datum donošenja) je fallback
+      const displayDate = doc.published_date || doc.date_document;
+      // Godina iz URLa kao posljednje uporište (npr. /2026/ u NN URLu)
+      const urlYear = !displayDate && doc.url ? (doc.url.match(/\/(\d{4})\//) || [])[1] : null;
+      const displayYear = displayDate ? displayDate.substring(0, 4) : (urlYear || '—');
+
       document.getElementById('doc-meta').innerHTML =
         badgeHTML(docClass) +
-        `<span class="doc-nn">NN ${doc.issue_number || '—'}/${doc.published_date ? doc.published_date.substring(0,4) : '—'}</span>` +
-        `<span class="doc-date">${formatDate(doc.published_date)}</span>`;
+        `<span class="doc-nn">NN ${doc.issue_number || '—'}/${displayYear}</span>` +
+        `<span class="doc-date">${formatDate(displayDate)}</span>`;
 
       const titleEl = document.getElementById('doc-title');
       titleEl.textContent = doc.title;
@@ -593,9 +599,8 @@
       titleEl.style.fontWeight = '';
 
       document.getElementById('info-nn').textContent =
-        doc.issue_number ? `${doc.issue_number}/${doc.published_date ? doc.published_date.substring(0,4) : ''}` : '—';
-      document.getElementById('info-date').textContent =
-        doc.published_date ? formatDate(doc.published_date) : '—';
+        doc.issue_number ? `${doc.issue_number}/${displayYear}` : '—';
+      document.getElementById('info-date').textContent = formatDate(displayDate);
       document.getElementById('info-type').textContent =
         doc.type ? doc.type.charAt(0).toUpperCase() + doc.type.slice(1) : '—';
       document.getElementById('info-institution').textContent = doc.institution || '—';
