@@ -524,7 +524,7 @@
             <span id="limit-counter" style="font-size:11px;font-weight:700;color:var(--muted)"></span>
           </div>
           <div id="limit-upsell" style="display:none;margin:8px 0;padding:10px 14px;background:var(--orange-dim);border:1px solid rgba(184,77,27,0.2);border-radius:var(--radius);font-size:12.5px;color:var(--orange)">
-            Dostigao si limit plana. <a href="../frontend/index.html#pricing" style="color:var(--orange);font-weight:700">Nadogradi paket →</a>
+            Dostigao si limit plana. <a href="#" onclick="startCheckout('basic'); return false;" style="color:var(--orange);font-weight:700">Nadogradi na Basic →</a> ili <a href="#" onclick="startCheckout('plus'); return false;" style="color:var(--orange);font-weight:700">Plus →</a>
           </div>
           <div class="tag-input-wrap">
             <input class="tag-input" id="new-kw" type="text" placeholder="Dodaj ključnu riječ..." onkeydown="if(event.key==='Enter') addTag()">
@@ -771,6 +771,19 @@
   const API = 'https://pratimzakon.onrender.com';
   let userKwLimit = 5;
   let allMatches = [];
+
+  async function startCheckout(plan) {
+    const token = localStorage.getItem('token');
+    if (!token) { window.location.href = 'index.html'; return; }
+    try {
+      const r = await fetch(`${API}/stripe/checkout/${plan}`, {
+        method: 'POST', headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await r.json();
+      if (r.ok && data.checkout_url) { window.location.href = data.checkout_url; }
+      else alert(data.detail || 'Greška pri pokretanju naplate.');
+    } catch { alert('Server nije dostupan. Pokušajte ponovo.'); }
+  }
   let allKeywords = [];
   let kwPages = {};
   let _kwGroupOrder = [];
