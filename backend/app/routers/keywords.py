@@ -194,6 +194,55 @@ def add_keyword(
     return kw
 
 
+class BulkKeywordImport(BaseModel):
+    keywords: List[str]
+
+
+@router.post("/bulk")
+def bulk_import_keywords(
+    data: BulkKeywordImport,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if len(data.keywords) > 20:
+        raise HTTPException(status_code=400, detail="Maksimalno 20 ključnih riječi po zahtjevu")
+
+    existing_keywords = {kw.keyword for kw in current_user.keywords}
+    current_count = len(current_user.keywords)
+    limit = current_user.keyword_limit
+
+    seen_in_request: set[str] = set()
+    added: list[str] = []
+    skipped: list[str] = []
+    limit_reached = False
+
+    for raw in data.keywords:
+        keyword = raw.strip()
+        if not keyword:
+            continue
+        if keyword in seen_in_request or keyword in existing_keywords:
+            skipped.append(keyword)
+            continue
+        seen_in_request.add(keyword)
+        if current_count >= limit:
+            limit_reached = True
+            skipped.append(keyword)
+            continue
+        kw = Keyword(user_id=current_user.id, keyword=keyword)
+        db.add(kw)
+        db.add(Log(
+            event_type="keyword_change",
+            user_id=current_user.id,
+            detail=f"action:added|keyword:{keyword[:100]}",
+        ))
+        existing_keywords.add(keyword)
+        added.append(keyword)
+        current_count += 1
+
+    db.commit()
+    return {"added": added, "skipped": skipped, "limit_reached": limit_reached}
+
+
 class SituationUpdate(BaseModel):
     situation: Optional[str] = ""
 

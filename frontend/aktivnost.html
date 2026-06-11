@@ -131,6 +131,12 @@
   .tl-dot.navy   { background:var(--navy3); }
   .tl-dot.red    { background:#c0392b; }
   .tl-dot.muted  { background:var(--muted); }
+  html.dark .tl-dot.green  { background:#5dcf8a; }
+  html.dark .tl-dot.orange { background:#f08048; }
+  html.dark .tl-dot.navy   { background:#9ab4e0; }
+  html.dark .tl-dot.red    { background:#e05050; }
+  html.dark .tl-dot.muted  { background:#8898b8; }
+  html.dark .tl-line       { background:rgba(200,212,240,0.15); }
   .tl-line { width:1px; flex:1; background:var(--border); margin-top:4px; min-height:8px; }
   .tl-body { flex:1; }
   .tl-msg { font-size:13.5px; color:var(--text); line-height:1.45; margin-bottom:2px; }
@@ -533,9 +539,18 @@
         return (tb || 0) - (ta || 0);
       });
 
+      const dayIdx = days.indexOf(key); // 0 = most recent
+      const isOpen = dayIdx === 0;
+      const itemCount = dayItems.length;
       html += `<div class="tl-day-group">
-        <div class="tl-day-label"><span>${formatDayLabel(date)}</span></div>
-        <div class="tl-items">`;
+        <div class="tl-day-label tl-day-toggle" onclick="toggleTlDay('tl-${key}')" style="cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between">
+          <span>${formatDayLabel(date)}</span>
+          <span style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:10px;color:var(--muted);font-weight:600">${itemCount} ${itemCount===1?'događaj':'događaja'}</span>
+            <span id="tl-arrow-${key}" style="font-size:10px;color:var(--muted);transition:transform 0.2s;display:inline-block;transform:${isOpen?'rotate(0deg)':'rotate(-90deg)'}">${isOpen?'▾':'▾'}</span>
+          </span>
+        </div>
+        <div class="tl-items" id="tl-${key}" style="display:${isOpen?'flex':'none'};flex-direction:column;gap:0">`;
 
       dayItems.forEach((item, idx) => {
         const dotCls = DOT_MAP[item.color] || 'muted';
@@ -630,6 +645,16 @@
       document.getElementById('timeline').innerHTML    = '';
       document.getElementById('email-log').innerHTML   = '';
     }
+  }
+
+  function toggleTlDay(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const key = id.replace('tl-', '');
+    const arrow = document.getElementById('tl-arrow-' + key);
+    const isOpen = el.style.display !== 'none';
+    el.style.display = isOpen ? 'none' : 'flex';
+    if (arrow) arrow.style.transform = isOpen ? 'rotate(-90deg)' : 'rotate(0deg)';
   }
 
   init();

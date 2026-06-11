@@ -405,6 +405,11 @@
   /* ── TOAST ── */
   .toast { position:fixed; bottom:22px; right:22px; padding:11px 18px; background:var(--navy); border-left:4px solid var(--orange); color:var(--cream); font-size:calc(13px * var(--font-scale)); font-weight:500; box-shadow:0 6px 24px rgba(0,0,0,0.2); transform:translateY(70px); opacity:0; transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index:999; pointer-events:none; border-radius:var(--radius); }
   .toast.show { transform:translateY(0); opacity:1; }
+  .btn-bulk-import { background:none; border:none; color:var(--orange); font-size:12px; font-weight:600; cursor:pointer; padding:2px 0; }
+  .btn-bulk-import:hover { text-decoration:underline; }
+  .kw-limit-bar { display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; }
+  .type-chip { padding:3px 12px; border:1.5px solid var(--border-strong); background:var(--surface2); color:var(--muted); border-radius:12px; font-size:11.5px; font-weight:600; cursor:pointer; transition:all 0.15s; }
+  .type-chip.active,.type-chip:hover { background:var(--navy); color:var(--surface); border-color:var(--navy); }
 </style>
 </head>
 <body>
@@ -513,10 +518,19 @@
             <button class="grp-chip-add" onclick="openGroupModal()">+ Grupe</button>
           </div>
           <div class="tag-list" id="tag-list"></div>
-          <div class="kw-count-label" id="limit-label">0 ključnih riječi aktivno</div>
+          <div class="kw-limit-bar">
+            <span id="limit-label">0 ključnih riječi aktivno</span>
+            <span id="limit-counter" style="font-size:11px;font-weight:700;color:var(--muted)"></span>
+          </div>
+          <div id="limit-upsell" style="display:none;margin:8px 0;padding:10px 14px;background:var(--orange-dim);border:1px solid rgba(184,77,27,0.2);border-radius:var(--radius);font-size:12.5px;color:var(--orange)">
+            Dostigao si limit plana. <a href="../frontend/index.html#pricing" style="color:var(--orange);font-weight:700">Nadogradi paket →</a>
+          </div>
           <div class="tag-input-wrap">
             <input class="tag-input" id="new-kw" type="text" placeholder="Dodaj ključnu riječ..." onkeydown="if(event.key==='Enter') addTag()">
             <button class="btn-add" onclick="addTag()">+ Dodaj</button>
+          </div>
+          <div style="margin-top:6px;text-align:right">
+            <button class="btn-bulk-import" onclick="openBulkImport()">⊕ Uvezi više ključnih riječi</button>
           </div>
           <div class="kw-tip">Za optimalne rezultate odaberite 5–7 ključnih riječi. Možete koristiti višerječne pojmove: "ruralni razvoj", "investicijske potpore".</div>
 
@@ -585,6 +599,11 @@
           <span class="mpf-count" id="mpf-count"></span>
         </div>
         <div class="card-body">
+          <div class="type-filter-row" id="type-filter-row" style="padding:0 20px 12px;display:flex;gap:6px;flex-wrap:wrap">
+            <button class="type-chip" data-type="zakon" onclick="setTypeFilter('zakon')">Zakoni</button>
+            <button class="type-chip" data-type="izmjena" onclick="setTypeFilter('izmjena')">Izmjene</button>
+            <button class="type-chip" data-type="pravilnik" onclick="setTypeFilter('pravilnik')">Pravilnici</button>
+          </div>
           <div id="matches-body"><div style="padding:16px"><div class="empty-msg">Učitavanje...</div></div></div>
         </div>
       </div>
@@ -693,6 +712,60 @@
 
 <div class="toast" id="toast"></div>
 
+<!-- Bulk import modal -->
+<div id="bulk-modal" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeBulkImport()">
+  <div class="modal-box" style="max-width:460px">
+    <div class="modal-head">
+      <span class="modal-title">Uvezi ključne riječi</span>
+      <button class="modal-close" onclick="closeBulkImport()">×</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px">Unesite ključne riječi odvojene zarezom ili novim redom.</p>
+      <textarea id="bulk-kw-input" style="width:100%;height:120px;padding:10px;font-family:var(--font-body);font-size:13px;background:var(--surface2);border:1.5px solid var(--border-strong);border-radius:var(--radius);color:var(--text);resize:vertical" placeholder="porez, PDV, nekretnine&#10;zapošljavanje&#10;ruralni razvoj"></textarea>
+      <div id="bulk-result" style="margin-top:10px;font-size:12px;color:var(--green);display:none"></div>
+    </div>
+    <div class="modal-footer" style="display:flex;gap:8px;justify-content:flex-end;padding:14px 20px;border-top:1px solid var(--border)">
+      <button class="btn-cancel-sit" onclick="closeBulkImport()">Odustani</button>
+      <button class="btn-save" onclick="doBulkImport()">Uvezi</button>
+    </div>
+  </div>
+</div>
+
+<!-- Onboarding wizard -->
+<div id="onboarding-overlay" style="display:none;position:fixed;inset:0;background:rgba(10,15,30,0.75);z-index:200;align-items:center;justify-content:center">
+  <div style="background:var(--surface);border-radius:6px;padding:32px;max-width:440px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+    <div style="font-family:var(--font-display);font-size:22px;font-weight:800;color:var(--navy);margin-bottom:6px">Dobrodošli u PratimZakon! ✦</div>
+    <div style="font-size:13px;color:var(--muted);margin-bottom:24px">Pratimo zakone umjesto tebe. Postavi praćenje za 2 minute.</div>
+
+    <div style="display:flex;gap:10px;margin-bottom:20px">
+      <div id="ob-step-1-dot" style="width:28px;height:28px;border-radius:50%;background:var(--orange);color:white;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">1</div>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:14px;margin-bottom:6px;color:var(--navy)">Dodaj ključne riječi</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Što te zanima? PDV, nekretnine, zapošljavanje...</div>
+        <div style="display:flex;gap:6px">
+          <input id="ob-kw-input" type="text" placeholder="npr. PDV" style="flex:1;padding:7px 10px;border:1.5px solid var(--border-strong);border-radius:var(--radius);background:var(--surface2);color:var(--text);font-size:13px" onkeydown="if(event.key==='Enter')obAddKw()">
+          <button onclick="obAddKw()" style="padding:7px 14px;background:var(--navy);color:white;border:none;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer">+ Dodaj</button>
+        </div>
+        <div id="ob-kw-list" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:8px"></div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-bottom:24px">
+      <div style="width:28px;height:28px;border-radius:50%;background:var(--border);color:var(--muted);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0">2</div>
+      <div style="flex:1">
+        <div style="font-weight:700;font-size:14px;margin-bottom:6px;color:var(--navy)">Opiši svoju situaciju <span style="font-size:11px;color:var(--muted);font-weight:400">(opcionalno)</span></div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px">Za personalizirane sažetke.</div>
+        <textarea id="ob-sit-input" placeholder="Npr: Vodim restoran s 5 zaposlenika..." style="width:100%;height:70px;padding:8px 10px;border:1.5px solid var(--border-strong);border-radius:var(--radius);background:var(--surface2);color:var(--text);font-size:12.5px;resize:none"></textarea>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button onclick="skipOnboarding()" style="padding:8px 18px;border:1.5px solid var(--border-strong);background:none;border-radius:var(--radius);font-size:13px;color:var(--muted);cursor:pointer">Preskoči</button>
+      <button onclick="finishOnboarding()" style="padding:8px 22px;background:var(--orange);color:white;border:none;border-radius:var(--radius);font-size:13px;font-weight:700;cursor:pointer">Završi postavljanje →</button>
+    </div>
+  </div>
+</div>
+
 <script>
   const API = 'https://pratimzakon.onrender.com';
   let userKwLimit = 5;
@@ -701,6 +774,7 @@
   let kwPages = {};
   let _kwGroupOrder = [];
   let _activeKw = null;
+  let _typeFilter = null; // null=all, 'zakon','izmjena','pravilnik','other'
   const KW_PER_PAGE = 10;
   let allGroups = [];
   let activeGroupFilter = '';
@@ -1052,6 +1126,7 @@
       document.getElementById('mob-user-email').textContent = user.email;
       document.getElementById('mob-user-badge').textContent = planLabel;
       userKwLimit = user.keyword_limit || 5;
+      window._kwLimit = user.keyword_limit || 7;
       // RSS feed link
       if (user.unsubscribe_token) {
         const feedEl = document.getElementById('feed-link');
@@ -1144,6 +1219,11 @@
     if (el) el.textContent = count;
     const lbl = document.getElementById('limit-label');
     if (lbl) lbl.textContent = count + ' ključnih riječi aktivno';
+    const limit = window._kwLimit || 7;
+    const counter = document.getElementById('limit-counter');
+    if (counter) counter.textContent = count + ' / ' + limit;
+    const upsell = document.getElementById('limit-upsell');
+    if (upsell) upsell.style.display = count >= limit ? 'block' : 'none';
   }
   let _currentSituation = '';
 
@@ -1620,11 +1700,17 @@
   }
 
   function getFilteredMatches() {
-    if (_matchPeriod === 'all') return allMatches;
-    const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - (_matchPeriod === 'week' ? 7 : 30));
-    cutoff.setHours(0, 0, 0, 0);
-    return allMatches.filter(m => { const d = parseMatchDate(m.matched_at); return d && d >= cutoff; });
+    let filtered = allMatches;
+    if (_matchPeriod !== 'all') {
+      const cutoff = new Date();
+      cutoff.setDate(cutoff.getDate() - (_matchPeriod === 'week' ? 7 : 30));
+      cutoff.setHours(0, 0, 0, 0);
+      filtered = filtered.filter(m => { const d = parseMatchDate(m.matched_at); return d && d >= cutoff; });
+    }
+    if (_typeFilter) {
+      filtered = filtered.filter(m => classifyMatch(m.document_title) === _typeFilter);
+    }
+    return filtered;
   }
 
   function setMatchPeriod(period) {
@@ -1796,11 +1882,113 @@
     } catch(e) { showToast('Greška'); }
   }
 
+  // ── BULK IMPORT ───────────────────────────────────────────────────────────
+  function openBulkImport() {
+    document.getElementById('bulk-modal').style.display = 'flex';
+    document.getElementById('bulk-kw-input').value = '';
+    document.getElementById('bulk-result').style.display = 'none';
+    setTimeout(() => document.getElementById('bulk-kw-input').focus(), 50);
+  }
+  function closeBulkImport() {
+    document.getElementById('bulk-modal').style.display = 'none';
+  }
+  async function doBulkImport() {
+    const raw = document.getElementById('bulk-kw-input').value;
+    const keywords = raw.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
+    if (!keywords.length) return;
+    try {
+      const res = await fetch(API + '/keywords/bulk', {
+        method: 'POST', headers: authHeaders(),
+        body: JSON.stringify({ keywords })
+      });
+      const data = await res.json();
+      const resEl = document.getElementById('bulk-result');
+      if (data.added && data.added.length > 0) {
+        resEl.style.color = 'var(--green)';
+        resEl.textContent = `Dodano: ${data.added.join(', ')}` + (data.skipped.length ? ` | Preskočeno: ${data.skipped.join(', ')}` : '');
+        resEl.style.display = 'block';
+        await loadKeywords();
+        setTimeout(closeBulkImport, 1800);
+      } else {
+        resEl.style.color = 'var(--orange)';
+        resEl.textContent = data.skipped.length ? `Sve preskočene (duplikati ili limit dostignut): ${data.skipped.join(', ')}` : 'Ništa nije dodano';
+        resEl.style.display = 'block';
+      }
+    } catch(e) { showToast('Greška pri uvozu'); }
+  }
+
+  // ── TYPE FILTER ───────────────────────────────────────────────────────────
+  function setTypeFilter(type) {
+    _typeFilter = type === _typeFilter ? null : type;
+    document.querySelectorAll('.type-chip').forEach(c => c.classList.remove('active'));
+    if (_typeFilter) {
+      const chip = document.querySelector(`.type-chip[data-type="${_typeFilter}"]`);
+      if (chip) chip.classList.add('active');
+    }
+    renderMatchesByKeyword(getFilteredMatches());
+  }
+
+  // ── ONBOARDING ────────────────────────────────────────────────────────────
+  let _obKws = [];
+
+  function showOnboardingIfNew() {
+    if (!allKeywords || allKeywords.length > 0) return;
+    if (localStorage.getItem('ob_done')) return;
+    document.getElementById('onboarding-overlay').style.display = 'flex';
+  }
+
+  function obAddKw() {
+    const inp = document.getElementById('ob-kw-input');
+    const val = inp.value.trim();
+    if (!val || _obKws.includes(val)) return;
+    _obKws.push(val);
+    inp.value = '';
+    renderObKwList();
+  }
+
+  function renderObKwList() {
+    const el = document.getElementById('ob-kw-list');
+    el.innerHTML = _obKws.map((k, i) =>
+      `<span style="padding:3px 10px;background:var(--navy);color:white;border-radius:2px;font-size:11.5px;font-weight:600;display:flex;align-items:center;gap:5px">${esc(k)} <span style="cursor:pointer;opacity:0.6" onclick="_obKws.splice(${i},1);renderObKwList()">×</span></span>`
+    ).join('');
+  }
+
+  function skipOnboarding() {
+    localStorage.setItem('ob_done', '1');
+    document.getElementById('onboarding-overlay').style.display = 'none';
+  }
+
+  async function finishOnboarding() {
+    const sit = document.getElementById('ob-sit-input').value.trim();
+    if (_obKws.length > 0) {
+      try {
+        await fetch(API + '/keywords/bulk', {
+          method: 'POST', headers: authHeaders(),
+          body: JSON.stringify({ keywords: _obKws })
+        });
+      } catch(e) {}
+    }
+    if (sit) {
+      try {
+        await fetch(API + '/keywords/situation', {
+          method: 'POST', headers: authHeaders(),
+          body: JSON.stringify({ situation: sit })
+        });
+      } catch(e) {}
+    }
+    localStorage.setItem('ob_done', '1');
+    document.getElementById('onboarding-overlay').style.display = 'none';
+    await loadKeywords();
+    if (sit) { _currentSituation = sit; _setSituationView(sit); }
+    showToast('Praćenje postavljeno! ✦');
+  }
+
   // ── INIT ──────────────────────────────────────────────────────────────────
   async function init() {
     await loadUser();
     loadLatestIssue();
     await loadKeywords();
+    showOnboardingIfNew();
     await loadMatches();
     await loadActivity();
     loadDigestStatus();
