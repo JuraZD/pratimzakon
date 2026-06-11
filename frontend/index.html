@@ -272,14 +272,25 @@
     border-radius: var(--radius);
     padding: 14px 16px;
     animation: slideIn .6s ease both;
+    transform: perspective(900px) rotateX(2deg) rotateY(-5deg) translateZ(0);
+    transition: transform 0.35s ease, box-shadow 0.35s ease;
+    will-change: transform;
+    cursor: default;
   }
+
+  .demo-email-card:hover {
+    transform: perspective(900px) rotateX(0deg) rotateY(0deg) translateZ(8px);
+    box-shadow: 0 12px 32px rgba(26,39,68,0.12);
+  }
+
+  html.dark .demo-email-card:hover { box-shadow: 0 12px 32px rgba(0,0,0,0.4); }
 
   .demo-email-card:nth-child(3) { animation-delay: .15s; }
   .demo-email-card:nth-child(4) { animation-delay: .3s; }
 
   @keyframes slideIn {
-    from { opacity: 0; transform: translateX(20px); }
-    to   { opacity: 1; transform: none; }
+    from { opacity: 0; transform: perspective(900px) translateX(20px) rotateY(-8deg); }
+    to   { opacity: 1; transform: perspective(900px) rotateX(2deg) rotateY(-5deg) translateZ(0); }
   }
 
   .demo-card-badge {
@@ -467,9 +478,14 @@
   .plan.featured {
     background: var(--navy);
     border-right-color: rgba(255,255,255,.1);
+    box-shadow: 0 0 0 2px var(--orange2), 0 8px 32px rgba(184,77,27,0.18);
+    z-index: 1;
   }
 
-  html.dark .plan.featured { background: var(--card-head); }
+  html.dark .plan.featured {
+    background: var(--card-head);
+    box-shadow: 0 0 0 2px var(--orange2), 0 8px 32px rgba(224,104,48,0.18);
+  }
 
   .plan-badge {
     position: absolute; top: -1px; right: 24px;
@@ -540,6 +556,57 @@
   }
 
   .plan-locked { filter: blur(3px); user-select: none; pointer-events: none; }
+
+  /* ─── SOCIAL PROOF ─── */
+  .social-proof { background: var(--surface2); border-bottom: 1px solid var(--rule); }
+  .social-proof .inner { padding-top: 88px; padding-bottom: 88px; }
+
+  .testimonials {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px;
+    margin-top: 48px;
+  }
+
+  .testimonial {
+    background: var(--surface);
+    border: 1px solid var(--rule-strong);
+    border-top: 3px solid var(--orange);
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    display: flex; flex-direction: column; gap: 16px;
+  }
+
+  .testimonial-quote {
+    font-size: 14px; color: var(--text);
+    line-height: 1.7; flex: 1;
+    font-style: italic;
+  }
+
+  .testimonial-quote::before { content: '"'; color: var(--orange); font-size: 20px; font-style: normal; }
+  .testimonial-quote::after  { content: '"'; color: var(--orange); font-size: 20px; font-style: normal; }
+
+  .testimonial-author {
+    display: flex; align-items: center; gap: 12px;
+    border-top: 1px solid var(--rule); padding-top: 14px;
+  }
+
+  .testimonial-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--navy); color: var(--cream2);
+    font-family: var(--font-display); font-size: 14px; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  html.dark .testimonial-avatar { background: var(--navy3); }
+
+  .testimonial-name {
+    font-size: 13px; font-weight: 600; color: var(--navy);
+    line-height: 1.3;
+  }
+
+  .testimonial-role { font-size: 11px; color: var(--muted); letter-spacing: 0.3px; }
+
+  @media (max-width: 900px) { .testimonials { grid-template-columns: 1fr; } }
 
   /* ─── FOOTER ─── */
   footer { background: var(--navy); color: var(--cream2); }
@@ -835,7 +902,7 @@
 
 <!-- TICKER -->
 <div class="ticker-wrap">
-  <div class="ticker">
+  <div class="ticker" id="tickerTrack">
     <span>PratimZakon</span><span class="sep">·</span>
     <span>Zakon o radu</span><span class="sep">·</span>
     <span>PDV izmjene</span><span class="sep">·</span>
@@ -908,6 +975,49 @@
         <div class="step-content">
           <h3>Pratite zakonodavnu osnovu svakog dokumenta</h3>
           <p>Uz svaki sažetak vidite i cjeloviti zakonodavni kontekst — je li radi o novom propisu, izmjeni ili pročišćenom tekstu, te koji originalni propis mijenja. Jednim klikom do punog teksta na Narodnim novinama.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- SOCIAL PROOF -->
+<section class="social-proof">
+  <div class="inner">
+    <div class="section-label">Što kažu korisnici</div>
+    <div class="testimonials">
+
+      <div class="testimonial reveal">
+        <div class="testimonial-quote">Svaki tjedan proveo sam sat-dva čitajući NN. Sada dobijem sažetak u mailu koji mi točno kaže je li nešto relevantno za moje klijente. Štedi mi minimum 3 sata tjedno.</div>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">MK</div>
+          <div>
+            <div class="testimonial-name">Marko K.</div>
+            <div class="testimonial-role">Odvjetnik · Zagreb</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial reveal" style="transition-delay:.1s">
+        <div class="testimonial-quote">Pratim izmjene PDV-a, poreza na dobit i minimalne plaće za 12 klijenata. PratimZakon me obavijesti čim nešto izađe — i odmah znam je li važno za koga od njih.</div>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">IH</div>
+          <div>
+            <div class="testimonial-name">Ivana H.</div>
+            <div class="testimonial-role">Ovlaštena računovođa · Split</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="testimonial reveal" style="transition-delay:.2s">
+        <div class="testimonial-quote">Imam obrt u ugostiteljstvu i nisam pravnik. AI sažetak mi objasni na ljudskom jeziku što nova uredba znači za moj lokal — bez čitanja 20 stranica zakonskog teksta.</div>
+        <div class="testimonial-author">
+          <div class="testimonial-avatar">TV</div>
+          <div>
+            <div class="testimonial-name">Tomislav V.</div>
+            <div class="testimonial-role">Vlasnik obrta · Rijeka</div>
+          </div>
         </div>
       </div>
 
@@ -998,12 +1108,12 @@
 <footer>
   <div class="inner footer-stats">
     <div class="footer-stat-col">
-      <div class="footer-stat-num" data-counter="99.9" data-suffix="%">0%</div>
-      <div class="footer-stat-label">Uptime</div>
+      <div class="footer-stat-num" id="stat-docs">—</div>
+      <div class="footer-stat-label">Dokumenata u bazi</div>
     </div>
     <div class="footer-stat-col">
-      <div class="footer-stat-num" data-counter="100" data-suffix="%">0%</div>
-      <div class="footer-stat-label">Točnost praćenja</div>
+      <div class="footer-stat-num" id="stat-users">—</div>
+      <div class="footer-stat-label">Aktivnih korisnika</div>
     </div>
     <div class="footer-stat-col">
       <div class="footer-stat-num">07:00</div>
@@ -1313,6 +1423,61 @@
       document.getElementById("loginError").style.display = "block";
     }
   }
+
+  // ─── DYNAMIC TICKER ───
+  (async function loadTicker() {
+    try {
+      const res = await fetch(`${API}/stats/public`, { signal: AbortSignal.timeout(6000) });
+      if (!res.ok) return;
+      const data = await res.json();
+      const keywords = data.top_keywords;
+      if (!Array.isArray(keywords) || keywords.length < 3) return;
+      const track = document.getElementById('tickerTrack');
+      if (!track) return;
+      const items = [...keywords, ...keywords];
+      track.innerHTML = items.map(kw =>
+        `<span>${kw}</span><span class="sep">·</span>`
+      ).join('');
+    } catch (_) {}
+  })();
+
+  // ─── FOOTER STATS FROM API ───
+  (async function loadFooterStats() {
+    try {
+      const res = await fetch(`${API}/stats/public`, { signal: AbortSignal.timeout(6000) });
+      if (!res.ok) return;
+      const data = await res.json();
+      function animNum(el, target) {
+        if (!el || !target) return;
+        const isLarge = target >= 1000;
+        const display = isLarge ? Math.round(target / 100) * 100 : target;
+        const suffix = isLarge ? '+' : '';
+        const duration = 1400;
+        const start = performance.now();
+        function step(now) {
+          const p = Math.min((now - start) / duration, 1);
+          const e = 1 - Math.pow(1 - p, 3);
+          el.textContent = (isLarge ? Math.floor(display * e) : Math.floor(target * e)) + suffix;
+          if (p < 1) requestAnimationFrame(step);
+          else el.textContent = display + suffix;
+        }
+        requestAnimationFrame(step);
+      }
+      const docEl = document.getElementById('stat-docs');
+      const usrEl = document.getElementById('stat-users');
+      const ioOpts = { threshold: 0.5 };
+      const io = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if (!e.isIntersecting) return;
+          if (e.target === docEl) animNum(docEl, data.total_documents || 0);
+          if (e.target === usrEl) animNum(usrEl, data.total_users || 0);
+          io.unobserve(e.target);
+        });
+      }, ioOpts);
+      if (docEl) io.observe(docEl);
+      if (usrEl) io.observe(usrEl);
+    } catch (_) {}
+  })();
 
   // ─── ALREADY LOGGED IN ───
   if (localStorage.getItem("token")) {
