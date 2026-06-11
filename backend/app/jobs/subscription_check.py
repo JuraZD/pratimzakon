@@ -18,7 +18,7 @@ def run():
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../"))
 
     from app.database import SessionLocal
-    from app.models import User, Log
+    from app.models import User, Log, PLAN_LIMITS
 
     db = SessionLocal()
     today = date.today()
@@ -37,7 +37,7 @@ def run():
             if days_left < 0:
                 # Downgrade na free – NE brišemo korisnika
                 user.subscription_status = "expired"
-                user.keyword_limit = 7
+                user.keyword_limit = PLAN_LIMITS["free"]
                 user.plan = "free"
                 db.add(Log(event_type="subscription_expired", user_id=user.id))
                 expired_count += 1

@@ -51,6 +51,25 @@ class StatsResponse(BaseModel):
     email_stats: List[CountItem]       # email_sent vs bounced (from logs)
 
 
+@router.get("/public")
+def get_public_stats(db: Session = Depends(get_db)):
+    total_documents = db.query(func.count(Document.id)).scalar() or 0
+    total_users = db.query(func.count(User.id)).scalar() or 0
+    kw_rows = (
+        db.query(Keyword.keyword, func.count(Keyword.id).label("cnt"))
+        .group_by(Keyword.keyword)
+        .order_by(func.count(Keyword.id).desc())
+        .limit(20)
+        .all()
+    )
+    top_keywords = [r.keyword for r in kw_rows if r.keyword]
+    return {
+        "total_documents": total_documents,
+        "total_users": total_users,
+        "top_keywords": top_keywords,
+    }
+
+
 @router.get("/", response_model=StatsResponse)
 def get_stats(
     db: Session = Depends(get_db),

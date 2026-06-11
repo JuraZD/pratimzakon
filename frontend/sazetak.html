@@ -418,11 +418,7 @@
               <div class="side-card-title">Akcije</div>
             </div>
             <div class="side-card-body">
-              <button class="action-btn primary" id="btn-email-action">
-                <span>Pošalji na email</span>
-                <span class="action-btn-icon">→</span>
-              </button>
-              <button class="action-btn" onclick="openNN()">
+<button class="action-btn" onclick="openNN()">
                 <span>Puni tekst na NN.hr</span>
                 <span class="action-btn-icon">↗</span>
               </button>
@@ -566,8 +562,7 @@
       document.getElementById('mob-user-name').textContent = namePart;
       document.getElementById('mob-user-email').textContent = user.email;
       document.getElementById('mob-user-badge').textContent = planLabel;
-      document.getElementById('btn-email-action').onclick =
-        () => showToast('Email poslan na ' + user.email);
+
 
       userSituation = user.situation || '';
       if (userSituation) {

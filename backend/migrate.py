@@ -190,6 +190,38 @@ ON CONFLICT (user_id) DO NOTHING
                 WHERE unsubscribe_token IS NULL
                         """,
       ),
+    # ── Ispravak planova: Free=5, Basic=10, Plus=20 ──────────────────────────
+    (
+        "fix: keyword_limit free → 5",
+        "UPDATE users SET keyword_limit = 5 WHERE plan = 'free'",
+    ),
+    (
+        "fix: keyword_limit basic → 10",
+        "UPDATE users SET keyword_limit = 10 WHERE plan = 'basic'",
+    ),
+    (
+        "fix: keyword_limit plus → 20",
+        "UPDATE users SET keyword_limit = 20 WHERE plan = 'plus'",
+    ),
+    (
+        "fix: trim free keywords to 5 per user",
+        """
+DELETE FROM keywords
+WHERE id IN (
+    SELECT k.id
+    FROM keywords k
+    INNER JOIN users u ON u.id = k.user_id
+    WHERE u.plan = 'free'
+    AND k.id NOT IN (
+        SELECT k2.id
+        FROM keywords k2
+        WHERE k2.user_id = k.user_id
+        ORDER BY k2.id
+        LIMIT 5
+    )
+);
+""",
+    ),
 ]
 
 

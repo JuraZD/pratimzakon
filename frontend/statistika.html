@@ -6,6 +6,7 @@
 <title>PratimZakon — Statistika</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
   :root {
@@ -86,13 +87,6 @@
 
   /* BAR CHART */
   .chart-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:18px 20px; }
-  .mc-row { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
-  .mc-row:last-child { margin-bottom:0; }
-  .mc-label { font-size:12px; color:var(--muted); font-weight:600; width:80px; flex-shrink:0; text-align:right; }
-  .mc-bar-wrap { flex:1; height:10px; background:var(--surface2); border-radius:5px; overflow:hidden; }
-  .mc-bar { height:100%; border-radius:5px; transition:width 0.5s ease; }
-  .mc-count { font-size:12px; font-weight:700; color:var(--text); width:60px; text-align:left; flex-shrink:0; }
-  .mc-pct { color:var(--muted); font-weight:400; }
 
   /* KEYWORD TABLE */
   .kw-table { width:100%; border-collapse:collapse; background:var(--surface); border-radius:var(--radius); overflow:hidden; border:1px solid var(--border); }
@@ -103,15 +97,6 @@
   .kw-hits { font-family:var(--font-display); font-size:18px; font-weight:800; color:var(--orange2); }
   .kw-last { color:var(--muted); font-size:12px; }
   .kw-bar-inline { display:inline-block; height:6px; border-radius:3px; background:var(--orange2); opacity:0.6; vertical-align:middle; margin-left:8px; }
-
-  /* WEEKLY TREND */
-  .trend-grid { display:flex; align-items:flex-end; gap:6px; height:80px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px 10px; }
-  .trend-col { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end; }
-  .trend-bar-wrap { width:100%; display:flex; align-items:flex-end; flex:1; }
-  .trend-bar { width:100%; border-radius:3px 3px 0 0; background:var(--navy); opacity:0.7; min-height:2px; transition:height 0.4s ease; }
-  .trend-bar.has-data { opacity:1; }
-  .trend-label { font-size:9px; color:var(--muted); font-weight:600; white-space:nowrap; }
-  .trend-count { font-size:10px; font-weight:700; color:var(--text); }
 
   /* EMPTY */
   .empty-msg { color:var(--muted); font-size:13px; padding:20px 0; text-align:center; }
@@ -209,8 +194,8 @@
           <div class="section-title">Matchevi po vrsti dokumenta</div>
           <div class="section-title-line"></div>
         </div>
-        <div class="chart-card" id="type-chart">
-          <div class="empty-msg">Učitavanje...</div>
+        <div class="chart-card">
+          <div style="position:relative;height:220px"><canvas id="type-chart"></canvas></div>
         </div>
       </div>
 
@@ -231,8 +216,8 @@
           <div class="section-title">Trend matcheva — zadnjih 8 tjedana</div>
           <div class="section-title-line"></div>
         </div>
-        <div id="trend-wrap">
-          <div class="empty-msg">Učitavanje...</div>
+        <div class="chart-card">
+          <div style="position:relative;height:200px"><canvas id="trend-chart"></canvas></div>
         </div>
       </div>
 
@@ -273,6 +258,9 @@
     const isDark = document.documentElement.classList.toggle('dark');
     document.getElementById('theme-toggle').textContent = isDark ? '☾' : '☀';
     localStorage.setItem('pz-theme', isDark ? 'dark' : 'light');
+    if (window._typeChart) { window._typeChart.destroy(); window._typeChart = null; }
+    if (window._trendChart) { window._trendChart.destroy(); window._trendChart = null; }
+    if (window._lastMatches) { renderTypeChart(window._lastMatches); renderWeeklyTrend(window._lastMatches); }
   }
   if (localStorage.getItem('pz-theme') === 'dark') {
     document.documentElement.classList.add('dark');
@@ -366,28 +354,34 @@
   // ── RENDER BAR CHART ─────────────────────────────────────────────────────
   function renderTypeChart(matches) {
     const el = document.getElementById('type-chart');
-    if (!matches.length) { el.innerHTML = '<div class="empty-msg">Još nema matcheva.</div>'; return; }
-
+    if (!matches.length) { el.parentElement.innerHTML = '<div class="empty-msg">Još nema matcheva.</div>'; return; }
     const counts = { zakon:0, izmjena:0, pravilnik:0, other:0 };
     matches.forEach(m => counts[classifyMatch(m.document_title)]++);
-    const max = Math.max(...Object.values(counts), 1);
-
-    const rows = [
-      { key:'zakon',     label:'Zakoni',     color:'var(--green)' },
-      { key:'izmjena',   label:'Izmjene',    color:'var(--orange2)' },
-      { key:'pravilnik', label:'Pravilnici', color:'var(--navy)' },
-      { key:'other',     label:'Ostalo',     color:'var(--muted)' },
-    ].filter(r => counts[r.key] > 0);
-
-    el.innerHTML = rows.map(r => {
-      const pct   = Math.round(counts[r.key] / matches.length * 100);
-      const width = Math.round(counts[r.key] / max * 100);
-      return `<div class="mc-row">
-        <div class="mc-label">${r.label}</div>
-        <div class="mc-bar-wrap"><div class="mc-bar" style="width:${width}%;background:${r.color}"></div></div>
-        <div class="mc-count">${counts[r.key]} <span class="mc-pct">${pct}%</span></div>
-      </div>`;
-    }).join('');
+    const isDark = document.documentElement.classList.contains('dark');
+    const textColor = isDark ? '#a8b8e0' : '#6b7a99';
+    const gridColor = isDark ? 'rgba(200,212,240,0.08)' : 'rgba(26,39,68,0.07)';
+    if (window._typeChart) window._typeChart.destroy();
+    window._typeChart = new Chart(el, {
+      type: 'bar',
+      data: {
+        labels: ['Zakoni', 'Izmjene', 'Pravilnici', 'Ostalo'],
+        datasets: [{
+          data: [counts.zakon, counts.izmjena, counts.pravilnik, counts.other],
+          backgroundColor: ['rgba(46,125,82,0.75)', 'rgba(212,88,31,0.75)', 'rgba(26,39,68,0.6)', 'rgba(107,122,153,0.5)'],
+          borderColor: ['#2e7d52','#d4581f','#1a2744','#6b7a99'],
+          borderWidth: 1.5,
+          borderRadius: 3,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} dokumenata` } } },
+        scales: {
+          x: { ticks: { color: textColor, font: { family: 'Barlow', size: 12 } }, grid: { display: false } },
+          y: { ticks: { color: textColor, font: { family: 'Barlow', size: 11 }, precision: 0 }, grid: { color: gridColor }, beginAtZero: true }
+        }
+      }
+    });
   }
 
   // ── RENDER KEYWORD TABLE ─────────────────────────────────────────────────
@@ -431,43 +425,47 @@
 
   // ── RENDER WEEKLY TREND ──────────────────────────────────────────────────
   function renderWeeklyTrend(matches) {
-    const wrap = document.getElementById('trend-wrap');
-    if (!matches.length) { wrap.innerHTML = '<div class="empty-msg">Još nema matcheva.</div>'; return; }
-
-    // Build last 8 weeks
+    const el = document.getElementById('trend-chart');
+    if (!el) return;
     const now = new Date();
     const weeks = [];
     for (let i = 7; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i * 7);
-      const ws = weekStart(d);
-      const we = new Date(ws); we.setDate(we.getDate() + 6);
-      const label = ws.getDate() + '.' + (ws.getMonth()+1) + '.';
-      weeks.push({ start: ws, end: we, label, count: 0 });
+      const start = new Date(now);
+      start.setDate(start.getDate() - start.getDay() - i * 7);
+      start.setHours(0,0,0,0);
+      const end = new Date(start);
+      end.setDate(end.getDate() + 6);
+      const label = start.toLocaleDateString('hr-HR', { day:'2-digit', month:'2-digit' });
+      const count = matches.filter(m => {
+        const d = parseMatchDate(m.matched_at);
+        return d && d >= start && d <= end;
+      }).length;
+      weeks.push({ label, count });
     }
-
-    matches.forEach(m => {
-      const d = parseMatchDate(m.matched_at);
-      if (!d) return;
-      for (const w of weeks) {
-        if (d >= w.start && d <= w.end) { w.count++; break; }
+    const isDark = document.documentElement.classList.contains('dark');
+    const textColor = isDark ? '#a8b8e0' : '#6b7a99';
+    const gridColor = isDark ? 'rgba(200,212,240,0.08)' : 'rgba(26,39,68,0.07)';
+    if (window._trendChart) window._trendChart.destroy();
+    window._trendChart = new Chart(el, {
+      type: 'bar',
+      data: {
+        labels: weeks.map(w => w.label),
+        datasets: [{
+          data: weeks.map(w => w.count),
+          backgroundColor: weeks.map(w => w.count > 0 ? 'rgba(26,39,68,0.7)' : 'rgba(26,39,68,0.2)'),
+          borderColor: 'rgba(26,39,68,0.9)',
+          borderWidth: 1, borderRadius: 3,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y} matcheva` } } },
+        scales: {
+          x: { ticks: { color: textColor, font: { family: 'Barlow', size: 11 } }, grid: { display: false } },
+          y: { ticks: { color: textColor, font: { family: 'Barlow', size: 11 }, precision: 0 }, grid: { color: gridColor }, beginAtZero: true }
+        }
       }
     });
-
-    const maxCount = Math.max(...weeks.map(w => w.count), 1);
-
-    wrap.innerHTML = `<div class="trend-grid">
-      ${weeks.map(w => {
-        const heightPct = Math.round(w.count / maxCount * 100);
-        return `<div class="trend-col">
-          <div class="trend-count">${w.count || ''}</div>
-          <div class="trend-bar-wrap">
-            <div class="trend-bar ${w.count ? 'has-data' : ''}" style="height:${heightPct}%"></div>
-          </div>
-          <div class="trend-label">${w.label}</div>
-        </div>`;
-      }).join('')}
-    </div>`;
   }
 
   // ── INIT ─────────────────────────────────────────────────────────────────
@@ -487,6 +485,7 @@
       const archive = archiveRes.ok  ? await archiveRes.json()  : [];
 
       renderSummary(matches, archive.length);
+      window._lastMatches = matches;
       renderTypeChart(matches);
       renderKeywordTable(matches);
       renderWeeklyTrend(matches);
