@@ -1,6 +1,6 @@
 from datetime import date, datetime
 from typing import Optional
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, model_validator
 
 
 # --- Auth ---
@@ -36,6 +36,14 @@ class UserOut(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+    @model_validator(mode="after")
+    def cap_keyword_limit(self):
+        from .models import PLAN_LIMITS
+        max_limit = PLAN_LIMITS.get(self.plan, PLAN_LIMITS["free"])
+        if self.keyword_limit > max_limit:
+            self.keyword_limit = max_limit
+        return self
 
 
 # --- Keywords ---
