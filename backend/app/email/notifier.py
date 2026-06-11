@@ -75,12 +75,36 @@ def _send_smtp(to_email: str, subject: str, html_body: str, text_body: str) -> b
         msg.attach(MIMEText(html_body, "html", "utf-8"))
 
         context = ssl.create_default_context()
-        with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, context=context) as s:
-            s.login(SMTP_USERNAME, SMTP_PASSWORD)
-            s.sendmail(FROM_EMAIL, [to_email], msg.as_string())
+        logging.info(f"SMTP slanje na {to_email} — server={SMTP_SERVER}:{SMTP_PORT}")
+
+        # Port 465 → direktan SSL; sve ostalo (587, 25) → STARTTLS
+        if SMTP_PORT == 465:
+            with smtplib.SMTP_SSL(SMTP_SERVER, SMTP_PORT, context=context) as s:
+                logging.info("SMTP_SSL konekcija uspostavljena")
+                s.login(SMTP_USERNAME, SMTP_PASSWORD)
+                logging.info(f"SMTP login OK kao {SMTP_USERNAME}")
+                s.sendmail(FROM_EMAIL, [to_email], msg.as_string())
+        else:
+            with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as s:
+                logging.info("SMTP konekcija uspostavljena, pokrećem STARTTLS")
+                s.ehlo()
+                s.starttls(context=context)
+                s.ehlo()
+                logging.info("STARTTLS OK")
+                s.login(SMTP_USERNAME, SMTP_PASSWORD)
+                logging.info(f"SMTP login OK kao {SMTP_USERNAME}")
+                s.sendmail(FROM_EMAIL, [to_email], msg.as_string())
+
+        logging.info(f"Email uspješno poslan na {to_email}")
         return True
+    except smtplib.SMTPAuthenticationError as e:
+        logging.error(f"SMTP autentifikacija neuspješna za {SMTP_USERNAME}: {e}")
+        return False
+    except smtplib.SMTPException as e:
+        logging.error(f"SMTP greška pri slanju na {to_email}: {type(e).__name__}: {e}")
+        return False
     except Exception as e:
-        logging.error(f"Greška pri slanju emaila na {to_email}: {e}")
+        logging.error(f"Neočekivana greška pri slanju emaila na {to_email}: {type(e).__name__}: {e}")
         return False
 
 
