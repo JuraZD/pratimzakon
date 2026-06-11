@@ -264,20 +264,22 @@ def get_recent_matches(
     # Batch dohvat po ID-u
     doc_id_map: dict[int, date] = {}
     if doc_ids_to_fetch:
-        for d in db.query(Document.id, Document.published_date).filter(
+        for d in db.query(Document.id, Document.published_date, Document.date_document).filter(
             Document.id.in_(doc_ids_to_fetch)
         ).all():
-            if d.published_date:
-                doc_id_map[d.id] = d.published_date
+            pub = d.published_date or d.date_document
+            if pub:
+                doc_id_map[d.id] = pub
 
     # Batch dohvat po URL-u (fallback za stare logove bez doc_id)
     url_date_map: dict[str, date] = {}
     if urls_to_fetch:
-        for d in db.query(Document.url, Document.published_date).filter(
+        for d in db.query(Document.url, Document.published_date, Document.date_document).filter(
             Document.url.in_(urls_to_fetch)
         ).all():
-            if d.published_date:
-                url_date_map[d.url] = d.published_date
+            pub = d.published_date or d.date_document
+            if pub:
+                url_date_map[d.url] = pub
 
     results = []
     for r, parts, doc_id in parsed_rows:

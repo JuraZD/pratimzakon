@@ -1559,13 +1559,35 @@
     type === "login" ? showLogin() : showRegister();
   }
 
-  function selectPlan(plan) {
+  async function selectPlan(plan) {
+    const token = localStorage.getItem("token");
+    if (token) {
+      await startCheckout(plan, token);
+      return;
+    }
     openModal("register");
     window._selectedPlan = plan;
     const labels = { basic: "Basic (€4,99/mj)", plus: "Plus (€7,99/mj)" };
     const okEl = document.getElementById("regSuccess");
     okEl.textContent = `Odabrali ste ${labels[plan]} plan — registrirajte se za nastavak.`;
     okEl.style.display = "block";
+  }
+
+  async function startCheckout(plan, token) {
+    try {
+      const r = await fetch(`${API}/stripe/checkout/${plan}`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` },
+      });
+      const data = await r.json();
+      if (r.ok && data.checkout_url) {
+        window.location.href = data.checkout_url;
+      } else {
+        alert(data.detail || "Greška pri pokretanju naplate. Pokušajte ponovo.");
+      }
+    } catch {
+      alert("Server nije dostupan. Provjerite vezu i pokušajte ponovo.");
+    }
   }
 
   function closeModal(e) {
@@ -1656,6 +1678,10 @@
       const data = await res.json();
       if (res.ok) {
         localStorage.setItem("token", data.access_token);
+        if (window._selectedPlan) {
+          await startCheckout(window._selectedPlan, data.access_token);
+          return;
+        }
         window.location.href = "dashboard.html";
       } else if (res.status === 403) {
         document.getElementById("verifyPrompt").style.display = "block";
