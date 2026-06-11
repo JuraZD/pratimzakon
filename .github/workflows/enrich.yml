@@ -23,6 +23,11 @@ on:
         required: false
         default: false
         type: boolean
+      missing_dates:
+        description: "Uključi dokumente bez datuma"
+        required: false
+        default: false
+        type: boolean
 
 concurrency:
   group: enrich
@@ -56,5 +61,8 @@ jobs:
           fi
           if ${{ github.event.inputs.debug }}; then
             ARGS="$ARGS --debug"
+          fi
+          if ${{ github.event.inputs.missing_dates }}; then
+            ARGS="$ARGS --missing-dates"
           fi
           python -m app.scraper.enrich $ARGS
