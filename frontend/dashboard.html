@@ -532,7 +532,7 @@
           <div style="margin-top:6px;text-align:right">
             <button class="btn-bulk-import" onclick="openBulkImport()">⊕ Uvezi više ključnih riječi</button>
           </div>
-          <div class="kw-tip">Za optimalne rezultate odaberite 5–7 ključnih riječi. Možete koristiti višerječne pojmove: "ruralni razvoj", "investicijske potpore".</div>
+          <div class="kw-tip">Za optimalne rezultate odaberite do 5 ključnih riječi. Možete koristiti višerječne pojmove: "ruralni razvoj", "investicijske potpore".</div>
 
           <div class="situation-label">Moja situacija — za personalizirani sažetak</div>
 
@@ -1140,7 +1140,7 @@
       document.getElementById('mob-user-email').textContent = user.email;
       document.getElementById('mob-user-badge').textContent = planLabel;
       userKwLimit = user.keyword_limit || 5;
-      window._kwLimit = user.keyword_limit || 7;
+      window._kwLimit = user.keyword_limit || 5;
       // Pohrani token za feed modal
       if (user.unsubscribe_token) {
         window._userUnsubToken = user.unsubscribe_token;
