@@ -246,29 +246,44 @@ def get_recent_matches(
         .limit(limit)
         .all()
     )
-    # Dohvati published_date za sve doc_id-jeve jednim upitom
-    doc_id_map: dict = {}
+    # Parsiramo sve detalje i skupljamo doc_id-jeve i url-ove za batch lookup
+    parsed_rows = []
+    doc_ids_to_fetch: set[int] = set()
+    urls_to_fetch: set[str] = set()
     for r in rows:
         detail = r.detail or ""
         parts = dict(p.split(":", 1) for p in detail.split("|") if ":" in p)
-        if "doc_id" in parts:
-            try:
-                doc_id_map[int(parts["doc_id"])] = None
-            except ValueError:
-                pass
-    if doc_id_map:
-        docs = db.query(Document.id, Document.published_date).filter(
-            Document.id.in_(doc_id_map.keys())
-        ).all()
-        for d in docs:
-            doc_id_map[d.id] = d.published_date
+        doc_id = None
+        if parts.get("doc_id", "").strip().isdigit():
+            doc_id = int(parts["doc_id"])
+            doc_ids_to_fetch.add(doc_id)
+        if parts.get("url", "").strip():
+            urls_to_fetch.add(parts["url"].strip())
+        parsed_rows.append((r, parts, doc_id))
+
+    # Batch dohvat po ID-u
+    doc_id_map: dict[int, date] = {}
+    if doc_ids_to_fetch:
+        for d in db.query(Document.id, Document.published_date).filter(
+            Document.id.in_(doc_ids_to_fetch)
+        ).all():
+            if d.published_date:
+                doc_id_map[d.id] = d.published_date
+
+    # Batch dohvat po URL-u (fallback za stare logove bez doc_id)
+    url_date_map: dict[str, date] = {}
+    if urls_to_fetch:
+        for d in db.query(Document.url, Document.published_date).filter(
+            Document.url.in_(urls_to_fetch)
+        ).all():
+            if d.published_date:
+                url_date_map[d.url] = d.published_date
 
     results = []
-    for r in rows:
-        detail = r.detail or ""
-        parts = dict(p.split(":", 1) for p in detail.split("|") if ":" in p)
-        doc_id = int(parts["doc_id"]) if "doc_id" in parts else None
+    for r, parts, doc_id in parsed_rows:
         pub = doc_id_map.get(doc_id) if doc_id else None
+        if pub is None:
+            pub = url_date_map.get(parts.get("url", "").strip())
         results.append(
             MatchItem(
                 id=r.id,
