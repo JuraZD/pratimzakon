@@ -335,7 +335,7 @@
   .page-btn:disabled { opacity:0.3; cursor:not-allowed; }
 
   /* ── MATCH FILTER TABS ── */
-  .match-tabs { display:flex; gap:6px; flex-wrap:wrap; padding:10px 16px; flex-shrink:0; border-bottom:1px solid var(--border); }
+  .match-tabs { display:flex; gap:6px; flex-wrap:wrap; padding:10px 16px; flex-shrink:0; border-top:1px solid var(--border); border-bottom:1px solid var(--border); }
   .match-tab { padding:4px 13px; border:1.5px solid var(--border-strong); border-radius:20px; font-family:var(--font-body); font-size:calc(11px * var(--font-scale)); font-weight:700; cursor:pointer; transition:all 0.15s; color:var(--muted); background:var(--surface2); white-space:nowrap; letter-spacing:0.3px; }
   .match-tab:hover { border-color:var(--navy); color:var(--navy); background:var(--surface); }
   .match-tab.active { background:var(--navy); border-color:var(--navy); color:var(--cream); }
@@ -600,7 +600,7 @@
           <span class="mpf-count" id="mpf-count"></span>
         </div>
         <div class="card-body">
-          <div class="type-filter-row" id="type-filter-row" style="padding:0 20px 12px;display:flex;gap:6px;flex-wrap:wrap">
+          <div class="type-filter-row" id="type-filter-row" style="padding:8px 16px 12px;display:flex;gap:6px;flex-wrap:wrap">
             <button class="type-chip" data-type="zakon" onclick="setTypeFilter('zakon')">Zakoni</button>
             <button class="type-chip" data-type="izmjena" onclick="setTypeFilter('izmjena')">Izmjene</button>
             <button class="type-chip" data-type="pravilnik" onclick="setTypeFilter('pravilnik')">Pravilnici</button>

@@ -551,9 +551,9 @@ def _enrich_doc(html_url: str, session) -> dict | None:
     }
 
 
-def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
+def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False, missing_dates: bool = False):
     import requests
-    from sqlalchemy import or_
+    from sqlalchemy import or_, and_
     from app.database import SessionLocal
     from app.models import Document, Log
 
@@ -586,18 +586,23 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
     _prefetch_institution_list(session)
 
     try:
-        with SessionLocal() as count_db:
-            total_count = (
-                count_db.query(Document)
-                .filter(
-                    or_(
-                        Document.institution.is_(None),
-                        Document.legal_area.is_(None),
-                    )
-                )
-                .count()
+        if missing_dates:
+            _filter = or_(
+                Document.institution.is_(None),
+                Document.legal_area.is_(None),
+                and_(Document.published_date.is_(None), Document.date_document.is_(None)),
             )
-        logging.info(f"Dokumenata bez institution ili legal_area: {total_count}, krećem od offseta {offset}")
+            _label = "bez institution, legal_area ili datuma"
+        else:
+            _filter = or_(
+                Document.institution.is_(None),
+                Document.legal_area.is_(None),
+            )
+            _label = "bez institution ili legal_area"
+
+        with SessionLocal() as count_db:
+            total_count = count_db.query(Document).filter(_filter).count()
+        logging.info(f"Dokumenata {_label}: {total_count}, krećem od offseta {offset}")
 
         processed = 0
         last_id = 0
@@ -606,12 +611,7 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
             with SessionLocal() as skip_db:
                 skip_doc = (
                     skip_db.query(Document.id)
-                    .filter(
-                        or_(
-                            Document.institution.is_(None),
-                            Document.legal_area.is_(None),
-                        )
-                    )
+                    .filter(_filter)
                     .order_by(Document.id)
                     .offset(offset)
                     .limit(1)
@@ -625,12 +625,7 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
             try:
                 docs = (
                     db.query(Document)
-                    .filter(
-                        or_(
-                            Document.institution.is_(None),
-                            Document.legal_area.is_(None),
-                        )
-                    )
+                    .filter(_filter)
                     .filter(Document.id > last_id)
                     .order_by(Document.id)
                     .limit(batch)
@@ -718,8 +713,9 @@ if __name__ == "__main__":
     parser.add_argument("--batch", type=int, default=500, help="Veličina batcha (default: 500)")
     parser.add_argument("--offset", type=int, default=0, help="Početni offset (default: 0)")
     parser.add_argument("--dry-run", action="store_true", help="Ne upisuj u bazu, samo logiraj")
+    parser.add_argument("--missing-dates", action="store_true", help="Uključi i dokumente bez datuma (published_date i date_document)")
     parser.add_argument("--debug", action="store_true", help="Uključi DEBUG razinu logiranja")
     args = parser.parse_args()
     if args.debug:
         logging.getLogger().setLevel(logging.DEBUG)
-    run_enrich(args.batch, args.offset, args.dry_run)
+    run_enrich(args.batch, args.offset, args.dry_run, args.missing_dates)
