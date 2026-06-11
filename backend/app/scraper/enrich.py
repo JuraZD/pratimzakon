@@ -437,6 +437,7 @@ def _enrich_doc(html_url: str, session) -> dict | None:
     institution = None
     legal_area = None
     jsonld_index: dict = {}
+    act: dict = {}
 
     legal_resource_url = rdfa.get("_legal_resource", "")
     logging.debug(f"  rdfa keys={list(rdfa.keys())} legal_resource={legal_resource_url!r}")
