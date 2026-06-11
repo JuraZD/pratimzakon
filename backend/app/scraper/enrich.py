@@ -597,11 +597,12 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
                     or_(
                         Document.institution.is_(None),
                         Document.legal_area.is_(None),
+                        Document.published_date.is_(None),
                     )
                 )
                 .count()
             )
-        logging.info(f"Dokumenata bez institution ili legal_area: {total_count}, krećem od offseta {offset}")
+        logging.info(f"Dokumenata bez institution, legal_area ili published_date: {total_count}, krećem od offseta {offset}")
 
         processed = 0
         last_id = 0
@@ -614,6 +615,7 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
                         or_(
                             Document.institution.is_(None),
                             Document.legal_area.is_(None),
+                            Document.published_date.is_(None),
                         )
                     )
                     .order_by(Document.id)
@@ -633,6 +635,7 @@ def run_enrich(batch: int = 500, offset: int = 0, dry_run: bool = False):
                         or_(
                             Document.institution.is_(None),
                             Document.legal_area.is_(None),
+                            Document.published_date.is_(None),
                         )
                     )
                     .filter(Document.id > last_id)
