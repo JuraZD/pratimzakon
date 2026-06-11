@@ -66,12 +66,19 @@ def _get_matches(user: User, db: Session) -> list[dict]:
             url = doc.url if doc else ""
         if not url:
             url = _DASHBOARD_URL
+        ts = log.timestamp
+        if ts:
+            if ts.tzinfo is None:
+                ts = ts.replace(tzinfo=timezone.utc)
+            matched_at = ts.isoformat()
+        else:
+            matched_at = datetime.now(timezone.utc).isoformat()
         results.append({
             "doc_id": doc_id,
             "title": parts.get("title", "Nepoznat dokument"),
             "keyword": kw,
             "url": url,
-            "matched_at": log.timestamp.isoformat() if log.timestamp else "",
+            "matched_at": matched_at,
         })
     return results
 

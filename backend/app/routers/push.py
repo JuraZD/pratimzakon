@@ -93,9 +93,15 @@ def push_status(
     return {"subscribed": count > 0, "count": count, "configured": bool(VAPID_PUBLIC_KEY)}
 
 
-def send_push_notification(subscription: PushSubscription, title: str, body: str, url: str = "") -> bool:
+def send_push_notification(subscription: PushSubscription, title: str, body: str, url: str = "") -> str:
+    """
+    Šalje push notifikaciju. Vraća:
+      'ok'      — uspješno poslano
+      'expired' — 410 Gone, subscription treba obrisati
+      'error'   — privremena greška, subscription zadržati
+    """
     if not VAPID_PRIVATE_KEY or not VAPID_PUBLIC_KEY:
-        return False
+        return "error"
     try:
         from pywebpush import WebPushException, webpush
         webpush(
@@ -107,10 +113,15 @@ def send_push_notification(subscription: PushSubscription, title: str, body: str
             vapid_private_key=VAPID_PRIVATE_KEY,
             vapid_claims=VAPID_CLAIMS,
         )
-        return True
+        return "ok"
     except Exception as e:
-        logging.warning("Push failed for %s: %s", subscription.endpoint[:50], e)
-        return False
+        # 410 Gone znači da je korisnik opozvao dozvolu — subscription je nevažeći
+        status = getattr(getattr(e, "response", None), "status_code", None)
+        if status == 410:
+            logging.info("Push subscription istekla (410) za %s", subscription.endpoint[:50])
+            return "expired"
+        logging.warning("Push greška za %s: %s", subscription.endpoint[:50], e)
+        return "error"
 
 
 def send_push_to_user(user_id: int, title: str, body: str, url: str, db: Session) -> int:
@@ -118,11 +129,12 @@ def send_push_to_user(user_id: int, title: str, body: str, url: str, db: Session
     sent = 0
     expired_ids = []
     for sub in subs:
-        ok = send_push_notification(sub, title, body, url)
-        if ok:
+        result = send_push_notification(sub, title, body, url)
+        if result == "ok":
             sent += 1
-        else:
+        elif result == "expired":
             expired_ids.append(sub.id)
+        # "error" — zadržavamo subscription, možda je privremena greška
     if expired_ids:
         db.query(PushSubscription).filter(PushSubscription.id.in_(expired_ids)).delete()
         db.commit()

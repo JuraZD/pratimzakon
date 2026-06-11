@@ -437,6 +437,23 @@ def send_keyword_notifications(
         if not matches:
             continue
 
+        # Spremi keyword_match logove da feed ima podatke
+        for m in matches:
+            doc_id = next(
+                (d.id for d in documents if d.url == m["document_url"]),
+                None,
+            )
+            db.add(Log(
+                event_type="keyword_match",
+                user_id=user.id,
+                detail=(
+                    f"keyword:{m['keyword']}"
+                    f"|doc_id:{doc_id or ''}"
+                    f"|title:{m['document_title'][:100]}"
+                    f"|url:{m['document_url'] or ''}"
+                ),
+            ))
+
         html_body, text_body = _build_email(user, matches, show_pdf=show_pdf)
         subject = f"PratimZakon: {len(matches)} novih pronalazaka u NN"
         success = _send_smtp(user.email, subject, html_body, text_body)
