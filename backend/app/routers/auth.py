@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 from ..limiter import limiter
 
 from ..database import get_db
-from ..models import User, Log, Keyword
+from ..models import User, Log, Keyword, PLAN_LIMITS
 from ..schemas import UserRegister, UserLogin, Token, UserOut, UserSettings
 from ..auth import hash_password, verify_password, create_access_token, get_current_user, user_has_plan
 
@@ -472,7 +472,7 @@ def cancel_subscription(current_user: User = Depends(get_current_user), db: Sess
 
     # Odmah spusti na besplatni plan u bazi
     current_user.plan = "free"
-    current_user.keyword_limit = 7
+    current_user.keyword_limit = PLAN_LIMITS["free"]
     current_user.email_notifications_enabled = False
     current_user.subscription_status = "free"
     current_user.stripe_subscription_id = None
@@ -498,16 +498,17 @@ def downgrade_to_free(current_user: User = Depends(get_current_user), db: Sessio
         except Exception as e:
             logging.warning(f"Stripe cancel failed for {current_user.email}: {e}")
 
-    # Ukloni ključne riječi iznad limita od 7 (zadrži prvih 7 po ID-u)
+    # Ukloni ključne riječi iznad Free limita (zadrži prvih N po ID-u)
+    free_limit = PLAN_LIMITS["free"]
     user_keywords = db.query(Keyword).filter(
         Keyword.user_id == current_user.id
     ).order_by(Keyword.id).all()
-    for kw in user_keywords[7:]:
+    for kw in user_keywords[free_limit:]:
         db.delete(kw)
 
     # Spusti plan na besplatni — email obavijesti ostaju aktivne
     current_user.plan = "free"
-    current_user.keyword_limit = 7
+    current_user.keyword_limit = PLAN_LIMITS["free"]
     current_user.subscription_status = "free"
     current_user.stripe_subscription_id = None
     db.add(Log(event_type="subscription_cancelled", user_id=current_user.id, detail=f"{current_user.email} [downgrade-to-free]"))

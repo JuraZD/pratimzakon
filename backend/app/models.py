@@ -15,8 +15,8 @@ from .database import Base
 
 # Jedini izvor istine za limite ključnih riječi po planu
 PLAN_LIMITS: dict[str, int] = {
-    "free": 7,
-    "basic": 5,
+    "free": 5,
+    "basic": 10,
     "plus": 20,
 }
 
@@ -31,7 +31,7 @@ class User(Base):
     email_notifications_enabled = Column(Boolean, default=True)
     subscription_status = Column(String, default="free")  # free | active | expired
     subscription_end = Column(Date, nullable=True)
-    keyword_limit = Column(Integer, default=7)
+    keyword_limit = Column(Integer, default=5)
     plan = Column(String, default="free")  # free | pro | expert
     include_mu = Column(Boolean, default=False)  # uključi međunarodne ugovore (MU)
     situation = Column(
