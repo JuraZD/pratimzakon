@@ -608,6 +608,204 @@
 
   @media (max-width: 900px) { .testimonials { grid-template-columns: 1fr; } }
 
+  /* ─── STICKY PRICING BAR ─── */
+  .sticky-cta {
+    position: sticky; top: 0; z-index: 49;
+    background: var(--orange); color: var(--white);
+    padding: 0; height: 0; overflow: hidden;
+    transition: height 0.3s ease, padding 0.3s ease;
+    display: flex; align-items: center; justify-content: center;
+    border-bottom: 1px solid rgba(0,0,0,0.1);
+  }
+
+  .sticky-cta.visible { height: 42px; }
+
+  .sticky-cta-inner {
+    display: flex; align-items: center; gap: 20px;
+    font-size: 12px; font-weight: 600; letter-spacing: 0.3px;
+    opacity: 0; transition: opacity 0.2s ease 0.15s;
+  }
+
+  .sticky-cta.visible .sticky-cta-inner { opacity: 1; }
+
+  .sticky-cta-label { color: rgba(255,255,255,0.85); }
+
+  .sticky-cta-btn {
+    background: rgba(255,255,255,0.2);
+    border: 1.5px solid rgba(255,255,255,0.5);
+    color: var(--white);
+    font-family: var(--font-display); font-size: 11px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 5px 14px; border-radius: var(--radius);
+    cursor: pointer; transition: background 0.15s, border-color 0.15s;
+    white-space: nowrap;
+  }
+
+  .sticky-cta-btn:hover { background: rgba(255,255,255,0.3); border-color: rgba(255,255,255,0.8); }
+
+  .sticky-cta-close {
+    background: none; border: none; color: rgba(255,255,255,0.6);
+    font-size: 16px; cursor: pointer; line-height: 1;
+    padding: 4px; transition: color 0.15s;
+    position: absolute; right: 20px;
+  }
+
+  .sticky-cta-close:hover { color: var(--white); }
+
+  /* ─── HERO STATS STRIP ─── */
+  .hero-stats {
+    display: flex; gap: 0;
+    border-top: 1px solid var(--rule);
+    margin-top: 40px;
+  }
+
+  .hero-stat {
+    flex: 1; padding: 20px 0;
+    border-right: 1px solid var(--rule);
+    display: flex; flex-direction: column; gap: 3px;
+  }
+
+  .hero-stat:last-child { border-right: none; padding-left: 28px; }
+  .hero-stat:not(:first-child) { padding-left: 28px; }
+
+  .hero-stat-num {
+    font-family: var(--font-display); font-size: 28px; font-weight: 800;
+    line-height: 1; color: var(--navy); letter-spacing: -0.5px;
+  }
+
+  .hero-stat-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 1.5px;
+    text-transform: uppercase; color: var(--muted);
+  }
+
+  /* ─── CHANNEL TABS (Step 3) ─── */
+  .channel-demo {
+    margin-top: 18px; max-width: 560px;
+  }
+
+  .channel-tabs {
+    display: flex; gap: 0;
+    border: 1px solid var(--rule-strong);
+    border-radius: var(--radius) var(--radius) 0 0;
+    overflow: hidden;
+  }
+
+  .channel-tab {
+    flex: 1; padding: 9px 0;
+    background: var(--surface2); border: none;
+    font-family: var(--font-body); font-size: 11px; font-weight: 700;
+    letter-spacing: 1px; text-transform: uppercase;
+    color: var(--muted); cursor: pointer;
+    border-right: 1px solid var(--rule-strong);
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .channel-tab:last-child { border-right: none; }
+
+  .channel-tab.active {
+    background: var(--orange); color: var(--white);
+  }
+
+  .channel-tab:hover:not(.active) { background: var(--surface); color: var(--text); }
+
+  .channel-panels { border: 1px solid var(--rule-strong); border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius); overflow: hidden; }
+
+  .channel-panel {
+    display: none; padding: 18px;
+    background: var(--surface);
+    border-left: 3px solid var(--orange);
+    animation: fadeInPanel 0.2s ease;
+  }
+
+  .channel-panel.active { display: block; }
+
+  @keyframes fadeInPanel { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+
+  .channel-panel-label {
+    font-size: 10px; font-weight: 600;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    color: var(--orange); margin-bottom: 8px;
+  }
+
+  .channel-panel-text { font-size: 13.5px; color: var(--muted); line-height: 1.65; }
+  .channel-panel-text strong { color: var(--text); font-weight: 600; }
+
+  .channel-panel-meta {
+    margin-top: 10px; font-size: 11px; color: var(--muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .channel-panel-meta .dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--green); flex-shrink: 0;
+  }
+
+  /* ─── FEATURE TOOLTIP ─── */
+  .plan-features li { position: relative; }
+
+  .feat-tooltip {
+    display: none;
+    position: absolute; left: 0; top: calc(100% + 4px);
+    z-index: 20;
+    background: var(--navy); color: var(--cream2);
+    font-size: 11.5px; line-height: 1.55; padding: 10px 14px;
+    border-radius: var(--radius); max-width: 220px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    pointer-events: none;
+    white-space: normal;
+  }
+
+  html.dark .feat-tooltip { background: #0a0f1a; border: 1px solid var(--rule-strong); }
+
+  .plan-features li:hover .feat-tooltip { display: block; }
+
+  .plan.featured .plan-features li:hover .feat-tooltip {
+    background: #0a0f1a; color: rgba(200,212,240,0.9);
+  }
+
+  /* ─── FOOTER LINKS ─── */
+  .footer-links {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    padding: 48px 0;
+    gap: 32px;
+  }
+
+  .footer-link-col h4 {
+    font-family: var(--font-body); font-size: 10px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    color: rgba(255,255,255,0.35); margin-bottom: 16px;
+  }
+
+  .footer-link-col ul { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+
+  .footer-link-col ul li a {
+    font-size: 13px; color: rgba(255,255,255,0.55);
+    transition: color 0.15s;
+    display: flex; align-items: center; gap: 6px;
+  }
+
+  .footer-link-col ul li a:hover { color: rgba(255,255,255,0.9); }
+
+  .footer-link-col ul li a::before {
+    content: '→'; font-size: 10px; color: var(--orange2); opacity: 0.7;
+  }
+
+  @media (max-width: 900px) {
+    .hero-stats { flex-wrap: wrap; }
+    .hero-stat { flex: 1 1 45%; }
+    .footer-links { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 560px) {
+    .hero-stats { flex-direction: column; }
+    .hero-stat { border-right: none; border-bottom: 1px solid var(--rule); padding: 14px 0; }
+    .hero-stat:last-child { border-bottom: none; }
+    .hero-stat:not(:first-child) { padding-left: 0; }
+    .footer-links { grid-template-columns: 1fr; }
+  }
+
   /* ─── FOOTER ─── */
   footer { background: var(--navy); color: var(--cream2); }
 
@@ -641,7 +839,8 @@
   .footer-bottom {
     display: flex; justify-content: space-between; align-items: center;
     flex-wrap: wrap; gap: 14px;
-    padding-top: 24px; padding-bottom: 24px;
+    padding-top: 24px; padding-bottom: 28px;
+    border-top: 1px solid rgba(255,255,255,0.08);
   }
 
   .footer-logo {
@@ -849,6 +1048,15 @@
   </div>
 </nav>
 
+<!-- STICKY CTA BAR -->
+<div class="sticky-cta" id="stickyCta">
+  <div class="sticky-cta-inner">
+    <span class="sticky-cta-label">Basic plan · €4,99/mj · Personalizirani AI sažetak</span>
+    <button class="sticky-cta-btn" onclick="openModal('register')">Počni besplatno →</button>
+  </div>
+  <button class="sticky-cta-close" onclick="dismissStickyCta()" title="Zatvori">×</button>
+</div>
+
 <!-- HERO -->
 <section class="hero">
   <div class="inner">
@@ -864,6 +1072,20 @@
       <div class="hero-actions">
         <a href="#" class="btn btn-solid btn-lg" onclick="openModal('register')">Počni besplatno →</a>
         <a href="#pricing" class="btn btn-ghost btn-lg">Pogledaj planove</a>
+      </div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-num" id="hs-docs">—</div>
+          <div class="hero-stat-label">Zakona u bazi</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num" id="hs-users">—</div>
+          <div class="hero-stat-label">Aktivnih korisnika</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-num">07:00</div>
+          <div class="hero-stat-label">Svaki radni dan</div>
+        </div>
       </div>
     </div>
 
@@ -961,10 +1183,35 @@
         <div class="step-content">
           <h3>Primajte personalizirani AI sažetak</h3>
           <p>Svaki radni dan u 07:00 naša tražilica skenira novi broj Narodnih novina. Kad pronađe match za vaše ključne riječi, AI generira sažetak prilagođen vašoj situaciji — ne opći tekst zakona, nego konkretno što to znači za vas.</p>
-          <div class="sazetak-demo">
-            <div class="sazetak-demo-label">✦ Primjer AI sažetka</div>
-            <div class="sazetak-demo-text">
-              <strong>Za vas kao ugostitelja s 5 zaposlenika:</strong> ukidaju se statistička izvješća OPZ-STAT-1 — za 2025. ih još podnosite do 31.12.2026., ali nakon toga više neće biti obvezni. Ova izmjena vam smanjuje administrativne obveze.
+          <div class="channel-demo">
+            <div class="channel-tabs">
+              <button class="channel-tab active" onclick="switchTab(this,'tab-email')">✉ Email</button>
+              <button class="channel-tab" onclick="switchTab(this,'tab-push')">🔔 Push</button>
+              <button class="channel-tab" onclick="switchTab(this,'tab-rss')">📡 RSS</button>
+            </div>
+            <div class="channel-panels">
+              <div class="channel-panel active" id="tab-email">
+                <div class="channel-panel-label">✦ Primjer email notifikacije</div>
+                <div class="channel-panel-text">
+                  <strong>Za vas kao ugostitelja s 5 zaposlenika:</strong> ukidaju se statistička izvješća OPZ-STAT-1 — za 2025. ih još podnosite do 31.12.2026., ali nakon toga više neće biti obvezni. Ova izmjena vam smanjuje administrativne obveze.
+                </div>
+                <div class="channel-panel-meta"><span class="dot"></span> Isporučeno svaki radni dan do 07:15 — odmah po analizi novih objava</div>
+              </div>
+              <div class="channel-panel" id="tab-push">
+                <div class="channel-panel-label">🔔 Browser push notifikacija</div>
+                <div class="channel-panel-text">
+                  <strong>Novi match · PDV izmjene</strong><br>
+                  Pravilnik o izmjeni Pravilnika o PDV-u objavljen je u NN — AI sažetak čeka u dashboardu.
+                </div>
+                <div class="channel-panel-meta"><span class="dot"></span> Trenutačna obavijest — bez otvaranja emaila</div>
+              </div>
+              <div class="channel-panel" id="tab-rss">
+                <div class="channel-panel-label">📡 RSS / Atom feed</div>
+                <div class="channel-panel-text">
+                  Pratite matcheve direktno u RSS čitaču (Feedly, Inoreader, Reeder). Personalizirani feed dostupan putem jedinstvenog linka u dashboardu — bez lozinke.
+                </div>
+                <div class="channel-panel-meta"><span class="dot"></span> Radi s bilo kojim RSS čitačem koji podržava Atom format</div>
+              </div>
             </div>
           </div>
         </div>
@@ -1052,12 +1299,12 @@
         <div class="plan-per">/ 30 dana</div>
         <div class="plan-desc">Istraži bez rizika — bez kreditne kartice</div>
         <ul class="plan-features">
-          <li>Do 5 ključnih riječi</li>
-          <li>Email alertovi o novim matchevima</li>
-          <li>Pregled novih objava</li>
-          <li>Puni pristup 30 dana</li>
-          <li class="missing">Personalizirani AI sažetak</li>
-          <li class="missing">Zakonodavna osnova dokumenta</li>
+          <li>Do 5 ključnih riječi<span class="feat-tooltip">Pratite do 5 pojmova (npr. "PDV", "zakon o radu"). Svaki match koji sadrži ključnu riječ u naslovu zakona aktivira alert.</span></li>
+          <li>Email alertovi o novim matchevima<span class="feat-tooltip">Emailovi se šalju odmah po analizi — svaki radni dan između 07:00 i 08:00.</span></li>
+          <li>Pregled novih objava<span class="feat-tooltip">Lista svih novih dokumenata iz Narodnih novina dostupna u dashboardu — bez filtriranja po relevantnosti.</span></li>
+          <li>Puni pristup 30 dana<span class="feat-tooltip">Bez kreditne kartice. Nakon 30 dana račun ostaje aktivan s ograničenjima Free plana.</span></li>
+          <li class="missing">Personalizirani AI sažetak<span class="feat-tooltip">Dostupno od Basic plana. AI objašnjava što zakon znači konkretno za vas, na temelju vašeg opisa situacije.</span></li>
+          <li class="missing">Zakonodavna osnova dokumenta<span class="feat-tooltip">Dostupno od Basic plana. Uz svaki dokument vidite koji propis mijenja i je li riječ o izmjeni, pročišćenom tekstu ili novom propisu.</span></li>
         </ul>
         <a href="#" class="btn btn-solid" onclick="openModal('register')">Počni 30-dnevni trial →</a>
       </div>
@@ -1070,12 +1317,12 @@
         <div class="plan-per plan-locked">/ mj</div>
         <div class="plan-desc plan-locked">AI filtrirane obavijesti — manje buke, više relevantnog</div>
         <ul class="plan-features plan-locked">
-          <li>Do 10 ključnih riječi</li>
-          <li>Personalizirani AI sažetak</li>
-          <li>Email samo kad je stvarno važno</li>
-          <li>Zakonodavna osnova svakog dokumenta</li>
-          <li>Opis situacije za bolji kontekst</li>
-          <li class="missing">Arhiva i pretraga</li>
+          <li>Do 10 ključnih riječi<span class="feat-tooltip">Dvostruko više pojmova za praćenje nego Free. Idealno za računovođe i konzultante koji prate više poslovnih područja.</span></li>
+          <li>Personalizirani AI sažetak<span class="feat-tooltip">Claude AI čita cijeli zakon i piše sažetak prilagođen vašem opisu situacije — ne općeniti tekst, nego konkretno što to znači za vas.</span></li>
+          <li>Email samo kad je stvarno važno<span class="feat-tooltip">AI filtrira dokumenti koji nisu relevantni za vas. Dobivate email samo za stvarne matcheve, ne za sve zakone u NN-u.</span></li>
+          <li>Zakonodavna osnova svakog dokumenta<span class="feat-tooltip">Uz svaki sažetak vidite koji propis se mijenja, koji članak, i je li to izmjena ili pročišćeni tekst — s linkom na originalni propis.</span></li>
+          <li>Opis situacije za bolji kontekst<span class="feat-tooltip">Recite AI-u tko ste (obrtnik, direktor, računovođa…) i AI koristi taj kontekst pri svakoj analizi za bolji, precizniji sažetak.</span></li>
+          <li class="missing">Arhiva i pretraga<span class="feat-tooltip">Dostupno u Plus planu. Pretraživanje svih matcheva i objava unazad — korisno za praćenje evolucije propisa.</span></li>
         </ul>
         <a href="#" class="btn btn-outline" onclick="selectPlan('basic'); return false;">Odaberi Basic →</a>
       </div>
@@ -1087,12 +1334,12 @@
         <div class="plan-per plan-locked">/ mj</div>
         <div class="plan-desc plan-locked">Razumij što se mijenja i zašto je važno za tebe</div>
         <ul class="plan-features plan-locked">
-          <li>Do 20 ključnih riječi</li>
-          <li>Personalizirani AI sažetak s detaljnim kontekstom</li>
-          <li>AI procjena relevantnosti i utjecaja</li>
-          <li>Zakonodavna osnova i povijest izmjena</li>
-          <li>Pretraga arhive svih matcheva</li>
-          <li>Statistike i analitika praćenja</li>
+          <li>Do 20 ključnih riječi<span class="feat-tooltip">20 pojmova pokriva kompleksna poslovna okruženja — odvjetničke urede, računovodstvene servise, veće obrte s više poslovnih područja.</span></li>
+          <li>Personalizirani AI sažetak s detaljnim kontekstom<span class="feat-tooltip">Dublja analiza od Basic plana — uključuje procjenu utjecaja na vaše poslovanje i preporuku sljedećih koraka gdje je primjenjivo.</span></li>
+          <li>AI procjena relevantnosti i utjecaja<span class="feat-tooltip">Uz sažetak dobivate i ocjenu koliko je zakon relevantan za vas (visoka/srednja/niska) i kratku procjenu utjecaja na poslovanje.</span></li>
+          <li>Zakonodavna osnova i povijest izmjena<span class="feat-tooltip">Pratite evoluciju propisa — vidite sve dosadašnje izmjene zakona s datumima i brojevima NN-a u kojima su objavljene.</span></li>
+          <li>Pretraga arhive svih matcheva<span class="feat-tooltip">Full-text pretraga po svim vašim dosadašnjim matchevima i dokumentima — korisno za pravne analize i pripremu dokumentacije.</span></li>
+          <li>Statistike i analitika praćenja<span class="feat-tooltip">Vizualni pregled aktivnosti: koliko zakona je praćeno, koji su najaktivniji, trend po mjesecima — dostupno na stranici Statistike.</span></li>
         </ul>
         <a href="#" class="btn btn-ghost" onclick="selectPlan('plus'); return false;">Odaberi Plus →</a>
       </div>
@@ -1118,6 +1365,33 @@
     <div class="footer-stat-col">
       <div class="footer-stat-num">07:00</div>
       <div class="footer-stat-label">Svaki radni dan</div>
+    </div>
+  </div>
+  <div class="inner footer-links">
+    <div class="footer-link-col">
+      <h4>Proizvod</h4>
+      <ul>
+        <li><a href="dashboard.html">Dashboard</a></li>
+        <li><a href="aktivnost.html">Aktivnost</a></li>
+        <li><a href="statistika.html">Statistike</a></li>
+        <li><a href="sazetak.html">AI Sažetak</a></li>
+      </ul>
+    </div>
+    <div class="footer-link-col">
+      <h4>Pravno</h4>
+      <ul>
+        <li><a href="#" onclick="return false;">Uvjeti korištenja</a></li>
+        <li><a href="#" onclick="return false;">Politika privatnosti</a></li>
+        <li><a href="#" onclick="return false;">Kolačići</a></li>
+      </ul>
+    </div>
+    <div class="footer-link-col">
+      <h4>Kontakt</h4>
+      <ul>
+        <li><a href="mailto:info@pratimzakon.hr">info@pratimzakon.hr</a></li>
+        <li><a href="https://github.com/jurazd/pratimzakon" target="_blank" rel="noopener">GitHub</a></li>
+        <li><a href="#" onclick="openModal('register'); return false;">Registracija</a></li>
+      </ul>
     </div>
   </div>
   <div class="inner footer-bottom">
@@ -1424,6 +1698,51 @@
     }
   }
 
+  // ─── STICKY CTA BAR ───
+  let _stickyCtaDismissed = !!localStorage.getItem('pz-cta-dismissed');
+  const _stickyCta = document.getElementById('stickyCta');
+  function dismissStickyCta() {
+    _stickyCta.classList.remove('visible');
+    localStorage.setItem('pz-cta-dismissed', '1');
+    _stickyCtaDismissed = true;
+  }
+  if (!_stickyCtaDismissed) {
+    const heroSection = document.querySelector('.hero');
+    const ctaObserver = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (!_stickyCtaDismissed)
+          _stickyCta.classList.toggle('visible', !e.isIntersecting);
+      });
+    }, { threshold: 0 });
+    if (heroSection) ctaObserver.observe(heroSection);
+  }
+
+  // ─── CHANNEL TABS ───
+  function switchTab(btn, panelId) {
+    btn.closest('.channel-demo').querySelectorAll('.channel-tab').forEach(t => t.classList.remove('active'));
+    btn.closest('.channel-demo').querySelectorAll('.channel-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    const panel = document.getElementById(panelId);
+    if (panel) panel.classList.add('active');
+  }
+
+  // ─── HERO STATS ───
+  function animHeroStat(el, value) {
+    if (!el || !value) return;
+    const suffix = value >= 1000 ? '+' : '';
+    const display = value >= 1000 ? Math.round(value / 100) * 100 : value;
+    const duration = 1200;
+    const start = performance.now();
+    function step(now) {
+      const p = Math.min((now - start) / duration, 1);
+      const e = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.floor(display * e) + suffix;
+      if (p < 1) requestAnimationFrame(step);
+      else el.textContent = display + suffix;
+    }
+    requestAnimationFrame(step);
+  }
+
   // ─── DYNAMIC TICKER ───
   (async function loadTicker() {
     try {
@@ -1441,8 +1760,8 @@
     } catch (_) {}
   })();
 
-  // ─── FOOTER STATS FROM API ───
-  (async function loadFooterStats() {
+  // ─── FOOTER + HERO STATS FROM API ───
+  (async function loadPublicStats() {
     try {
       const res = await fetch(`${API}/stats/public`, { signal: AbortSignal.timeout(6000) });
       if (!res.ok) return;
@@ -1465,6 +1784,10 @@
       }
       const docEl = document.getElementById('stat-docs');
       const usrEl = document.getElementById('stat-users');
+      const hsDocEl = document.getElementById('hs-docs');
+      const hsUsrEl = document.getElementById('hs-users');
+      if (hsDocEl) animHeroStat(hsDocEl, data.total_documents || 0);
+      if (hsUsrEl) animHeroStat(hsUsrEl, data.total_users || 0);
       const ioOpts = { threshold: 0.5 };
       const io = new IntersectionObserver(entries => {
         entries.forEach(e => {
