@@ -1140,8 +1140,10 @@
       document.getElementById('mob-user-name').textContent = namePart;
       document.getElementById('mob-user-email').textContent = user.email;
       document.getElementById('mob-user-badge').textContent = planLabel;
-      userKwLimit = user.keyword_limit || 5;
-      window._kwLimit = user.keyword_limit || 5;
+      const _planLimits = { free: 5, basic: 10, plus: 20 };
+      const _planMax = _planLimits[user.plan] || 5;
+      userKwLimit = Math.min(user.keyword_limit || 5, _planMax);
+      window._kwLimit = userKwLimit;
       // Pohrani token za feed modal
       if (user.unsubscribe_token) {
         window._userUnsubToken = user.unsubscribe_token;
