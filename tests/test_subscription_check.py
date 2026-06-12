@@ -44,7 +44,7 @@ def test_expired_subscription_downgrade():
 
     assert user.subscription_status == "expired"
     assert user.plan == "free"
-    assert user.keyword_limit == 7
+    assert user.keyword_limit == 5
     mock_db.commit.assert_called_once()
 
 
