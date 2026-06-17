@@ -1,0 +1,232 @@
+sources:
+  - kind: postgres
+    name: pratimzakon-db
+    host: ${PGHOST}
+    port: ${PGPORT}
+    database: ${PGDATABASE}
+    user: ${PGUSER}
+    password: ${PGPASSWORD}
+
+tools:
+  # Pregled jednog korisničkog računa za support i debugging.
+  # Isključuje password_hash i unsubscribe_token.
+  - kind: postgres-sql
+    name: get_user_by_email
+    source: pratimzakon-db
+    description: >
+      Look up one user account by email address.
+      Returns plan, subscription status, email verification state,
+      notification preferences, keyword limit, and signup date.
+      Does not return password hash or unsubscribe token.
+    parameters:
+      - name: email
+        type: string
+        description: Exact user email address (case-insensitive).
+    statement: |
+      SELECT
+        id,
+        email,
+        plan,
+        subscription_status,
+        subscription_end,
+        email_verified,
+        email_notifications_enabled,
+        keyword_limit,
+        include_mu,
+        created_at
+      FROM users
+      WHERE lower(email) = lower($1);
+
+  # Što je scraper unio u zadnjih N sati — provjera živosti scrapera.
+  - kind: postgres-sql
+    name: list_recent_documents
+    source: pratimzakon-db
+    description: >
+      List documents ingested in the last N hours.
+      Use to verify the scraper is running and inserting correctly.
+    parameters:
+      - name: hours_back
+        type: integer
+        description: How many hours back to look (e.g. 24 for last day).
+      - name: limit
+        type: integer
+        description: Maximum number of rows to return (e.g. 50).
+    statement: |
+      SELECT
+        id,
+        title,
+        type,
+        institution,
+        published_date,
+        part,
+        created_at
+      FROM documents
+      WHERE created_at >= NOW() - ($1 || ' hours')::interval
+      ORDER BY created_at DESC
+      LIMIT $2;
+
+  # Agregat unosa dokumenata po danu, dijelu (SL/MU) i tipu — zdravlje scrapera.
+  - kind: postgres-sql
+    name: document_ingest_summary
+    source: pratimzakon-db
+    description: >
+      Summary of document ingestion over the last N days.
+      Groups by date, part (SL/MU), and document type.
+      Use to confirm the scraper is healthy and consistent.
+    parameters:
+      - name: days_back
+        type: integer
+        description: How many days back to include (e.g. 7).
+    statement: |
+      SELECT
+        DATE(created_at)            AS ingest_date,
+        part,
+        type,
+        COUNT(*)                    AS document_count
+      FROM documents
+      WHERE created_at >= NOW() - ($1 || ' days')::interval
+      GROUP BY DATE(created_at), part, type
+      ORDER BY ingest_date DESC, document_count DESC;
+
+  # Koje ključne riječi generiraju matcheve — po korisniku ili globalno.
+  # Napomena: logs.detail je semi-strukturiran tekst (keyword:X|doc_id:Y|title:Z).
+  - kind: postgres-sql
+    name: keyword_match_summary
+    source: pratimzakon-db
+    description: >
+      Summary of keyword match events from the logs table.
+      Optionally filter by user email. Shows which keywords are matching
+      and how recently. Note: detail field is semi-structured text.
+    parameters:
+      - name: days_back
+        type: integer
+        description: How many days back to look.
+      - name: user_email
+        type: string
+        description: >
+          Optional. Filter to one user's matches.
+          Pass empty string to include all users.
+    statement: |
+      SELECT
+        l.detail,
+        l.timestamp,
+        u.email
+      FROM logs l
+      LEFT JOIN users u ON u.id = l.user_id
+      WHERE l.event_type = 'keyword_match'
+        AND l.timestamp >= NOW() - ($1 || ' days')::interval
+        AND ($2 = '' OR lower(u.email) = lower($2))
+      ORDER BY l.timestamp DESC
+      LIMIT 100;
+
+  # Pregled aktivnosti emailova i registracija — zdravlje notifikacijskog sustava.
+  - kind: postgres-sql
+    name: notification_health_summary
+    source: pratimzakon-db
+    description: >
+      Count of notification-related log events over the last N days.
+      Covers email_sent, email_bounced, unsubscribe, and signup events.
+    parameters:
+      - name: days_back
+        type: integer
+        description: How many days back to include.
+    statement: |
+      SELECT
+        event_type,
+        COUNT(*) AS event_count
+      FROM logs
+      WHERE event_type IN ('email_sent', 'email_bounced', 'unsubscribe', 'signup')
+        AND timestamp >= NOW() - ($1 || ' days')::interval
+      GROUP BY event_type
+      ORDER BY event_count DESC;
+
+  # Raspodjela korisnika po planovima — brzi growth/monetizacijski pregled.
+  - kind: postgres-sql
+    name: plan_distribution
+    source: pratimzakon-db
+    description: >
+      Count of users per plan (free, basic, plus) and subscription status.
+      Use for a quick growth and monetization snapshot.
+    parameters: []
+    statement: |
+      SELECT
+        plan,
+        subscription_status,
+        COUNT(*) AS user_count
+      FROM users
+      GROUP BY plan, subscription_status
+      ORDER BY user_count DESC;
+
+  # Korisnici koji imaju ključne riječi ali nema nedavnih matcheva — retencija.
+  - kind: postgres-sql
+    name: inactive_keyword_users
+    source: pratimzakon-db
+    description: >
+      Users who have keywords configured but have had no keyword match events
+      in the last N days. Useful for product and retention analysis.
+    parameters:
+      - name: days_back
+        type: integer
+        description: Inactivity window in days.
+      - name: limit
+        type: integer
+        description: Maximum number of rows to return.
+    statement: |
+      SELECT
+        u.email,
+        u.plan,
+        u.subscription_status,
+        u.created_at,
+        COUNT(DISTINCT k.id)  AS keyword_count,
+        COUNT(DISTINCT l.id)  AS recent_match_count
+      FROM users u
+      JOIN keywords k ON k.user_id = u.id
+      LEFT JOIN logs l ON l.user_id = u.id
+        AND l.event_type = 'keyword_match'
+        AND l.timestamp >= NOW() - ($1 || ' days')::interval
+      GROUP BY u.id, u.email, u.plan, u.subscription_status, u.created_at
+      HAVING COUNT(DISTINCT l.id) = 0
+      ORDER BY u.created_at DESC
+      LIMIT $2;
+
+  # Najčešći tipovi dokumenata u zadnjih N dana.
+  - kind: postgres-sql
+    name: top_document_types
+    source: pratimzakon-db
+    description: >
+      Top document types by count over the last N days.
+      Shows what kind of legislation is most frequently published.
+    parameters:
+      - name: days_back
+        type: integer
+        description: How many days back to include.
+      - name: limit
+        type: integer
+        description: Maximum number of types to return (e.g. 10).
+    statement: |
+      SELECT
+        LOWER(TRIM(type))   AS doc_type,
+        COUNT(*)            AS document_count
+      FROM documents
+      WHERE created_at >= NOW() - ($1 || ' days')::interval
+        AND type IS NOT NULL
+        AND type != ''
+      GROUP BY LOWER(TRIM(type))
+      ORDER BY document_count DESC
+      LIMIT $2;
+
+toolsets:
+  - name: ops_readonly
+    description: >
+      Read-only operational tools for PratimZakon.
+      Support, debugging, scraper health, and analytics.
+      No write access. Internal use only.
+    tools:
+      - get_user_by_email
+      - list_recent_documents
+      - document_ingest_summary
+      - keyword_match_summary
+      - notification_health_summary
+      - plan_distribution
+      - inactive_keyword_users
+      - top_document_types
