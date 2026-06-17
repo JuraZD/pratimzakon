@@ -1378,7 +1378,7 @@
         <div class="match-card-inner">
           <span class="match-card-badge ${badgeMap[type]}">${labelMap[type]}</span>
           <div class="match-card-title" title="${esc(m.document_title)}">${esc(m.document_title)}</div>
-          ${pubDate ? `<div class="match-card-pub">NN objava: ${esc(pubDate)}</div>` : ''}
+          <div class="match-card-pub">NN objava: ${pubDate ? esc(pubDate) : 'nepoznato'}</div>
           <div class="match-card-meta">
             <span class="match-card-kw">${esc(m.keyword)}</span>
             <span class="match-card-arrow">→</span>

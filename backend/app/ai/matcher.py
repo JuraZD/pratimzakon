@@ -309,10 +309,36 @@ def generate_summary(doc, situation: str, keyword: str = None) -> str:
         return ""
 
 
-def check_document_for_user(doc, user) -> tuple[bool, str]:
+# Oznaka za matcheve koje je okidao AI (situacija + sve ključne riječi
+# zajedno), kad se ne može pripisati jednoj konkretnoj ključnoj riječi.
+AI_MATCH_LABEL = "AI procjena"
+
+
+def _best_keyword_for_ai_match(keywords: list[str], doc, reason: str) -> str:
+    """
+    Best-effort: kad AI procijeni dokument relevantnim (na temelju situacije
+    i svih ključnih riječi zajedno), pokušaj pripisati match konkretnoj
+    korisnikovoj ključnoj riječi tako da se njezin stem pojavljuje u naslovu
+    ili AI obrazloženju. Ako nijedna ne odgovara, vrati AI_MATCH_LABEL.
+    """
+    from app.utils.stemmer import stem_keyword
+
+    haystack = f"{doc.title or ''} {reason or ''}".lower()
+    for kw in keywords:
+        stem = stem_keyword(kw)
+        if stem and stem in haystack:
+            return kw
+    return AI_MATCH_LABEL
+
+
+def check_document_for_user(doc, user) -> tuple[bool, str, str]:
     """
     Glavna funkcija — tri razine provjere.
-    Vraća (je_relevantno, razlog).
+    Vraća (je_relevantno, razlog, kljucna_rijec).
+
+    `kljucna_rijec` je stvarna korisnikova ključna riječ koja je okidala match
+    (Razina 1), best-effort pogođena ključna riječ za AI matcheve, ili
+    AI_MATCH_LABEL ako se ne može pripisati nijednoj. Prazno ako nije relevantno.
 
     Razina 1: keyword u naslovu → odmah True, besplatno
     Razina 2: AI brzi check (naslov + institucija + situacija)
@@ -321,7 +347,7 @@ def check_document_for_user(doc, user) -> tuple[bool, str]:
 
     # Samo relevantni tipovi
     if not is_relevant_type(doc.type):
-        return False, ""
+        return False, "", ""
 
     keywords = [kw.keyword for kw in user.keywords] if user.keywords else []
     situation = getattr(user, "situation", "") or ""
@@ -329,20 +355,20 @@ def check_document_for_user(doc, user) -> tuple[bool, str]:
     # Razina 1 — besplatno, trenutno
     for kw in keywords:
         if keyword_in_title(kw, doc.title):
-            return True, f"Ključna riječ '{kw}' pronađena u naslovu"
+            return True, f"Ključna riječ '{kw}' pronađena u naslovu", kw
 
     # Ako korisnik nema ni situaciju ni keywords — preskoči AI
     if not situation and not keywords:
-        return False, ""
+        return False, "", ""
 
     # Razina 2 — AI brzi check
     if not ai_quick_check(doc, situation, keywords):
-        return False, ""
+        return False, "", ""
 
     # Razina 3 — AI duboki check s razlogom
     is_rel, reason = ai_deep_check(doc, situation, keywords)
 
     if is_rel:
-        return True, reason
+        return True, reason, _best_keyword_for_ai_match(keywords, doc, reason)
 
-    return False, ""
+    return False, "", ""

@@ -28,5 +28,5 @@ def _provjeri_relevantnost(db, doc_id: int, user_id: int) -> dict:
     if not user:
         return {"greška": f"Korisnik {user_id} nije pronađen"}
 
-    is_relevant, reason = check_document_for_user(doc, user)
-    return {"relevantno": is_relevant, "razlog": reason or "-"}
+    is_relevant, reason, keyword = check_document_for_user(doc, user)
+    return {"relevantno": is_relevant, "razlog": reason or "-", "kljucna_rijec": keyword or "-"}
