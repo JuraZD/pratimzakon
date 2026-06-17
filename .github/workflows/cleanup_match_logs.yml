@@ -1,0 +1,52 @@
+name: Čišćenje keyword_match logova
+
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: "Stvarno obriši (false = dry-run, samo pregled)"
+        required: false
+        default: false
+        type: boolean
+      min_length:
+        description: "Min. duljina znakova da se keyword smatra rečenicom"
+        required: false
+        default: "45"
+        type: number
+      min_words:
+        description: "Min. broj riječi da se keyword smatra rečenicom"
+        required: false
+        default: "6"
+        type: number
+
+concurrency:
+  group: cleanup-match-logs
+  cancel-in-progress: false
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instaliraj ovisnosti
+        working-directory: backend
+        run: pip install -r requirements.txt
+
+      - name: Pokreni čišćenje
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          ARGS="--min-len ${{ github.event.inputs.min_length }} --min-words ${{ github.event.inputs.min_words }}"
+          if ${{ github.event.inputs.apply }}; then
+            ARGS="$ARGS --apply"
+          fi
+          python cleanup_match_logs.py $ARGS
