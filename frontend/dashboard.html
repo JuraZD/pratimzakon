@@ -1729,10 +1729,24 @@
   function getFilteredMatches() {
     let filtered = allMatches;
     if (_matchPeriod !== 'all') {
-      const cutoff = new Date();
-      cutoff.setDate(cutoff.getDate() - (_matchPeriod === 'week' ? 7 : 30));
-      cutoff.setHours(0, 0, 0, 0);
-      filtered = filtered.filter(m => { const d = parseMatchDate(m.matched_at); return d && d >= cutoff; });
+      // Filtriraj po datumu NN objave (document_date), ne po datumu matcha.
+      // "Ovaj mjesec" = tekući kalendarski mjesec; "Ovaj tjedan" = tekući
+      // tjedan (pon–ned) — vežemo se uz brojeve NN koji su izašli u tom razdoblju.
+      const now = new Date();
+      let start, end;
+      if (_matchPeriod === 'week') {
+        const dow = (now.getDay() + 6) % 7; // 0 = ponedjeljak ... 6 = nedjelja
+        start = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dow);
+        end   = new Date(start); end.setDate(start.getDate() + 7); // ekskluzivno
+      } else { // 'month'
+        start = new Date(now.getFullYear(), now.getMonth(), 1);
+        end   = new Date(now.getFullYear(), now.getMonth() + 1, 1); // ekskluzivno
+      }
+      start.setHours(0, 0, 0, 0);
+      filtered = filtered.filter(m => {
+        const d = parseMatchDate(m.document_date);
+        return d && d >= start && d < end;
+      });
     }
     if (_typeFilter) {
       filtered = filtered.filter(m => classifyMatch(m.document_title) === _typeFilter);
