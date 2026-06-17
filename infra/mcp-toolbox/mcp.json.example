@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+    "pratimzakon-ops": {
+      "command": "toolbox",
+      "args": [
+        "--tools-file", "/path/to/pratimzakon/infra/mcp-toolbox/tools.yaml",
+        "--port", "5000",
+        "--toolset", "ops_readonly"
+      ],
+      "env": {
+        "PGHOST": "dpg-xxxx.oregon-postgres.render.com",
+        "PGPORT": "5432",
+        "PGDATABASE": "pratimzakon",
+        "PGUSER": "mcp_readonly",
+        "PGPASSWORD": "tvoja_lozinka"
+      }
+    }
+  }
+}
