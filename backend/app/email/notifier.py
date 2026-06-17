@@ -64,6 +64,15 @@ def _stem_keyword(keyword: str) -> str:
     return kw
 
 
+def _sanitize_detail(value: str) -> str:
+    """
+    Uklanja separator '|' iz vrijednosti prije spremanja u Log.detail.
+    Detail je oblika 'key:val|key:val|...'; '|' unutar vrijednosti
+    (npr. u slobodnom AI tekstu) razbio bi parsiranje.
+    """
+    return (value or "").replace("|", "/").strip()
+
+
 def _send_smtp(to_email: str, subject: str, html_body: str, text_body: str) -> bool:
     """Šalje email putem SMTP-a. Vraća True ako je uspješno."""
     try:
@@ -355,7 +364,7 @@ def scan_documents_for_user(user_id: int, db: Session) -> int:
             pair = (kw.keyword.lower(), str(doc.id))
             if pair in existing_pairs:
                 continue
-            detail = f"keyword:{kw.keyword}|doc_id:{doc.id}|title:{doc.title[:100]}"
+            detail = f"keyword:{_sanitize_detail(kw.keyword)}|doc_id:{doc.id}|title:{_sanitize_detail(doc.title[:100])}"
             db.add(
                 Log(
                     event_type="keyword_match",
@@ -414,7 +423,7 @@ def send_keyword_notifications(
         matches = []
 
         for doc in documents:
-            is_rel, reason = check_document_for_user(doc, user)
+            is_rel, reason, matched_kw = check_document_for_user(doc, user)
 
             if not is_rel:
                 continue
@@ -424,7 +433,8 @@ def send_keyword_notifications(
 
             matches.append(
                 {
-                    "keyword": reason,
+                    "keyword": matched_kw,
+                    "reason": reason,
                     "document_title": doc.title,
                     "document_url": doc.url,
                     "document_pdf_url": doc.pdf_url,
@@ -438,16 +448,19 @@ def send_keyword_notifications(
         if not matches:
             continue
 
-        # Spremi keyword_match logove da feed ima podatke
+        # Spremi keyword_match logove da feed ima podatke.
+        # `reason` je slobodni AI tekst — ide ZADNJI i čisti se od '|'
+        # (separatora) da ne razbije parsiranje detalja.
         for m in matches:
             db.add(Log(
                 event_type="keyword_match",
                 user_id=user.id,
                 detail=(
-                    f"keyword:{m['keyword']}"
+                    f"keyword:{_sanitize_detail(m['keyword'])}"
                     f"|doc_id:{m['doc_id']}"
-                    f"|title:{m['document_title'][:100]}"
-                    f"|url:{m['document_url'] or ''}"
+                    f"|title:{_sanitize_detail(m['document_title'][:100])}"
+                    f"|url:{_sanitize_detail(m['document_url'] or '')}"
+                    f"|reason:{_sanitize_detail(m.get('reason', ''))}"
                 ),
             ))
 
