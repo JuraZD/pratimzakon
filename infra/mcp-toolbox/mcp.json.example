@@ -8,11 +8,11 @@
         "--toolset", "ops_readonly"
       ],
       "env": {
-        "PGHOST": "dpg-xxxx.oregon-postgres.render.com",
+        "PGHOST": "<TVOJ_RENDER_HOST>",
         "PGPORT": "5432",
         "PGDATABASE": "pratimzakon",
         "PGUSER": "mcp_readonly",
-        "PGPASSWORD": "tvoja_lozinka"
+        "PGPASSWORD": "<UNESI_LOZINKU>"
       }
     }
   }

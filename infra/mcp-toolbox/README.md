@@ -14,7 +14,7 @@ Poveži se na PostgreSQL (Render dashboard → Connect → External connection) 
 
 ```sql
 -- Kreiraj korisnika
-CREATE USER mcp_readonly WITH PASSWORD 'odaberi_jaku_lozinku';
+CREATE USER mcp_readonly WITH PASSWORD '<ODABERI_JAKU_LOZINKU>';
 
 -- Dozvoli spajanje na bazu
 GRANT CONNECT ON DATABASE pratimzakon TO mcp_readonly;
@@ -40,7 +40,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public
 
 Provjeri ručno:
 ```bash
-psql "postgresql://mcp_readonly:lozinka@host:5432/pratimzakon" -c "\dt"
+psql "postgresql://mcp_readonly:<LOZINKA>@<HOST>:5432/pratimzakon" -c "\dt"
 ```
 
 ## Korak 2: Postavi environment varijable
@@ -52,11 +52,11 @@ cp infra/mcp-toolbox/.env.template infra/mcp-toolbox/.env
 
 Za Render.com External connection string format:
 ```
-PGHOST=dpg-xxxx.oregon-postgres.render.com
+PGHOST=<TVOJ_RENDER_HOST>
 PGPORT=5432
 PGDATABASE=pratimzakon
 PGUSER=mcp_readonly
-PGPASSWORD=tvoja_lozinka
+PGPASSWORD=<UNESI_LOZINKU>
 ```
 
 ## Korak 3: Pokretanje
