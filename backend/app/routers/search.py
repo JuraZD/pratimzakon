@@ -282,7 +282,14 @@ def get_recent_matches(
                 url_date_map[d.url] = pub
 
     results = []
+    seen: set[tuple] = set()
     for r, parts, doc_id in parsed_rows:
+        keyword = parts.get("keyword", "—")
+        dedup_key = (doc_id, keyword.lower()) if doc_id else (r.id, keyword.lower())
+        if dedup_key in seen:
+            continue
+        seen.add(dedup_key)
+
         pub = doc_id_map.get(doc_id) if doc_id else None
         if pub is None:
             pub = url_date_map.get(parts.get("url", "").strip())
@@ -291,7 +298,7 @@ def get_recent_matches(
                 id=r.id,
                 document_id=doc_id,
                 document_title=parts.get("title", "Nepoznat dokument"),
-                keyword=parts.get("keyword", "—"),
+                keyword=keyword,
                 matched_at=r.timestamp.strftime("%d.%m.%Y.") if r.timestamp else "—",
                 document_date=pub.strftime("%d.%m.%Y.") if pub else None,
             )

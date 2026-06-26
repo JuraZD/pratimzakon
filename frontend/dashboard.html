@@ -1314,7 +1314,17 @@
       allMatches = await res.json();
       const list = document.getElementById('matches-body');
       if (!list) return;
-      document.getElementById('stat-week').textContent = allMatches.length || '0';
+      // Count matches logged this week (Mon–Sun) using matched_at timestamp
+      const _now = new Date();
+      const _dow = (_now.getDay() + 6) % 7;
+      const _weekStart = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate() - _dow);
+      _weekStart.setHours(0, 0, 0, 0);
+      const _weekCount = allMatches.filter(m => {
+        const p = (m.matched_at || '').split('.');
+        if (p.length >= 3) { const d = new Date(+p[2], +p[1]-1, +p[0]); return d >= _weekStart; }
+        return false;
+      }).length;
+      document.getElementById('stat-week').textContent = _weekCount || '0';
       document.getElementById('match-count').textContent = allMatches.length > 0 ? allMatches.length + ' ukupno' : '';
       document.getElementById('stat-last-match').textContent = allMatches.length > 0 ? (allMatches[0].matched_at || '').split(' ')[0] || '—' : '—';
       renderMatchesByKeyword(getFilteredMatches());
@@ -1372,13 +1382,14 @@
     html += '<div class="match-cards">';
     slice.forEach(m => {
       const pubDate = m.document_date || null;
+      const pubLabel = pubDate ? `NN objava: ${esc(pubDate)}` : (m.matched_at ? `Match: ${esc(m.matched_at)}` : 'NN objava: nepoznato');
       const type  = classifyMatch(m.document_title);
       html += `<div class="match-card" onclick="window.location='sazetak.html?id=${m.document_id}&kw=${encodeURIComponent(m.keyword)}'">
         <div class="match-card-accent ${accentMap[type]}"></div>
         <div class="match-card-inner">
           <span class="match-card-badge ${badgeMap[type]}">${labelMap[type]}</span>
           <div class="match-card-title" title="${esc(m.document_title)}">${esc(m.document_title)}</div>
-          <div class="match-card-pub">NN objava: ${pubDate ? esc(pubDate) : 'nepoznato'}</div>
+          <div class="match-card-pub">${pubLabel}</div>
           <div class="match-card-meta">
             <span class="match-card-kw">${esc(m.keyword)}</span>
             <span class="match-card-arrow">→</span>
@@ -1744,7 +1755,8 @@
       }
       start.setHours(0, 0, 0, 0);
       filtered = filtered.filter(m => {
-        const d = parseMatchDate(m.document_date);
+        // Prefer document publication date; fall back to match log timestamp
+        const d = parseMatchDate(m.document_date) || parseMatchDate(m.matched_at);
         return d && d >= start && d < end;
       });
     }
