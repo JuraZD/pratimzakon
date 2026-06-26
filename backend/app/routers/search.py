@@ -650,6 +650,7 @@ def deep_analysis(
 
     try:
         import anthropic as _anthropic
+        import json, re
         _client = _anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
         model = os.getenv("CLAUDE_MODEL", "claude-haiku-4-5-20251001")
         msg = _client.messages.create(
@@ -662,14 +663,16 @@ def deep_analysis(
             ),
             messages=[{"role": "user", "content": prompt}],
         )
-        import json
         raw = msg.content[0].text.strip()
-        # Ukloni eventualni markdown code block
-        if raw.startswith("```"):
-            raw = raw.split("```")[1]
-            if raw.startswith("json"):
-                raw = raw[4:]
-        data = json.loads(raw.strip())
+        logging.info(f"Deep analysis raw response (first 200 chars): {raw[:200]}")
+
+        # Izvuci JSON blok iz odgovora (robusno)
+        json_match = re.search(r'\{[\s\S]*\}', raw)
+        if not json_match:
+            logging.error(f"Deep analysis: nema JSON-a u odgovoru: {raw[:300]}")
+            raise ValueError("No JSON in response")
+        data = json.loads(json_match.group())
+
         return DeepAnalysisResponse(
             tko=data.get("tko", "—"),
             iznosi=data.get("iznosi", "—"),
@@ -678,5 +681,5 @@ def deep_analysis(
             source=source,
         )
     except Exception as e:
-        logging.error(f"Deep analysis Claude error: {e}")
-        raise HTTPException(status_code=500, detail="Greška pri generiranju analize.")
+        logging.error(f"Deep analysis error: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=500, detail=f"Greška pri generiranju analize: {type(e).__name__}")
