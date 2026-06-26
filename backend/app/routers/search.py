@@ -584,50 +584,50 @@ def deep_analysis(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """Dohvati puni tekst dokumenta s NN.hr i generiraj detaljnu analizu pomoću Claude-a."""
+    """Dohvati puni tekst dokumenta iz PDF-a i generiraj detaljnu analizu pomoću Claude Sonnet-a."""
+    import io
     doc = db.query(Document).filter(Document.id == document_id).first()
     if not doc:
         raise HTTPException(status_code=404, detail="Dokument nije pronađen.")
 
-    # Dohvati HTML tekst s NN.hr
+    # Ekstrakcija teksta iz PDF-a s NN.hr
     article_text = ""
     source = "title_only"
-    if doc.url:
+    pdf_url = doc.pdf_url or (doc.url.replace(".html", ".pdf") if doc.url and doc.url.endswith(".html") else None)
+    if pdf_url:
         try:
             import requests
-            from bs4 import BeautifulSoup
-            resp = requests.get(doc.url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
+            import pypdf
+            resp = requests.get(pdf_url, timeout=15, headers={"User-Agent": "Mozilla/5.0"}, stream=True)
             if resp.status_code == 200:
-                soup = BeautifulSoup(resp.text, "html.parser")
-                # NN.hr struktura: članci su u <div class="article-body"> ili <div id="nn-article">
-                article_div = (
-                    soup.find("div", class_="article-body")
-                    or soup.find("div", id="nn-article")
-                    or soup.find("div", class_="nn-article")
-                    or soup.find("article")
-                    or soup.find("div", class_="content")
-                )
-                if article_div:
-                    article_text = article_div.get_text(separator="\n", strip=True)
+                pdf_bytes = io.BytesIO(resp.content)
+                reader = pypdf.PdfReader(pdf_bytes)
+                pages_text = []
+                for page in reader.pages:
+                    t = page.extract_text() or ""
+                    pages_text.append(t)
+                    if sum(len(p) for p in pages_text) > 8000:
+                        break
+                article_text = "\n".join(pages_text).strip()
+                # Ograniči na ~8000 znakova
+                article_text = article_text[:8000]
+                if len(article_text) > 200:
+                    source = "pdf"
+                    logging.info(f"Deep analysis: izvučeno {len(article_text)} znakova iz PDF-a {pdf_url}")
                 else:
-                    # Fallback: cijeli <body> bez navigacije
-                    for tag in soup(["nav", "header", "footer", "script", "style"]):
-                        tag.decompose()
-                    article_text = soup.get_text(separator="\n", strip=True)
-                # Ograniči na ~6000 znakova da ne prelazimo token limite
-                article_text = article_text[:6000]
-                if len(article_text) > 100:
-                    source = "html"
+                    logging.warning(f"Deep analysis: PDF prazan ili nečitljiv: {pdf_url}")
+            else:
+                logging.warning(f"Deep analysis: PDF status {resp.status_code}: {pdf_url}")
         except Exception as e:
-            logging.warning(f"Deep analysis: ne mogu dohvatiti {doc.url}: {e}")
+            logging.warning(f"Deep analysis: greška pri dohvatu PDF-a {pdf_url}: {e}")
 
     # Sagradi prompt
     situation = getattr(current_user, "situation", "") or ""
     kw_context = f"\nKorisnik je pronašao ovaj dokument po ključnoj riječi: {keyword}." if keyword else ""
     sit_context = f"\nKorisnikova situacija: {situation}" if situation else ""
 
-    if source == "html":
-        content_block = f"PUNI TEKST PROPISA:\n{article_text}"
+    if source == "pdf":
+        content_block = f"PUNI TEKST PROPISA (iz PDF-a):\n{article_text}"
     else:
         content_block = (
             f"Puni tekst nije dostupan. Analiziraj na temelju naslova i metapodataka.\n"
@@ -652,10 +652,9 @@ def deep_analysis(
         import anthropic as _anthropic
         import json, re
         _client = _anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-        model = os.getenv("CLAUDE_MODEL", "claude-haiku-4-5-20251001")
         msg = _client.messages.create(
-            model=model,
-            max_tokens=800,
+            model="claude-sonnet-4-6",
+            max_tokens=1200,
             system=(
                 "Ti si hrvatski pravni stručnjak. Odgovaraš isključivo u JSON formatu. "
                 "Bez markdown, bez koda, samo čisti JSON objekt. "
