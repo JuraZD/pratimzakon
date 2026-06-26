@@ -9,6 +9,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from sqlalchemy import or_, func
+import logging
+import os
 
 from ..database import get_db
 from ..models import Document, User, Log
@@ -563,3 +565,118 @@ def save_note(
         ))
     db.commit()
     return {"text": text}
+
+
+# ── DUBOKA ANALIZA ─────────────────────────────────────────────────────────────
+
+class DeepAnalysisResponse(BaseModel):
+    tko: str
+    iznosi: str
+    rokovi: str
+    paziti: str
+    source: str  # "html" | "title_only"
+
+
+@router.get("/document/{document_id}/deep-analysis", response_model=DeepAnalysisResponse)
+def deep_analysis(
+    document_id: int,
+    keyword: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Dohvati puni tekst dokumenta s NN.hr i generiraj detaljnu analizu pomoću Claude-a."""
+    doc = db.query(Document).filter(Document.id == document_id).first()
+    if not doc:
+        raise HTTPException(status_code=404, detail="Dokument nije pronađen.")
+
+    # Dohvati HTML tekst s NN.hr
+    article_text = ""
+    source = "title_only"
+    if doc.url:
+        try:
+            import requests
+            from bs4 import BeautifulSoup
+            resp = requests.get(doc.url, timeout=10, headers={"User-Agent": "Mozilla/5.0"})
+            if resp.status_code == 200:
+                soup = BeautifulSoup(resp.text, "html.parser")
+                # NN.hr struktura: članci su u <div class="article-body"> ili <div id="nn-article">
+                article_div = (
+                    soup.find("div", class_="article-body")
+                    or soup.find("div", id="nn-article")
+                    or soup.find("div", class_="nn-article")
+                    or soup.find("article")
+                    or soup.find("div", class_="content")
+                )
+                if article_div:
+                    article_text = article_div.get_text(separator="\n", strip=True)
+                else:
+                    # Fallback: cijeli <body> bez navigacije
+                    for tag in soup(["nav", "header", "footer", "script", "style"]):
+                        tag.decompose()
+                    article_text = soup.get_text(separator="\n", strip=True)
+                # Ograniči na ~6000 znakova da ne prelazimo token limite
+                article_text = article_text[:6000]
+                if len(article_text) > 100:
+                    source = "html"
+        except Exception as e:
+            logging.warning(f"Deep analysis: ne mogu dohvatiti {doc.url}: {e}")
+
+    # Sagradi prompt
+    situation = getattr(current_user, "situation", "") or ""
+    kw_context = f"\nKorisnik je pronašao ovaj dokument po ključnoj riječi: {keyword}." if keyword else ""
+    sit_context = f"\nKorisnikova situacija: {situation}" if situation else ""
+
+    if source == "html":
+        content_block = f"PUNI TEKST PROPISA:\n{article_text}"
+    else:
+        content_block = (
+            f"Puni tekst nije dostupan. Analiziraj na temelju naslova i metapodataka.\n"
+            f"Naslov: {doc.title}\n"
+            f"Tip: {doc.type or '—'}\n"
+            f"Institucija: {doc.institution or '—'}"
+        )
+
+    prompt = (
+        f"Analiziraj sljedeći propis iz Narodnih novina.{kw_context}{sit_context}\n\n"
+        f"{content_block}\n\n"
+        "Odgovori ISKLJUČIVO u ovom JSON formatu (bez ikakvih objašnjenja izvan JSON-a):\n"
+        "{\n"
+        '  "tko": "Tko može koristiti ili na koga se odnosi propis (2-3 rečenice)",\n'
+        '  "iznosi": "Konkretni iznosi, postoci, limiti potpore ili financijske stavke (2-3 rečenice; ako nema, napiši \\"Nije primjenjivo.\\")",\n'
+        '  "rokovi": "Rokovi, datumi, procedure prijave i nadležne institucije (2-3 rečenice)",\n'
+        '  "paziti": "Najvažnije obveze, zabrane ili sankcije na koje treba paziti (2-3 rečenice)"\n'
+        "}"
+    )
+
+    try:
+        import anthropic as _anthropic
+        _client = _anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
+        model = os.getenv("CLAUDE_MODEL", "claude-haiku-4-5-20251001")
+        msg = _client.messages.create(
+            model=model,
+            max_tokens=800,
+            system=(
+                "Ti si hrvatski pravni stručnjak. Odgovaraš isključivo u JSON formatu. "
+                "Bez markdown, bez koda, samo čisti JSON objekt. "
+                "Piši na jednostavnom, razumljivom hrvatskom jeziku bez pravnog žargona."
+            ),
+            messages=[{"role": "user", "content": prompt}],
+        )
+        import json
+        raw = msg.content[0].text.strip()
+        # Ukloni eventualni markdown code block
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+        data = json.loads(raw.strip())
+        return DeepAnalysisResponse(
+            tko=data.get("tko", "—"),
+            iznosi=data.get("iznosi", "—"),
+            rokovi=data.get("rokovi", "—"),
+            paziti=data.get("paziti", "—"),
+            source=source,
+        )
+    except Exception as e:
+        logging.error(f"Deep analysis Claude error: {e}")
+        raise HTTPException(status_code=500, detail="Greška pri generiranju analize.")
