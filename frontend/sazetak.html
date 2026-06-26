@@ -753,7 +753,7 @@
       if (!res.ok) throw new Error(res.status);
       const d = await res.json();
 
-      const srcLabel = d.source === 'html' ? 'puni tekst' : 'naslov i metapodaci';
+      const srcLabel = d.source === 'pdf' ? 'puni tekst (PDF)' : 'naslov i metapodaci';
       content.innerHTML = `
         <div class="deep-result">
           <div class="deep-result-head">
