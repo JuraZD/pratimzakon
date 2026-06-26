@@ -1763,6 +1763,12 @@
     if (_typeFilter) {
       filtered = filtered.filter(m => classifyMatch(m.document_title) === _typeFilter);
     }
+    // Sortiraj od najnovijeg — preferiraj document_date, fallback na matched_at
+    filtered = filtered.slice().sort((a, b) => {
+      const da = parseMatchDate(a.document_date) || parseMatchDate(a.matched_at) || new Date(0);
+      const db_ = parseMatchDate(b.document_date) || parseMatchDate(b.matched_at) || new Date(0);
+      return db_ - da;
+    });
     return filtered;
   }
 
